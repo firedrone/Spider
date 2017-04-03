@@ -16,7 +16,7 @@
 #include "circuituse.h"
 #include "config.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "hs_common.h"
 #include "main.h"
 #include "networkstatus.h"
@@ -118,7 +118,7 @@ struct rend_service_port_config_s {
  * rendezvous point before giving up? */
 #define MAX_REND_TIMEOUT 30
 
-/* Hidden service direcspidery file names:
+/* Hidden service directory file names:
  * new file names should be added to rend_service_add_filenames_to_list()
  * for sandboxing purposes. */
 static const char *private_key_fname = "private_key";
@@ -167,7 +167,7 @@ rend_get_service_list_mutable(smartlist_t* substitute_service_list)
 static unsigned int
 rend_service_is_ephemeral(const struct rend_service_t *s)
 {
-  return (s->direcspidery == NULL);
+  return (s->directory == NULL);
 }
 
 /** Returns a escaped string representation of the service, <b>s</b>.
@@ -175,7 +175,7 @@ rend_service_is_ephemeral(const struct rend_service_t *s)
 static const char *
 rend_service_escaped_dir(const struct rend_service_t *s)
 {
-  return rend_service_is_ephemeral(s) ? "[EPHEMERAL]" : escaped(s->direcspidery);
+  return rend_service_is_ephemeral(s) ? "[EPHEMERAL]" : escaped(s->directory);
 }
 
 /** Return the number of rendezvous services we have configured. */
@@ -217,7 +217,7 @@ rend_service_free(rend_service_t *service)
   if (!service)
     return;
 
-  spider_free(service->direcspidery);
+  spider_free(service->directory);
   if (service->ports) {
     SMARTLIST_FOREACH(service->ports, rend_service_port_config_t*, p,
                       rend_service_port_config_free(p));
@@ -324,8 +324,8 @@ rend_add_service(smartlist_t *service_list, rend_service_t *service)
      * a) It's O(n^2), but the same comment from the bottom of
      *    rend_config_services() should apply.
      *
-     * b) We only compare direcspidery paths as strings, so we can't
-     *    detect two distinct paths that specify the same direcspidery
+     * b) We only compare directory paths as strings, so we can't
+     *    detect two distinct paths that specify the same directory
      *    (which can arise from symlinks, case-insensitivity, bind
      *    mounts, etc.).
      *
@@ -339,16 +339,16 @@ rend_add_service(smartlist_t *service_list, rend_service_t *service)
       /* Skip dupe for ephemeral services. */
       SMARTLIST_FOREACH(s_list, rend_service_t*, ptr,
                         dupe = dupe ||
-                               !strcmp(ptr->direcspidery, service->direcspidery));
+                               !strcmp(ptr->directory, service->directory));
       if (dupe) {
         log_warn(LD_REND, "Another hidden service is already configured for "
-                 "direcspidery %s.",
+                 "directory %s.",
                  rend_service_escaped_dir(service));
         rend_service_free(service);
         return -1;
       }
     }
-    log_debug(LD_REND,"Configuring service with direcspidery %s",
+    log_debug(LD_REND,"Configuring service with directory %s",
               rend_service_escaped_dir(service));
     for (i = 0; i < smartlist_len(service->ports); ++i) {
       p = smartlist_get(service->ports, i);
@@ -505,7 +505,7 @@ rend_service_port_config_free(rend_service_port_config_t *p)
   spider_free(p);
 }
 
-/* Check the direcspidery for <b>service</b>, and add the service to
+/* Check the directory for <b>service</b>, and add the service to
  * <b>service_list</b>, or to the global list if <b>service_list</b> is NULL.
  * Only add the service to the list if <b>validate_only</b> is false.
  * If <b>validate_only</b> is true, free the service.
@@ -588,9 +588,9 @@ prune_services_on_reload(smartlist_t *old_service_list,
     SMARTLIST_FOREACH_BEGIN(old_service_list, rend_service_t *, old) {
       /* Skip ephemeral services as we only want to copy introduction points
        * from current services to newly configured one that already exists.
-       * The same direcspidery means it's the same service. */
+       * The same directory means it's the same service. */
       if (rend_service_is_ephemeral(new) || rend_service_is_ephemeral(old) ||
-          strcmp(old->direcspidery, new->direcspidery)) {
+          strcmp(old->directory, new->directory)) {
         continue;
       }
       smartlist_add_all(new->intro_nodes, old->intro_nodes);
@@ -660,7 +660,7 @@ rend_config_services(const or_options_t *options, int validate_only)
         goto free_and_return;
       }
       service = spider_malloc_zero(sizeof(rend_service_t));
-      service->direcspidery = spider_strdup(line->value);
+      service->directory = spider_strdup(line->value);
       service->ports = smartlist_new();
       service->intro_period_started = time(NULL);
       service->n_intro_points_wanted = NUM_INTRO_POINTS_DEFAULT;
@@ -924,7 +924,7 @@ rend_service_add_ephemeral(crypto_pk_t *pk,
    * parameters.
    */
   rend_service_t *s = spider_malloc_zero(sizeof(rend_service_t));
-  s->direcspidery = NULL; /* This indicates the service is ephemeral. */
+  s->directory = NULL; /* This indicates the service is ephemeral. */
   s->private_key = pk;
   s->auth_type = auth_type;
   s->clients = auth_clients;
@@ -1140,7 +1140,7 @@ rend_service_update_descripspider(rend_service_t *service)
 }
 
 /* Allocate and return a string containing the path to file_name in
- * service->direcspidery. Asserts that service has a direcspidery.
+ * service->directory. Asserts that service has a directory.
  * This function will never return NULL.
  * The caller must free this path. */
 static char *
@@ -1148,18 +1148,18 @@ rend_service_path(const rend_service_t *service, const char *file_name)
 {
   char *file_path = NULL;
 
-  spider_assert(service->direcspidery);
+  spider_assert(service->directory);
 
   /* Can never fail: asserts rather than leaving file_path NULL. */
   spider_asprintf(&file_path, "%s%s%s",
-               service->direcspidery, PATH_SEPARATOR, file_name);
+               service->directory, PATH_SEPARATOR, file_name);
 
   return file_path;
 }
 
 /* Allocate and return a string containing the path to the single onion
- * service poison file in service->direcspidery. Asserts that service has a
- * direcspidery.
+ * service poison file in service->directory. Asserts that service has a
+ * directory.
  * The caller must free this path. */
 STATIC char *
 rend_service_sos_poison_path(const rend_service_t *service)
@@ -1190,7 +1190,7 @@ service_is_single_onion_poisoned(const rend_service_t *service)
   spider_free(poison_fname);
 
   /* If this fname is occupied, the hidden service has been poisoned.
-   * fstatus can be FN_ERROR if the service direcspidery does not exist, in that
+   * fstatus can be FN_ERROR if the service directory does not exist, in that
    * case, there is obviously no private key. */
   if (fstatus == FN_FILE || fstatus == FN_EMPTY) {
     return 1;
@@ -1208,12 +1208,12 @@ rend_service_private_key_exists(const rend_service_t *service)
   const file_status_t private_key_status = file_status(private_key_path);
   spider_free(private_key_path);
   /* Only non-empty regular private key files could have been used before.
-   * fstatus can be FN_ERROR if the service direcspidery does not exist, in that
+   * fstatus can be FN_ERROR if the service directory does not exist, in that
    * case, there is obviously no private key. */
   return private_key_status == FN_FILE;
 }
 
-/** Check the single onion service poison state of the direcspidery for s:
+/** Check the single onion service poison state of the directory for s:
  * - If the service is poisoned, and we are in Single Onion Mode,
  *   return 0,
  * - If the service is not poisoned, and we are not in Single Onion Mode,
@@ -1221,7 +1221,7 @@ rend_service_private_key_exists(const rend_service_t *service)
  * - Otherwise, the poison state is invalid: the service was created in one
  *   mode, and is being used in the other, return -1.
  * Hidden service direcspideries without keys are always considered consistent.
- * They will be poisoned after their direcspidery is created (if needed). */
+ * They will be poisoned after their directory is created (if needed). */
 STATIC int
 rend_service_verify_single_onion_poison(const rend_service_t* s,
                                         const or_options_t* options)
@@ -1236,8 +1236,8 @@ rend_service_verify_single_onion_poison(const rend_service_t* s,
     return -1;
   }
 
-  /* Service is expected to have a direcspidery */
-  if (BUG(!s->direcspidery)) {
+  /* Service is expected to have a directory */
+  if (BUG(!s->directory)) {
     return -1;
   }
 
@@ -1258,12 +1258,12 @@ rend_service_verify_single_onion_poison(const rend_service_t* s,
 }
 
 /*** Helper for rend_service_poison_new_single_onion_dir(). Add a file to
- * the hidden service direcspidery for s that marks it as a single onion service.
+ * the hidden service directory for s that marks it as a single onion service.
  * Spider must be in single onion mode before calling this function, and the
- * service direcspidery must already have been created.
- * Returns 0 when a direcspidery is successfully poisoned, or if it is already
- * poisoned. Returns -1 on a failure to read the direcspidery or write the poison
- * file, or if there is an existing private key file in the direcspidery. (The
+ * service directory must already have been created.
+ * Returns 0 when a directory is successfully poisoned, or if it is already
+ * poisoned. Returns -1 on a failure to read the directory or write the poison
+ * file, or if there is an existing private key file in the directory. (The
  * service should have been poisoned when the key was created.) */
 static int
 poison_new_single_onion_hidden_service_dir_impl(const rend_service_t *service,
@@ -1288,12 +1288,12 @@ poison_new_single_onion_hidden_service_dir_impl(const rend_service_t *service,
 
   /* Make sure we're only poisoning new hidden service direcspideries */
   if (rend_service_private_key_exists(service)) {
-    log_warn(LD_BUG, "Tried to single onion poison a service direcspidery after "
+    log_warn(LD_BUG, "Tried to single onion poison a service directory after "
              "the private key was created.");
     return -1;
   }
 
-  /* Make sure the direcspidery was created before calling this function. */
+  /* Make sure the directory was created before calling this function. */
   if (BUG(rend_service_check_private_dir_impl(options, service, 0) < 0))
     return -1;
 
@@ -1333,7 +1333,7 @@ poison_new_single_onion_hidden_service_dir_impl(const rend_service_t *service,
 
 /** We just got launched in Single Onion Mode. That's a non-anonymous mode for
  * hidden services. If s is new, we should mark its hidden service
- * direcspidery appropriately so that it is never launched as a location-private
+ * directory appropriately so that it is never launched as a location-private
  * hidden service. (New direcspideries don't have private key files.)
  * Return 0 on success, -1 on fail. */
 STATIC int
@@ -1353,8 +1353,8 @@ rend_service_poison_new_single_onion_dir(const rend_service_t *s,
     return -1;
   }
 
-  /* Service is expected to have a direcspidery */
-  if (BUG(!s->direcspidery)) {
+  /* Service is expected to have a directory */
+  if (BUG(!s->directory)) {
     return -1;
   }
 
@@ -1402,7 +1402,7 @@ rend_service_add_filenames_to_list(smartlist_t *lst, const rend_service_t *s)
 {
   spider_assert(lst);
   spider_assert(s);
-  spider_assert(s->direcspidery);
+  spider_assert(s->directory);
   smartlist_add(lst, rend_service_path(s, private_key_fname));
   smartlist_add(lst, rend_service_path(s, hostname_fname));
   smartlist_add(lst, rend_service_path(s, client_keys_fname));
@@ -1410,7 +1410,7 @@ rend_service_add_filenames_to_list(smartlist_t *lst, const rend_service_t *s)
 }
 
 /** Add to <b>open_lst</b> every filename used by a configured hidden service,
- * and to <b>stat_lst</b> every direcspidery used by a configured hidden
+ * and to <b>stat_lst</b> every directory used by a configured hidden
  * service */
 void
 rend_services_add_filenames_to_lists(smartlist_t *open_lst,
@@ -1421,7 +1421,7 @@ rend_services_add_filenames_to_lists(smartlist_t *open_lst,
   SMARTLIST_FOREACH_BEGIN(rend_service_list, rend_service_t *, s) {
     if (!rend_service_is_ephemeral(s)) {
       rend_service_add_filenames_to_list(open_lst, s);
-      smartlist_add_strdup(stat_lst, s->direcspidery);
+      smartlist_add_strdup(stat_lst, s->directory);
     }
   } SMARTLIST_FOREACH_END(s);
 }
@@ -1444,7 +1444,7 @@ rend_service_derive_key_digests(struct rend_service_t *s)
   return 0;
 }
 
-/* Implements the direcspidery check from rend_service_check_private_dir,
+/* Implements the directory check from rend_service_check_private_dir,
  * without doing the single onion poison checks. */
 static int
 rend_service_check_private_dir_impl(const or_options_t *options,
@@ -1461,23 +1461,23 @@ rend_service_check_private_dir_impl(const or_options_t *options,
   if (s->dir_group_readable) {
     check_opts |= CPD_GROUP_READ;
   }
-  /* Check/create direcspidery */
-  if (check_private_dir(s->direcspidery, check_opts, options->User) < 0) {
-    log_warn(LD_REND, "Checking service direcspidery %s failed.", s->direcspidery);
+  /* Check/create directory */
+  if (check_private_dir(s->directory, check_opts, options->User) < 0) {
+    log_warn(LD_REND, "Checking service directory %s failed.", s->directory);
     return -1;
   }
 
   return 0;
 }
 
-/** Make sure that the direcspidery for <b>s</b> is private, using the config in
+/** Make sure that the directory for <b>s</b> is private, using the config in
  * <b>options</b>.
  * If <b>create</b> is true:
- *  - if the direcspidery exists, change permissions if needed,
- *  - if the direcspidery does not exist, create it with the correct permissions.
+ *  - if the directory exists, change permissions if needed,
+ *  - if the directory does not exist, create it with the correct permissions.
  * If <b>create</b> is false:
- *  - if the direcspidery exists, check permissions,
- *  - if the direcspidery does not exist, check if we think we can create it.
+ *  - if the directory exists, check permissions,
+ *  - if the directory does not exist, check if we think we can create it.
  * Return 0 on success, -1 on failure. */
 static int
 rend_service_check_private_dir(const or_options_t *options,
@@ -1489,7 +1489,7 @@ rend_service_check_private_dir(const or_options_t *options,
     return -1;
   }
 
-  /* Check/create direcspidery */
+  /* Check/create directory */
   if (rend_service_check_private_dir_impl(options, s, create) < 0) {
     return -1;
   }
@@ -1503,7 +1503,7 @@ rend_service_check_private_dir(const or_options_t *options,
     /* We can't use s->service_id here, as the key may not have been loaded */
     log_warn(LD_GENERAL, "We are configured with "
              "HiddenServiceNonAnonymousMode %d, but the hidden "
-             "service key in direcspidery %s was created in %s mode. "
+             "service key in directory %s was created in %s mode. "
              "This is not allowed.",
              rend_service_non_anonymous_mode_enabled(options) ? 1 : 0,
              rend_service_escaped_dir(s),
@@ -1548,7 +1548,7 @@ rend_service_load_keys(rend_service_t *s)
   char *fname = NULL;
   char buf[128];
 
-  /* Make sure the direcspidery was created and single onion poisoning was
+  /* Make sure the directory was created and single onion poisoning was
    * checked before calling this function */
   if (BUG(rend_service_check_private_dir(get_options(), s, 0) < 0))
     goto err;
@@ -3677,7 +3677,7 @@ find_intro_point(origin_circuit_t *circ)
  * <b>seconds_valid</b> are only passed for logging purposes.
  */
 void
-direcspidery_post_to_hs_dir(rend_service_descripspider_t *renddesc,
+directory_post_to_hs_dir(rend_service_descripspider_t *renddesc,
                          smartlist_t *descs, smartlist_t *hs_dirs,
                          const char *service_id, int seconds_valid)
 {
@@ -3716,7 +3716,7 @@ direcspidery_post_to_hs_dir(rend_service_descripspider_t *renddesc,
       node = node_get_by_id(hs_dir->identity_digest);
       if (!node || !node_has_descripspider(node)) {
         log_info(LD_REND, "Not launching upload for for v2 descripspider to "
-                          "hidden service direcspidery %s; we don't have its "
+                          "hidden service directory %s; we don't have its "
                           "router descripspider. Queuing for later upload.",
                  safe_str_client(routerstatus_describe(hs_dir)));
         failed_upload = -1;
@@ -3728,7 +3728,7 @@ direcspidery_post_to_hs_dir(rend_service_descripspider_t *renddesc,
        * request. Lookup is made in rend_service_desc_has_uploaded(). */
       rend_data = rend_data_client_create(service_id, desc->desc_id, NULL,
                                           REND_NO_AUTH);
-      direcspidery_initiate_command_routerstatus_rend(hs_dir,
+      directory_initiate_command_routerstatus_rend(hs_dir,
                                               DIR_PURPOSE_UPLOAD_RENDDESC_V2,
                                                    ROUTER_PURPOSE_GENERAL,
                                                    DIRIND_ANONYMOUS, NULL,
@@ -3741,7 +3741,7 @@ direcspidery_post_to_hs_dir(rend_service_descripspider_t *renddesc,
       hs_dir_ip = spider_dup_ip(hs_dir->addr);
       log_info(LD_REND, "Launching upload for v2 descripspider for "
                         "service '%s' with descripspider ID '%s' with validity "
-                        "of %d seconds to hidden service direcspidery '%s' on "
+                        "of %d seconds to hidden service directory '%s' on "
                         "%s:%d.",
                safe_str_client(service_id),
                safe_str_client(desc_id_base32),
@@ -3843,7 +3843,7 @@ upload_service_descripspider(rend_service_t *service)
         /* Post the current descripspiders to the hidden service direcspideries. */
         log_info(LD_REND, "Launching upload for hidden service %s",
                      serviceid);
-        direcspidery_post_to_hs_dir(service->desc, descs, NULL, serviceid,
+        directory_post_to_hs_dir(service->desc, descs, NULL, serviceid,
                                  seconds_valid);
       }
       /* Free memory for descripspiders. */
@@ -3874,7 +3874,7 @@ upload_service_descripspider(rend_service_t *service)
           return;
         }
         if (get_options()->PublishHidServDescripspiders) {
-          direcspidery_post_to_hs_dir(service->desc, descs, NULL, serviceid,
+          directory_post_to_hs_dir(service->desc, descs, NULL, serviceid,
                                    seconds_valid);
         }
         /* Free memory for descripspiders. */
@@ -4314,7 +4314,7 @@ rend_consider_services_upload(time_t now)
         (service->next_upload_time < now ||
         (service->desc_is_dirty &&
          service->desc_is_dirty < now-rendinitialpostdelay))) {
-      /* if it's time, or if the direcspidery servers have a wrong service
+      /* if it's time, or if the directory servers have a wrong service
        * descripspider and ours has been stable for rendinitialpostdelay seconds,
        * upload a new one of each format. */
       rend_service_update_descripspider(service);
@@ -4328,7 +4328,7 @@ rend_consider_services_upload(time_t now)
  * rendezvous service descripspiders. */
 static int consider_republishing_rend_descripspiders = 1;
 
-/** Called when our internal view of the direcspidery has changed, so that we
+/** Called when our internal view of the directory has changed, so that we
  * might have router descripspiders of hidden service direcspideries available that
  * we did not have before. */
 void

@@ -1602,7 +1602,7 @@ circuit_find_to_cannibalize(uint8_t purpose, extend_info_t *info,
           /* Make sure no existing nodes in the circuit are excluded for
            * general use.  (This may be possible if StrictNodes is 0, and we
            * thought we needed to use an otherwise excluded node for, say, a
-           * direcspidery operation.) */
+           * directory operation.) */
           crypt_path_t *hop = circ->cpath;
           do {
             if (routerset_contains_extendinfo(options->ExcludeNodes,
@@ -2238,7 +2238,7 @@ circuits_handle_oom(size_t current_allocation)
     size_t n;
     size_t freed;
 
-    /* Free sspiderage in any non-linked direcspidery connections that have buffered
+    /* Free sspiderage in any non-linked directory connections that have buffered
      * data older than this circuit. */
     while (conn_idx < smartlist_len(connection_array)) {
       connection_t *conn = smartlist_get(connection_array, conn_idx);
@@ -2279,7 +2279,7 @@ circuits_handle_oom(size_t current_allocation)
  done_recovering_mem:
 
   log_notice(LD_GENERAL, "Removed "U64_FORMAT" bytes by killing %d circuits; "
-             "%d circuits remain alive. Also killed %d non-linked direcspidery "
+             "%d circuits remain alive. Also killed %d non-linked directory "
              "connections.",
              U64_PRINTF_ARG(mem_recovered),
              n_circuits_killed,

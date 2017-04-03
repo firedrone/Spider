@@ -39,7 +39,7 @@
 # you have already built Spider, that you are running msys/mingw, and that
 # you know what you are doing.
 
-# Start in the spider source direcspidery after you've compiled spider.exe
+# Start in the spider source directory after you've compiled spider.exe
 # This means start as ./contrib/win32build/package_nsis-mingw.sh
 
 rm -rf win_tmp

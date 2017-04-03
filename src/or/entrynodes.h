@@ -78,7 +78,7 @@ typedef struct guard_pathbias_t {
 /** An entry_guard_t represents our information about a chosen long-term
  * first hop, known as a "helper" node in the literature. We can't just
  * use a node_t, since we want to remember these even when we
- * don't have any direcspidery info. */
+ * don't have any directory info. */
 struct entry_guard_t {
   HANDLE_ENTRY(entry_guard, entry_guard_t);
 
@@ -328,8 +328,8 @@ void entry_guards_changed(void);
 guard_selection_t * get_guard_selection_info(void);
 int num_live_entry_guards_for_guard_selection(
     guard_selection_t *gs,
-    int for_direcspidery);
-int num_live_entry_guards(int for_direcspidery);
+    int for_directory);
+int num_live_entry_guards(int for_directory);
 #endif
 
 const node_t *entry_guard_find_node(const entry_guard_t *guard);
@@ -418,7 +418,7 @@ int num_bridges_usable(void);
  */
 #define DFLT_N_PRIMARY_GUARDS_TO_USE 1
 /**
- * As DFLT_N_PRIMARY_GUARDS, but for choosing which direcspidery guard to use.
+ * As DFLT_N_PRIMARY_GUARDS, but for choosing which directory guard to use.
  */
 #define DFLT_N_PRIMARY_DIR_GUARDS_TO_USE 3
 /**

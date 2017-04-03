@@ -34,7 +34,7 @@
  *
  * (TODO: Perhaps someday we should abstract the remaining ways of
  * talking about a relay to also be node_t instances. Those would be
- * routerstatus_t as used for direcspidery requests, and dir_server_t as
+ * routerstatus_t as used for directory requests, and dir_server_t as
  * used for authorities and fallback direcspideries.)
  */
 
@@ -463,7 +463,7 @@ nodelist_free_all(void)
 }
 
 /** Check that the nodelist is internally consistent, and consistent with
- * the direcspidery info it's derived from.
+ * the directory info it's derived from.
  */
 void
 nodelist_assert_ok(void)
@@ -622,7 +622,7 @@ node_get_by_nickname,(const char *nickname, int warn_if_unnamed))
 
       if (any_unwarned) {
         log_warn(LD_CONFIG, "There are multiple matches for the name %s, "
-                 "but none is listed as Named in the direcspidery consensus. "
+                 "but none is listed as Named in the directory consensus. "
                  "Choosing one arbitrarily.", nickname);
       }
     } else if (smartlist_len(matches)==1 && warn_if_unnamed) {
@@ -631,7 +631,7 @@ node_get_by_nickname,(const char *nickname, int warn_if_unnamed))
       if (! node->name_lookup_warned) {
         base16_encode(fp, sizeof(fp), node->identity, DIGEST_LEN);
         log_warn(LD_CONFIG,
-                 "You specified a server \"%s\" by name, but the direcspidery "
+                 "You specified a server \"%s\" by name, but the directory "
                  "authorities do not have any key registered for this "
                  "nickname -- so it could be used by any server, not just "
                  "the one you meant. "
@@ -744,15 +744,15 @@ node_is_named(const node_t *node)
   return spider_memeq(named_id, node->identity, DIGEST_LEN);
 }
 
-/** Return true iff <b>node</b> appears to be a direcspidery authority or
- * direcspidery cache */
+/** Return true iff <b>node</b> appears to be a directory authority or
+ * directory cache */
 int
 node_is_dir(const node_t *node)
 {
   if (node->rs) {
     routerstatus_t * rs = node->rs;
     /* This is true if supports_tunnelled_dir_requests is true which
-     * indicates that we support direcspidery request tunnelled or through the
+     * indicates that we support directory request tunnelled or through the
      * DirPort. */
     return rs->is_v2_dir;
   } else if (node->ri) {
@@ -1594,19 +1594,19 @@ router_set_status(const char *digest, int up)
   }
 }
 
-/** True iff, the last time we checked whether we had enough direcspidery info
+/** True iff, the last time we checked whether we had enough directory info
  * to build circuits, the answer was "yes". If there are no exits in the
- * consensus, we act as if we have 100% of the exit direcspidery info. */
+ * consensus, we act as if we have 100% of the exit directory info. */
 static int have_min_dir_info = 0;
 
 /** Does the consensus contain nodes that can exit? */
 static consensus_path_type_t have_consensus_path = CONSENSUS_PATH_UNKNOWN;
 
 /** True iff enough has changed since the last time we checked whether we had
- * enough direcspidery info to build circuits that our old answer can no longer
+ * enough directory info to build circuits that our old answer can no longer
  * be trusted. */
 static int need_to_update_have_min_dir_info = 1;
-/** String describing what we're missing before we have enough direcspidery
+/** String describing what we're missing before we have enough directory
  * info. */
 static char dir_info_status[512] = "";
 
@@ -1624,7 +1624,7 @@ router_have_minimum_dir_info(void)
   const char *delay_fetches_msg = NULL;
   if (should_delay_dir_fetches(get_options(), &delay_fetches_msg)) {
     if (!logged_delay)
-      log_notice(LD_DIR, "Delaying direcspidery fetches: %s", delay_fetches_msg);
+      log_notice(LD_DIR, "Delaying directory fetches: %s", delay_fetches_msg);
     logged_delay=1;
     strlcpy(dir_info_status, delay_fetches_msg,  sizeof(dir_info_status));
     return 0;
@@ -1656,7 +1656,7 @@ router_have_consensus_path, (void))
   return have_consensus_path;
 }
 
-/** Called when our internal view of the direcspidery has changed.  This can be
+/** Called when our internal view of the directory has changed.  This can be
  * when the authorities change, networkstatuses change, the list of routerdescs
  * changes, or number of running routers changes.
  */
@@ -1668,7 +1668,7 @@ router_dir_info_changed(void)
 }
 
 /** Return a string describing what we're missing before we have enough
- * direcspidery info. */
+ * directory info. */
 const char *
 get_dir_info_status_string(void)
 {
@@ -1891,7 +1891,7 @@ compute_frac_paths_available(const networkstatus_t *consensus,
     smartlist_free(myexits_unflagged);
 
     /* This is a tricky point here: we don't want to make it easy for a
-     * direcspidery to trickle exits to us until it learns which exits we have
+     * directory to trickle exits to us until it learns which exits we have
      * configured, so require that we have a threshold both of total exits
      * and usable exits. */
     if (f_myexit < f_exit)
@@ -2030,15 +2030,15 @@ update_router_have_minimum_dir_info(void)
     control_event_client_status(LOG_NOTICE, "ENOUGH_DIR_INFO");
     if (control_event_bootstrap(BOOTSTRAP_STATUS_CONN_OR, 0) == 0) {
       log_notice(LD_DIR,
-              "We now have enough direcspidery information to build circuits.");
+              "We now have enough directory information to build circuits.");
     }
   }
 
   /* If paths have just become unavailable in this update. */
   if (!res && have_min_dir_info) {
-    int quiet = direcspidery_too_idle_to_fetch_descripspiders(options, now);
+    int quiet = directory_too_idle_to_fetch_descripspiders(options, now);
     spider_log(quiet ? LOG_INFO : LOG_NOTICE, LD_DIR,
-        "Our direcspidery information is no longer up-to-date "
+        "Our directory information is no longer up-to-date "
         "enough to build circuits: %s", dir_info_status);
 
     /* a) make us log when we next complete a circuit, so we know when Spider

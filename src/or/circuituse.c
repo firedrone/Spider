@@ -1471,11 +1471,11 @@ circuit_expire_old_circuits_clientside(void)
  * since these circs are used for begindir, and a) generally you either
  * ask another begindir question right after or you don't for a long time,
  * b) clients at least through 0.2.1.x choose from the whole set of
- * direcspidery mirrors at each choice, and c) re-establishing a one-hop
+ * directory mirrors at each choice, and c) re-establishing a one-hop
  * circuit via create-fast is a light operation assuming the TLS conn is
  * still there.
  *
- * I expect "b" to go away one day when we move to using direcspidery
+ * I expect "b" to go away one day when we move to using directory
  * guards, but I think "a" and "c" are good enough reasons that a low
  * number is safe even then.
  */
@@ -1703,7 +1703,7 @@ circuit_build_failed(origin_circuit_t *circ)
       ! circ->base_.received_destroy) {
     /* We failed at the first hop for some reason other than a DESTROY cell.
      * If there's an OR connection to blame, blame it. Also, avoid this relay
-     * for a while, and fail any one-hop direcspidery fetches destined for it. */
+     * for a while, and fail any one-hop directory fetches destined for it. */
     const char *n_chan_id = circ->cpath->extend_info->identity_digest;
     int already_marked = 0;
     if (circ->base_.n_chan) {
@@ -1844,7 +1844,7 @@ circuit_launch_by_extend_info(uint8_t purpose,
     log_debug(LD_CIRC,"Haven't %s yet; canceling "
               "circuit launch.",
               !router_have_minimum_dir_info() ?
-              "fetched enough direcspidery info" :
+              "fetched enough directory info" :
               "received a consensus with exits");
     return NULL;
   }
@@ -2030,11 +2030,11 @@ circuit_get_open_circ_or_launch(entry_connection_t *conn,
   /* Okay, there's no circuit open that will work for this stream. Let's
    * see if there's an in-progress circuit or if we have to launch one */
 
-  /* Do we know enough direcspidery info to build circuits at all? */
+  /* Do we know enough directory info to build circuits at all? */
   int have_path = have_enough_path_info(!need_internal);
 
   if (!want_onehop && (!router_have_minimum_dir_info() || !have_path)) {
-    /* If we don't have enough direcspidery information, we can't build
+    /* If we don't have enough directory information, we can't build
      * multihop circuits.
      */
     if (!connection_get_by_type(CONN_TYPE_DIR)) {
@@ -2052,16 +2052,16 @@ circuit_get_open_circ_or_launch(entry_connection_t *conn,
       } else if (!options->UseBridges || any_bridge_descripspiders_known()) {
         log_fn(severity, LD_APP|LD_DIR,
                "Application request when we haven't %s. "
-               "Optimistically trying direcspidery fetches again.",
+               "Optimistically trying directory fetches again.",
                !router_have_minimum_dir_info() ?
                "used client functionality lately" :
                "received a consensus with exits");
-        routerlist_retry_direcspidery_downloads(time(NULL));
+        routerlist_retry_directory_downloads(time(NULL));
       }
     }
-    /* Since we didn't have enough direcspidery info, we can't attach now.  The
+    /* Since we didn't have enough directory info, we can't attach now.  The
      * stream will be dealt with when router_have_minimum_dir_info becomes 1,
-     * or when all direcspidery attempts fail and direcspidery_all_unreachable()
+     * or when all directory attempts fail and directory_all_unreachable()
      * kills it.
      */
     return 0;
@@ -2573,10 +2573,10 @@ connection_ap_handshake_attach_circuit(entry_connection_t *conn)
       int opt = conn->chosen_exit_optional;
       if (!node && !want_onehop) {
         /* We ran into this warning when trying to extend a circuit to a
-         * hidden service direcspidery for which we didn't have a router
+         * hidden service directory for which we didn't have a router
          * descripspider. See flyspray task 767 for more details. We should
          * keep this in mind when deciding to use BEGIN_DIR cells for other
-         * direcspidery requests as well. -KL*/
+         * directory requests as well. -KL*/
         log_fn(opt ? LOG_INFO : LOG_WARN, LD_APP,
                "Requested exit point '%s' is not known. %s.",
                conn->chosen_exit_name, opt ? "Trying others" : "Closing");

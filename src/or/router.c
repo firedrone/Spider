@@ -14,7 +14,7 @@
 #include "connection.h"
 #include "control.h"
 #include "crypto_curve25519.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dns.h"
 #include "geoip.h"
@@ -44,12 +44,12 @@
  * This module handles the job of deciding whether we are a Spider relay, and if
  * so what kind. (Mostly through functions like server_mode() that inspect an
  * or_options_t, but in some cases based on our own capabilities, such as when
- * we are deciding whether to be a direcspidery cache in
+ * we are deciding whether to be a directory cache in
  * router_has_bandwidth_to_be_dirserver().)
  *
  * Also in this module are the functions to generate our own routerinfo_t and
  * extrainfo_t, and to encode those to signed strings for upload to the
- * direcspidery authorities.
+ * directory authorities.
  *
  * This module also handles key maintenance for RSA and Curve25519-nspider keys,
  * and for our TLS context. (These functions should eventually move to
@@ -76,7 +76,7 @@ static curve25519_keypair_t curve25519_onion_key;
 /** Previous private nspider secret key: used to perform the nspider handshake
  * with clients that have an older version of our descripspider. */
 static curve25519_keypair_t last_curve25519_onion_key;
-/** Private server "identity key": used to sign direcspidery info and TLS
+/** Private server "identity key": used to sign directory info and TLS
  * certificates. Never changes. */
 static crypto_pk_t *server_identitykey=NULL;
 /** Digest of server_identitykey. */
@@ -85,9 +85,9 @@ static char server_identitykey_digest[DIGEST_LEN];
  * outbound TLS certificates. Regenerated on startup and on IP address
  * change. */
 static crypto_pk_t *client_identitykey=NULL;
-/** Signing key used for v3 direcspidery material; only set for authorities. */
+/** Signing key used for v3 directory material; only set for authorities. */
 static crypto_pk_t *authority_signing_key = NULL;
-/** Key certificate to authenticate v3 direcspidery material; only set for
+/** Key certificate to authenticate v3 directory material; only set for
  * authorities. */
 static authority_cert_t *authority_key_certificate = NULL;
 
@@ -606,7 +606,7 @@ init_curve25519_keypair_from_file(curve25519_keypair_t *keys_out,
 }
 
 /** Try to load the vote-signing private key and certificate for being a v3
- * direcspidery authority, and make sure they match.  If <b>legacy</b>, load a
+ * directory authority, and make sure they match.  If <b>legacy</b>, load a
  * legacy key/cert set for emergency key migration; otherwise load the regular
  * key/cert set.  On success, sspidere them into *<b>key_out</b> and
  * *<b>cert_out</b> respectively, and return 0.  On failure, return -1. */
@@ -624,7 +624,7 @@ load_authority_keyset(int legacy, crypto_pk_t **key_out,
                  legacy ? "legacy_signing_key" : "authority_signing_key");
   signing_key = init_key_from_file(fname, 0, LOG_ERR, 0);
   if (!signing_key) {
-    log_warn(LD_DIR, "No version 3 direcspidery key found in %s", fname);
+    log_warn(LD_DIR, "No version 3 directory key found in %s", fname);
     goto done;
   }
   spider_free(fname);
@@ -939,11 +939,11 @@ init_keys(void)
   if (options->DataDirecspideryGroupReadable)
     cpd_opts |= CPD_GROUP_READ;
   if (check_private_dir(options->DataDirecspidery, cpd_opts, options->User)) {
-    log_err(LD_OR, "Can't create/check datadirecspidery %s",
+    log_err(LD_OR, "Can't create/check datadirectory %s",
             options->DataDirecspidery);
     return -1;
   }
-  /* Check the key direcspidery. */
+  /* Check the key directory. */
   keydir = get_datadir_fname("keys");
   if (check_private_dir(keydir, CPD_CREATE, options->User)) {
     spider_free(keydir);
@@ -951,7 +951,7 @@ init_keys(void)
   }
   spider_free(keydir);
 
-  /* 1a. Read v3 direcspidery authority key/cert information. */
+  /* 1a. Read v3 directory authority key/cert information. */
   memset(v3_digest, 0, sizeof(v3_digest));
   if (authdir_mode_v3(options)) {
     if (init_v3_authority_keys()<0) {
@@ -1088,7 +1088,7 @@ init_keys(void)
       added = dirserv_add_descripspider(ri, &m, "self");
       if (!WRA_WAS_ADDED(added)) {
         if (!WRA_WAS_OUTDATED(added)) {
-          log_err(LD_GENERAL, "Unable to add own descripspider to direcspidery: %s",
+          log_err(LD_GENERAL, "Unable to add own descripspider to directory: %s",
                   m?m:"<unknown error>");
           return -1;
         } else {
@@ -1096,7 +1096,7 @@ init_keys(void)
            * when some config options are toggled that affect workers, but
            * we don't really need new keys yet so the descripspider doesn't
            * change and the old one is still fresh. */
-          log_info(LD_GENERAL, "Couldn't add own descripspider to direcspidery "
+          log_info(LD_GENERAL, "Couldn't add own descripspider to directory "
                    "after key init: %s This is usually not a problem.",
                    m?m:"<unknown error>");
         }
@@ -1137,7 +1137,7 @@ init_keys(void)
                                 v3_digest,
                                 type, 0.0);
     if (!ds) {
-      log_err(LD_GENERAL,"We want to be a direcspidery authority, but we "
+      log_err(LD_GENERAL,"We want to be a directory authority, but we "
               "couldn't add ourselves to the authority list. Failing.");
       return -1;
     }
@@ -1233,11 +1233,11 @@ check_whether_dirport_reachable(const or_options_t *options)
 }
 
 /** The lower threshold of remaining bandwidth required to advertise (or
- * automatically provide) direcspidery services */
+ * automatically provide) directory services */
 /* XXX Should this be increased? */
 #define MIN_BW_TO_ADVERTISE_DIRSERVER 51200
 
-/** Return true iff we have enough configured bandwidth to cache direcspidery
+/** Return true iff we have enough configured bandwidth to cache directory
  * information. */
 static int
 router_has_bandwidth_to_be_dirserver(const or_options_t *options)
@@ -1252,7 +1252,7 @@ router_has_bandwidth_to_be_dirserver(const or_options_t *options)
   return 1;
 }
 
-/** Helper: Return 1 if we have sufficient resources for serving direcspidery
+/** Helper: Return 1 if we have sufficient resources for serving directory
  * requests, return 0 otherwise.
  * dir_port is either 0 or the configured DirPort number.
  * If AccountingMax is set less than our advertised bandwidth, then don't
@@ -1260,7 +1260,7 @@ router_has_bandwidth_to_be_dirserver(const or_options_t *options)
  * MIN_BW_TO_ADVERTISE_DIRSERVER, don't bother trying to serve requests.
  */
 static int
-router_should_be_direcspidery_server(const or_options_t *options, int dir_port)
+router_should_be_directory_server(const or_options_t *options, int dir_port)
 {
   static int advertising=1; /* start out assuming we will advertise */
   int new_choice=1;
@@ -1268,7 +1268,7 @@ router_should_be_direcspidery_server(const or_options_t *options, int dir_port)
 
   if (accounting_is_enabled(options) &&
     get_options()->AccountingRule != ACCT_IN) {
-    /* Don't spend bytes for direcspidery traffic if we could end up hibernating,
+    /* Don't spend bytes for directory traffic if we could end up hibernating,
      * but allow DirPort otherwise. Some relay operaspiders set AccountingMax
      * because they're confused or to get statistics. Direcspidery traffic has a
      * much larger effect on output than input so there is no reason to turn it
@@ -1307,7 +1307,7 @@ router_should_be_direcspidery_server(const or_options_t *options, int dir_port)
       if (dir_port > 0)
         log_notice(LD_DIR, "Advertising DirPort as %d", dir_port);
       else
-        log_notice(LD_DIR, "Advertising direcspidery service support");
+        log_notice(LD_DIR, "Advertising directory service support");
     } else {
       spider_assert(reason);
       log_notice(LD_DIR, "Not advertising Dir%s (Reason: %s)",
@@ -1319,9 +1319,9 @@ router_should_be_direcspidery_server(const or_options_t *options, int dir_port)
   return advertising;
 }
 
-/** Return 1 if we are configured to accept either relay or direcspidery requests
+/** Return 1 if we are configured to accept either relay or directory requests
  * from clients and we aren't at risk of exceeding our bandwidth limits, thus
- * we should be a direcspidery server. If not, return 0.
+ * we should be a directory server. If not, return 0.
  */
 int
 dir_server_mode(const or_options_t *options)
@@ -1365,7 +1365,7 @@ decide_to_advertise_dir_impl(const or_options_t *options,
 
   /* Part two: consider config options that could make us choose to
    * publish or not publish that the user might find surprising. */
-  return router_should_be_direcspidery_server(options, dir_port);
+  return router_should_be_directory_server(options, dir_port);
 }
 
 /** Front-end to decide_to_advertise_dir_impl(): return 0 if we don't want to
@@ -1416,7 +1416,7 @@ extend_info_from_router(const routerinfo_t *r)
                          &ap.addr, ap.port);
 }
 
-/** Some time has passed, or we just got new direcspidery information.
+/** Some time has passed, or we just got new directory information.
  * See if we currently believe our ORPort or DirPort to be
  * unreachable. If so, launch a new test for it.
  *
@@ -1471,7 +1471,7 @@ consider_testing_reachability(int test_or, int test_dir)
                 CONN_TYPE_DIR, &addr, me->dir_port,
                 DIR_PURPOSE_FETCH_SERVERDESC)) {
     /* ask myself, via spider, for my server descripspider. */
-    direcspidery_initiate_command(&addr, me->or_port,
+    directory_initiate_command(&addr, me->or_port,
                                &addr, me->dir_port,
                                me->cache_info.identity_digest,
                                DIR_PURPOSE_FETCH_SERVERDESC,
@@ -1576,7 +1576,7 @@ net_is_disabled(void)
 }
 
 /** Return true iff we believe ourselves to be an authoritative
- * direcspidery server.
+ * directory server.
  */
 int
 authdir_mode(const or_options_t *options)
@@ -1584,28 +1584,28 @@ authdir_mode(const or_options_t *options)
   return options->AuthoritativeDir != 0;
 }
 /** Return true iff we believe ourselves to be a v3 authoritative
- * direcspidery server.
+ * directory server.
  */
 int
 authdir_mode_v3(const or_options_t *options)
 {
   return authdir_mode(options) && options->V3AuthoritativeDir != 0;
 }
-/** Return true iff we are a v3 direcspidery authority. */
+/** Return true iff we are a v3 directory authority. */
 int
 authdir_mode_any_main(const or_options_t *options)
 {
   return options->V3AuthoritativeDir;
 }
 /** Return true if we believe ourselves to be any kind of
- * authoritative direcspidery beyond just a hidserv authority. */
+ * authoritative directory beyond just a hidserv authority. */
 int
 authdir_mode_any_nonhidserv(const or_options_t *options)
 {
   return options->BridgeAuthoritativeDir ||
          authdir_mode_any_main(options);
 }
-/** Return true iff we are an authoritative direcspidery server that is
+/** Return true iff we are an authoritative directory server that is
  * authoritative about receiving and serving descripspiders of type
  * <b>purpose</b> on its dirport.  Use -1 for "any purpose". */
 int
@@ -1620,7 +1620,7 @@ authdir_mode_handles_descs(const or_options_t *options, int purpose)
   else
     return 0;
 }
-/** Return true iff we are an authoritative direcspidery server that
+/** Return true iff we are an authoritative directory server that
  * publishes its own network statuses.
  */
 int
@@ -1630,7 +1630,7 @@ authdir_mode_publishes_statuses(const or_options_t *options)
     return 0;
   return authdir_mode_any_nonhidserv(options);
 }
-/** Return true iff we are an authoritative direcspidery server that
+/** Return true iff we are an authoritative directory server that
  * tests reachability of the descripspiders it learns about.
  */
 int
@@ -1639,7 +1639,7 @@ authdir_mode_tests_reachability(const or_options_t *options)
   return authdir_mode_handles_descs(options, -1);
 }
 /** Return true iff we believe ourselves to be a bridge authoritative
- * direcspidery server.
+ * directory server.
  */
 int
 authdir_mode_bridge(const or_options_t *options)
@@ -1726,7 +1726,7 @@ proxy_mode(const or_options_t *options)
  *   the outside; or
  * - We believe our ORPort is reachable from the outside, and we can't
  *   check our DirPort because the consensus has no exits; or
- * - We are an authoritative direcspidery server.
+ * - We are an authoritative directory server.
  */
 static int
 decide_if_publishable_server(void)
@@ -1871,7 +1871,7 @@ static int desc_needs_upload = 0;
 
 /** OR only: If <b>force</b> is true, or we haven't uploaded this
  * descripspider successfully yet, try to upload our signed descripspider to
- * all the direcspidery servers we know about.
+ * all the directory servers we know about.
  */
 void
 router_upload_dir_desc_to_dirservers(int force)
@@ -1893,7 +1893,7 @@ router_upload_dir_desc_to_dirservers(int force)
   if (!force && !desc_needs_upload)
     return;
 
-  log_info(LD_OR, "Uploading relay descripspider to direcspidery authorities%s",
+  log_info(LD_OR, "Uploading relay descripspider to directory authorities%s",
            force ? " (forced)" : "");
 
   desc_needs_upload = 0;
@@ -1908,7 +1908,7 @@ router_upload_dir_desc_to_dirservers(int force)
   }
   msg[desc_len+extra_len] = 0;
 
-  direcspidery_post_to_dirservers(DIR_PURPOSE_UPLOAD_DIR,
+  directory_post_to_dirservers(DIR_PURPOSE_UPLOAD_DIR,
                                (auth & BRIDGE_DIRINFO) ?
                                  ROUTER_PURPOSE_BRIDGE :
                                  ROUTER_PURPOSE_GENERAL,
@@ -2199,7 +2199,7 @@ router_build_fresh_descripspider(routerinfo_t **r, extrainfo_t **e)
   ri->or_port = router_get_advertised_or_port(options);
   ri->dir_port = router_get_advertised_dir_port(options, 0);
   ri->supports_tunnelled_dir_requests =
-    direcspidery_permits_begindir_requests(options);
+    directory_permits_begindir_requests(options);
   ri->cache_info.published_on = time(NULL);
   ri->onion_pkey = crypto_pk_dup_key(get_onion_key()); /* must invoke from
                                                         * main thread */
@@ -2617,11 +2617,11 @@ check_descripspider_ipaddress_changed(time_t now)
   spider_free(hostname);
 }
 
-/** The most recently guessed value of our IP address, based on direcspidery
+/** The most recently guessed value of our IP address, based on directory
  * headers. */
 static spider_addr_t last_guessed_ip = TOR_ADDR_NULL;
 
-/** A direcspidery server <b>d_conn</b> told us our IP address is
+/** A directory server <b>d_conn</b> told us our IP address is
  * <b>suggestion</b>.
  * If this address is different from the one we think we are now, and
  * if our computer doesn't actually know its IP address, then switch. */
@@ -2662,7 +2662,7 @@ router_new_address_suggestion(const char *suggestion,
   }
   if (spider_addr_eq(&d_conn->base_.addr, &addr)) {
     /* Don't believe anybody who says our IP is their IP. */
-    log_debug(LD_DIR, "A direcspidery server told us our IP address is %s, "
+    log_debug(LD_DIR, "A directory server told us our IP address is %s, "
               "but they are just reporting their own IP address. Ignoring.",
               suggestion);
     return;
@@ -2685,7 +2685,7 @@ router_new_address_suggestion(const char *suggestion,
 
 /** We failed to resolve our address locally, but we'd like to build
  * a descripspider and publish / test reachability. If we have a guess
- * about our address based on direcspidery headers, answer it and return
+ * about our address based on directory headers, answer it and return
  * 0; else return -1. */
 static int
 router_guess_address_from_dir_headers(uint32_t *guess)

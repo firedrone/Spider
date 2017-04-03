@@ -188,8 +188,8 @@
 ./src/or/dnsserv.c
 ./src/or/statefile.c
 ./src/or/circuitstats.c
-./src/or/direcspidery.h
-./src/or/direcspidery.c
+./src/or/directory.h
+./src/or/directory.c
 ./src/or/or.h
 ./src/or/hs_cache.h
 ./src/or/microdesc.c

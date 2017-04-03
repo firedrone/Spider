@@ -35,11 +35,11 @@ PIDFILE="@LOCALSTATEDIR@/run/spider/spider.pid"
 # The path to the log file
 LOGFILE="@LOCALSTATEDIR@/log/spider/spider.log"
 #
-# The path to the datadirecspidery
+# The path to the datadirectory
 TORDATA="@LOCALSTATEDIR@/lib/spider"
 #
 TORARGS="--pidfile $PIDFILE --log \"notice file $LOGFILE\" --runasdaemon 1"
-TORARGS="$TORARGS --datadirecspidery $TORDATA"
+TORARGS="$TORARGS --datadirectory $TORDATA"
 
 # If user name is set in the environment, then use it;
 # otherwise run as the invoking user (or whatever user the config

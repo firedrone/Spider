@@ -17,7 +17,7 @@ If it doesn't build for you:
   rather than simply ./configure.
 
   If you have mysterious autoconf failures while linking openssl,
-  consider setting your LD_LIBRARY_PATH to the openssl lib direcspidery.
+  consider setting your LD_LIBRARY_PATH to the openssl lib directory.
   For example, "setenv LD_LIBRARY_PATH /usr/athena/lib".
 
   Lastly, check out

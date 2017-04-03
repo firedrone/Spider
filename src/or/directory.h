@@ -5,28 +5,28 @@
 /* See LICENSE for licensing information */
 
 /**
- * \file direcspidery.h
- * \brief Header file for direcspidery.c.
+ * \file directory.h
+ * \brief Header file for directory.c.
  **/
 
 #ifndef TOR_DIRECTORY_H
 #define TOR_DIRECTORY_H
 
 int direcspideries_have_accepted_server_descripspider(void);
-void direcspidery_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
+void directory_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
                                   dirinfo_type_t type, const char *payload,
                                   size_t payload_len, size_t extrainfo_len);
-MOCK_DECL(void, direcspidery_get_from_dirserver, (
+MOCK_DECL(void, directory_get_from_dirserver, (
                           uint8_t dir_purpose,
                           uint8_t router_purpose,
                           const char *resource,
                           int pds_flags,
                           download_want_authority_t want_authority));
-void direcspidery_get_from_all_authorities(uint8_t dir_purpose,
+void directory_get_from_all_authorities(uint8_t dir_purpose,
                                         uint8_t router_purpose,
                                         const char *resource);
 
-/** Enumeration of ways to connect to a direcspidery server */
+/** Enumeration of ways to connect to a directory server */
 typedef enum {
   /** Default: connect over a one-hop Spider circuit. Relays fall back to direct
    * DirPort connections, clients, onion services, and bridges do not */
@@ -39,9 +39,9 @@ typedef enum {
   DIRIND_ANON_DIRPORT,
 } dir_indirection_t;
 
-int direcspidery_must_use_begindir(const or_options_t *options);
+int directory_must_use_begindir(const or_options_t *options);
 
-MOCK_DECL(void, direcspidery_initiate_command_routerstatus,
+MOCK_DECL(void, directory_initiate_command_routerstatus,
                 (const routerstatus_t *status,
                  uint8_t dir_purpose,
                  uint8_t router_purpose,
@@ -52,7 +52,7 @@ MOCK_DECL(void, direcspidery_initiate_command_routerstatus,
                  time_t if_modified_since,
                  struct circuit_guard_state_t *guard_state));
 
-void direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
+void directory_initiate_command_routerstatus_rend(const routerstatus_t *status,
                                                   uint8_t dir_purpose,
                                                   uint8_t router_purpose,
                                                  dir_indirection_t indirection,
@@ -72,7 +72,7 @@ int connection_dir_process_inbuf(dir_connection_t *conn);
 int connection_dir_finished_flushing(dir_connection_t *conn);
 int connection_dir_finished_connecting(dir_connection_t *conn);
 void connection_dir_about_to_close(dir_connection_t *dir_conn);
-void direcspidery_initiate_command(const spider_addr_t *or_addr, uint16_t or_port,
+void directory_initiate_command(const spider_addr_t *or_addr, uint16_t or_port,
                                 const spider_addr_t *dir_addr, uint16_t dir_port,
                                 const char *digest,
                                 uint8_t dir_purpose, uint8_t router_purpose,
@@ -96,7 +96,7 @@ int dir_split_resource_into_spoolable(const char *resource,
                                       int flags);
 int dir_split_resource_into_fingerprint_pairs(const char *res,
                                               smartlist_t *pairs_out);
-char *direcspidery_dump_request_log(void);
+char *directory_dump_request_log(void);
 void note_request(const char *key, size_t bytes);
 int router_supports_extrainfo(const char *identity_digest, int is_authority);
 
@@ -153,7 +153,7 @@ int purpose_needs_anonymity(uint8_t dir_purpose, uint8_t router_purpose,
 struct get_handler_args_t;
 STATIC int handle_get_hs_descripspider_v3(dir_connection_t *conn,
                                        const struct get_handler_args_t *args);
-STATIC int direcspidery_handle_command(dir_connection_t *conn);
+STATIC int directory_handle_command(dir_connection_t *conn);
 
 #endif
 
@@ -163,11 +163,11 @@ STATIC int direcspidery_handle_command(dir_connection_t *conn);
 STATIC int parse_http_url(const char *headers, char **url);
 STATIC dirinfo_type_t dir_fetch_type(int dir_purpose, int router_purpose,
                                      const char *resource);
-MOCK_DECL(STATIC int, direcspidery_handle_command_get,(dir_connection_t *conn,
+MOCK_DECL(STATIC int, directory_handle_command_get,(dir_connection_t *conn,
                                                     const char *headers,
                                                     const char *req_body,
                                                     size_t req_body_len));
-MOCK_DECL(STATIC int, direcspidery_handle_command_post,(dir_connection_t *conn,
+MOCK_DECL(STATIC int, directory_handle_command_post,(dir_connection_t *conn,
                                                      const char *headers,
                                                      const char *body,
                                                      size_t body_len));
@@ -180,7 +180,7 @@ STATIC int handle_post_hs_descripspider(const char *url, const char *body);
 
 STATIC char* authdir_type_to_string(dirinfo_type_t auth);
 STATIC const char * dir_conn_purpose_to_string(int purpose);
-STATIC int should_use_direcspidery_guards(const or_options_t *options);
+STATIC int should_use_directory_guards(const or_options_t *options);
 STATIC zlib_compression_level_t choose_compression_level(ssize_t n_bytes);
 STATIC const smartlist_t *find_dl_schedule(download_status_t *dls,
                                            const or_options_t *options);

@@ -12,7 +12,7 @@
 #include "or.h"
 #include "config.h"
 #include "connection.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "test.h"
 #include "connection.h"
 #include "rendcommon.h"
@@ -76,7 +76,7 @@ test_dir_handle_get_bad_request(void *data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(direcspidery_handle_command_get(conn, "", NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, "", NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -104,7 +104,7 @@ test_dir_handle_get_v1_command_not_found(void *data)
   tt_ptr_op(get_dirportfrontpage(), OP_EQ, NULL);
 
   /* V1 path */
-  tt_int_op(direcspidery_handle_command_get(conn, GET("/spider/"), NULL, 0),
+  tt_int_op(directory_handle_command_get(conn, GET("/spider/"), NULL, 0),
             OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -141,7 +141,7 @@ test_dir_handle_get_v1_command(void *data)
   body_len = strlen(exp_body);
 
   conn = new_dir_conn();
-  tt_int_op(direcspidery_handle_command_get(conn, GET("/spider/"), NULL, 0),
+  tt_int_op(directory_handle_command_get(conn, GET("/spider/"), NULL, 0),
             OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -178,7 +178,7 @@ test_dir_handle_get_not_found(void *data)
   conn = new_dir_conn();
 
   /* Unrecognized path */
-  tt_int_op(direcspidery_handle_command_get(conn, GET("/anything"), NULL, 0),
+  tt_int_op(directory_handle_command_get(conn, GET("/anything"), NULL, 0),
             OP_EQ, 0);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -204,7 +204,7 @@ test_dir_handle_get_robots_txt(void *data)
 
   conn = new_dir_conn();
 
-  tt_int_op(direcspidery_handle_command_get(conn, GET("/spider/robots.txt"),
+  tt_int_op(directory_handle_command_get(conn, GET("/spider/robots.txt"),
                                          NULL, 0), OP_EQ, 0);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, 29, 0);
@@ -242,7 +242,7 @@ test_dir_handle_get_rendezvous2_not_found_if_not_encrypted(void *data)
   // connection is not encrypted
   tt_assert(!connection_dir_is_encrypted(conn))
 
-  tt_int_op(direcspidery_handle_command_get(conn, RENDEZVOUS2_GET(), NULL, 0),
+  tt_int_op(directory_handle_command_get(conn, RENDEZVOUS2_GET(), NULL, 0),
             OP_EQ, 0);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -270,7 +270,7 @@ test_dir_handle_get_rendezvous2_on_encrypted_conn_with_invalid_desc_id(
   TO_CONN(conn)->linked = 1;
   tt_assert(connection_dir_is_encrypted(conn));
 
-  tt_int_op(direcspidery_handle_command_get(conn,
+  tt_int_op(directory_handle_command_get(conn,
             RENDEZVOUS2_GET("invalid-desc-id"), NULL, 0), OP_EQ, 0);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -303,7 +303,7 @@ test_dir_handle_get_rendezvous2_on_encrypted_conn_not_well_formed(void *data)
   //We should refacspider to remove the case from the switch.
 
   const char *req = RENDEZVOUS2_GET("1bababababababababababababababab");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -333,7 +333,7 @@ test_dir_handle_get_rendezvous2_not_found(void *data)
   tt_assert(connection_dir_is_encrypted(conn));
 
   const char *req = RENDEZVOUS2_GET("3xqunszqnaolrrfmtzgaki7mxelgvkje");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
 
@@ -398,7 +398,7 @@ test_dir_handle_get_rendezvous2_on_encrypted_conn_success(void *data)
 
   spider_snprintf(req, sizeof(req), RENDEZVOUS2_GET("%s"), desc_id_base32);
 
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   body_len = strlen(desc_holder->desc_str);
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -444,7 +444,7 @@ test_dir_handle_get_micro_d_not_found(void *data)
   conn = new_dir_conn();
 
   const char *req = MICRODESC_GET(B64_256_1 "-" B64_256_2);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -524,7 +524,7 @@ test_dir_handle_get_micro_d(void *data)
   conn = new_dir_conn();
 
   spider_snprintf(path, sizeof(path), MICRODESC_GET("%s"), digest_base64);
-  tt_int_op(direcspidery_handle_command_get(conn, path, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, path, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(microdesc)+1, 0);
@@ -594,7 +594,7 @@ test_dir_handle_get_micro_d_server_busy(void *data)
   conn = new_dir_conn();
 
   spider_snprintf(path, sizeof(path), MICRODESC_GET("%s"), digest_base64);
-  tt_int_op(direcspidery_handle_command_get(conn, path, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, path, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -632,7 +632,7 @@ test_dir_handle_get_networkstatus_bridges_not_found_without_auth(void *data)
   TO_CONN(conn)->linked = 1;
 
   const char *req = GET(BRIDGES_PATH);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -669,7 +669,7 @@ test_dir_handle_get_networkstatus_bridges(void *data)
 
   const char *req = "GET " BRIDGES_PATH " HTTP/1.0\r\n"
                     "Authorization: Basic abcdefghijklm12345\r\n\r\n";
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -709,7 +709,7 @@ test_dir_handle_get_networkstatus_bridges_not_found_wrong_auth(void *data)
 
   const char *req = "GET " BRIDGES_PATH " HTTP/1.0\r\n"
                            "Authorization: Basic NOTSAMEDIGEST\r\n\r\n";
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -737,7 +737,7 @@ test_dir_handle_get_server_descripspiders_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = SERVER_DESC_GET("invalid");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -781,7 +781,7 @@ test_dir_handle_get_server_descripspiders_all(void* data)
   conn = new_dir_conn();
 
   const char *req = SERVER_DESC_GET("all");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   //TODO: Is this a BUG?
   //It requires strlen(signed_descripspider_len)+1 as body_len but returns a body
@@ -888,7 +888,7 @@ test_dir_handle_get_server_descripspiders_authority(void* data)
   conn = new_dir_conn();
 
   const char *req = SERVER_DESC_GET("authority");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   //TODO: Is this a BUG?
   //It requires strlen(TEST_DESCRIPTOR)+1 as body_len but returns a body which
@@ -960,7 +960,7 @@ test_dir_handle_get_server_descripspiders_fp(void* data)
   char req[155];
   spider_snprintf(req, sizeof(req), SERVER_DESC_GET("fp/%s+" HEX1 "+" HEX2),
                hex_digest);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   //TODO: Is this a BUG?
   //It requires strlen(TEST_DESCRIPTOR)+1 as body_len but returns a body which
@@ -1021,7 +1021,7 @@ test_dir_handle_get_server_descripspiders_d(void* data)
   char req_header[155]; /* XXX Why 155? What kind of number is that?? */
   spider_snprintf(req_header, sizeof(req_header),
                SERVER_DESC_GET("d/%s+" HEX1 "+" HEX2), hex_digest);
-  tt_int_op(direcspidery_handle_command_get(conn, req_header, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req_header, NULL, 0), OP_EQ, 0);
 
   //TODO: Is this a BUG?
   //It requires strlen(signed_descripspider_len)+1 as body_len but returns a body
@@ -1091,7 +1091,7 @@ test_dir_handle_get_server_descripspiders_busy(void* data)
   char req_header[155]; /* XXX 155? Why 155? */
   spider_snprintf(req_header, sizeof(req_header),
                SERVER_DESC_GET("d/%s+" HEX1 "+" HEX2), hex_digest);
-  tt_int_op(direcspidery_handle_command_get(conn, req_header, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req_header, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1126,7 +1126,7 @@ test_dir_handle_get_server_keys_bad_req(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1152,7 +1152,7 @@ test_dir_handle_get_server_keys_all_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/all");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1204,7 +1204,7 @@ test_dir_handle_get_server_keys_all(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/all");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(TEST_CERTIFICATE)+1, 0);
@@ -1241,7 +1241,7 @@ test_dir_handle_get_server_keys_authority_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/authority");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1281,7 +1281,7 @@ test_dir_handle_get_server_keys_authority(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/authority");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(TEST_CERTIFICATE)+1, 0);
@@ -1317,7 +1317,7 @@ test_dir_handle_get_server_keys_fp_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/fp/somehex");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1364,7 +1364,7 @@ test_dir_handle_get_server_keys_fp(void* data)
   char req[71];
   spider_snprintf(req, sizeof(req),
                      GET("/spider/keys/fp/%s"), TEST_CERT_IDENT_KEY);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(TEST_CERTIFICATE)+1, 0);
@@ -1400,7 +1400,7 @@ test_dir_handle_get_server_keys_sk_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/sk/somehex");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1437,7 +1437,7 @@ test_dir_handle_get_server_keys_sk(void* data)
   char req[71];
   spider_snprintf(req, sizeof(req),
                GET("/spider/keys/sk/%s"), TEST_SIGNING_KEY);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(TEST_CERTIFICATE)+1, 0);
@@ -1473,7 +1473,7 @@ test_dir_handle_get_server_keys_fpsk_not_found(void* data)
   conn = new_dir_conn();
 
   const char *req = GET("/spider/keys/fp-sk/somehex");
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1523,7 +1523,7 @@ test_dir_handle_get_server_keys_fpsk(void* data)
                GET("/spider/keys/fp-sk/%s-%s"),
                TEST_CERT_IDENT_KEY, TEST_SIGNING_KEY);
 
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       &body, &body_used, strlen(TEST_CERTIFICATE)+1, 0);
@@ -1583,7 +1583,7 @@ test_dir_handle_get_server_keys_busy(void* data)
   conn = new_dir_conn();
   char req[71];
   spider_snprintf(req, sizeof(req), GET("/spider/keys/fp/%s"), TEST_CERT_IDENT_KEY);
-  tt_int_op(direcspidery_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
+  tt_int_op(directory_handle_command_get(conn, req, NULL, 0), OP_EQ, 0);
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                       NULL, NULL, 1, 0);
@@ -1637,7 +1637,7 @@ test_dir_handle_get_status_vote_current_consensus_ns_not_enough_sigs(void* d)
 
   conn = new_dir_conn();
 
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/consensus-ns/" HEX1 "+" HEX2), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -1681,7 +1681,7 @@ test_dir_handle_get_status_vote_current_consensus_ns_not_found(void* data)
   geoip_dirreq_stats_init(time(NULL));
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/consensus-ns"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -1722,7 +1722,7 @@ test_dir_handle_get_status_vote_current_consensus_too_old(void *data)
 
   setup_capture_of_logs(LOG_WARN);
 
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/consensus-microdesc"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -1737,7 +1737,7 @@ test_dir_handle_get_status_vote_current_consensus_too_old(void *data)
 
   setup_capture_of_logs(LOG_WARN);
 
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/consensus"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -1792,7 +1792,7 @@ status_vote_current_consensus_ns_test(char **header, char **body,
   conn = new_dir_conn();
   TO_CONN(conn)->address = spider_strdup("127.0.0.1");
 
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/consensus-ns"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, header, MAX_HEADERS_SIZE,
@@ -1913,7 +1913,7 @@ test_dir_handle_get_status_vote_current_not_found(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/" HEX1), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -1937,7 +1937,7 @@ status_vote_current_d_test(char **header, char **body, size_t *body_l)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/d/" VOTE_DIGEST), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, header, MAX_HEADERS_SIZE,
@@ -1957,7 +1957,7 @@ status_vote_next_d_test(char **header, char **body, size_t *body_l)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/d/" VOTE_DIGEST), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, header, MAX_HEADERS_SIZE,
@@ -2081,7 +2081,7 @@ test_dir_handle_get_status_vote_next_not_found(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/" HEX1), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -2103,7 +2103,7 @@ status_vote_next_consensus_test(char **header, char **body, size_t *body_used)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/consensus"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, header, MAX_HEADERS_SIZE,
@@ -2140,7 +2140,7 @@ test_dir_handle_get_status_vote_current_authority_not_found(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/authority"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -2164,7 +2164,7 @@ test_dir_handle_get_status_vote_next_authority_not_found(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/authority"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -2249,7 +2249,7 @@ status_vote_next_consensus_signatures_test(char **header, char **body,
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/consensus-signatures"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, header, MAX_HEADERS_SIZE,
@@ -2387,7 +2387,7 @@ test_dir_handle_get_status_vote_next_authority(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/next/authority"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
@@ -2469,7 +2469,7 @@ test_dir_handle_get_status_vote_current_authority(void* data)
   MOCK(connection_write_to_buf_impl_, connection_write_to_buf_mock);
 
   conn = new_dir_conn();
-  tt_int_op(0, OP_EQ, direcspidery_handle_command_get(conn,
+  tt_int_op(0, OP_EQ, directory_handle_command_get(conn,
     GET("/spider/status-vote/current/authority"), NULL, 0));
 
   fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,

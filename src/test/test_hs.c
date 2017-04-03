@@ -564,9 +564,9 @@ test_single_onion_poisoning(void *arg)
   ret = rend_config_services(mock_options, 1);
   tt_assert(ret == 0);
 
-  /* Create the data direcspidery, and, if the correct bit in arg is set,
-   * create a direcspidery for that service.
-   * The data direcspidery is required for the lockfile, which is used when
+  /* Create the data directory, and, if the correct bit in arg is set,
+   * create a directory for that service.
+   * The data directory is required for the lockfile, which is used when
    * loading keys. */
   ret = check_private_dir(mock_options->DataDirecspidery, CPD_CREATE, NULL);
   tt_assert(ret == 0);
@@ -579,9 +579,9 @@ test_single_onion_poisoning(void *arg)
     tt_assert(ret == 0);
   }
 
-  service_1->direcspidery = dir1;
-  service_2->direcspidery = dir2;
-  /* The services own the direcspidery pointers now */
+  service_1->directory = dir1;
+  service_2->directory = dir2;
+  /* The services own the directory pointers now */
   dir1 = dir2 = NULL;
   /* Add port to service 1 */
   service_1->ports = smartlist_new();
@@ -741,20 +741,20 @@ test_single_onion_poisoning(void *arg)
   tt_assert(ret == 0);
 
   /* Poisoning direcspideries with existing keys is a no-op, because direcspideries
-   * with existing keys are ignored. But the new direcspidery should poison. */
+   * with existing keys are ignored. But the new directory should poison. */
   mock_options->HiddenServiceSingleHopMode = 1;
   mock_options->HiddenServiceNonAnonymousMode = 1;
   ret = rend_service_poison_new_single_onion_dir(service_1, mock_options);
   tt_assert(ret == 0);
   ret = rend_service_poison_new_single_onion_dir(service_2, mock_options);
   tt_assert(ret == 0);
-  /* And the old direcspidery remains unpoisoned. */
+  /* And the old directory remains unpoisoned. */
   ret = rend_service_verify_single_onion_poison(service_1, mock_options);
   tt_assert(ret < 0);
   ret = rend_service_verify_single_onion_poison(service_2, mock_options);
   tt_assert(ret == 0);
 
-  /* And the new direcspidery should be ignored, because it has no key. */
+  /* And the new directory should be ignored, because it has no key. */
   mock_options->HiddenServiceSingleHopMode = 0;
   mock_options->HiddenServiceNonAnonymousMode = 0;
   ret = rend_service_verify_single_onion_poison(service_1, mock_options);
@@ -769,7 +769,7 @@ test_single_onion_poisoning(void *arg)
   tt_assert(ret == 0);
   ret = rend_service_poison_new_single_onion_dir(service_2, mock_options);
   tt_assert(ret == 0);
-  /* And the old direcspidery remains unpoisoned. */
+  /* And the old directory remains unpoisoned. */
   ret = rend_service_verify_single_onion_poison(service_1, mock_options);
   tt_assert(ret < 0);
   ret = rend_service_verify_single_onion_poison(service_2, mock_options);
@@ -795,7 +795,7 @@ helper_create_rend_service(const char *path)
   s->intro_nodes = smartlist_new();
   s->expiring_nodes = smartlist_new();
   if (path) {
-    s->direcspidery = spider_strdup(path);
+    s->directory = spider_strdup(path);
   }
   return s;
 }
@@ -808,8 +808,8 @@ test_prune_services_on_reload(void *arg)
   rend_service_t *s1 = helper_create_rend_service("SomePath");
   /* Create a non ephemeral service with the _same_ path as so we can test the
    * transfer of introduction point between the same services on reload. */
-  rend_service_t *s2 = helper_create_rend_service(s1->direcspidery);
-  /* Ephemeral service (direcspidery is NULL). */
+  rend_service_t *s2 = helper_create_rend_service(s1->directory);
+  /* Ephemeral service (directory is NULL). */
   rend_service_t *e1 = helper_create_rend_service(NULL);
   rend_service_t *e2 = helper_create_rend_service(NULL);
 

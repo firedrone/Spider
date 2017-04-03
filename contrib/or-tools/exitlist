@@ -5,7 +5,7 @@
 # Requires Python 2.2 or later.
 
 """
- exitlist -- Given a Spider direcspidery on stdin, lists the Spider servers
+ exitlist -- Given a Spider directory on stdin, lists the Spider servers
  that accept connections to given addreses.
 
  example usage:

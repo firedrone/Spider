@@ -14,7 +14,7 @@ new Spider release:
 === I. Make sure it works
 
 1. Use it for a while, as a client, as a relay, as a hidden service,
-   and as a direcspidery authority. See if it has any obvious bugs, and
+   and as a directory authority. See if it has any obvious bugs, and
    resolve those.
 
    As applicable, merge the `maint-X` branch into the `release-X` branch.

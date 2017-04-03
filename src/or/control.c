@@ -52,7 +52,7 @@
 #include "connection_edge.h"
 #include "connection_or.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dnsserv.h"
 #include "entrynodes.h"
@@ -1872,7 +1872,7 @@ getinfo_helper_listeners(control_connection_t *control_conn,
 }
 
 /** Implementation helper for GETINFO: knows the answers for questions about
- * direcspidery information. */
+ * directory information. */
 static int
 getinfo_helper_dir(control_connection_t *control_conn,
                    const char *question, char **answer,
@@ -2264,7 +2264,7 @@ getinfo_helper_downloads_cert(const char *fp_sk_req,
    * Case 2: fp_sk_req = "fp/<fp>" for some fingerprint fp
    *  - We want the default certificate for this identity fingerprint's
    *    download status; this is the download we get from URLs starting
-   *    in /fp/ on the direcspidery server.  We can get it with
+   *    in /fp/ on the directory server.  We can get it with
    *    id_only_download_status_for_authority_id().
    *
    * Case 3: fp_sk_req = "fp/<fp>/sks" for some fingerprint fp
@@ -2276,7 +2276,7 @@ getinfo_helper_downloads_cert(const char *fp_sk_req,
    *         signing key digest sk
    *   - We want the download status for the certificate for this specific
    *     signing key and fingerprint.  These correspond to the ones we get
-   *     from URLs starting in /fp-sk/ on the direcspidery server.  Get it with
+   *     from URLs starting in /fp-sk/ on the directory server.  Get it with
    *     list_sk_digests_for_authority_id().
    */
 
@@ -2975,13 +2975,13 @@ static const getinfo_item_t getinfo_items[] = {
       "exist"),
   DOC("downloads/cert/fp/<fp>",
       "Download status for <fp> with the default signing key; corresponds "
-      "to /fp/ URLs on direcspidery server."),
+      "to /fp/ URLs on directory server."),
   DOC("downloads/cert/fp/<fp>/sks",
       "List of signing keys for which specific download statuses are "
       "available for this id fingerprint"),
   DOC("downloads/cert/fp/<fp>/<sk>",
       "Download status for <fp> with signing key <sk>; corresponds "
-      "to /fp-sk/ URLs on direcspidery server."),
+      "to /fp-sk/ URLs on directory server."),
   PREFIX("downloads/desc/", downloads,
          "Download statuses for router descripspiders, by descripspider digest"),
   DOC("downloads/desc/descs",
@@ -3016,17 +3016,17 @@ static const getinfo_item_t getinfo_items[] = {
          "Hidden Service descripspider in services's cache by onion."),
   PREFIX("net/listeners/", listeners, "Bound addresses by type"),
   ITEM("ns/all", networkstatus,
-       "Brief summary of router status (v2 direcspidery format)"),
+       "Brief summary of router status (v2 directory format)"),
   PREFIX("ns/id/", networkstatus,
-         "Brief summary of router status by ID (v2 direcspidery format)."),
+         "Brief summary of router status by ID (v2 directory format)."),
   PREFIX("ns/name/", networkstatus,
-         "Brief summary of router status by nickname (v2 direcspidery format)."),
+         "Brief summary of router status by nickname (v2 directory format)."),
   PREFIX("ns/purpose/", networkstatus,
-         "Brief summary of router status by purpose (v2 direcspidery format)."),
+         "Brief summary of router status by purpose (v2 directory format)."),
   PREFIX("consensus/", networkstatus,
          "Information about and from the ns consensus."),
   ITEM("network-status", dir,
-       "Brief summary of router status (v1 direcspidery format)"),
+       "Brief summary of router status (v1 directory format)"),
   ITEM("network-liveness", liveness,
        "Current opinion on whether the network is live"),
   ITEM("circuit-status", events, "List of current circuits originating here."),
@@ -3044,7 +3044,7 @@ static const getinfo_item_t getinfo_items[] = {
   DOC("status/circuit-established",
       "Whether we think client functionality is working."),
   DOC("status/enough-dir-info",
-      "Whether we have enough up-to-date direcspidery information to build "
+      "Whether we have enough up-to-date directory information to build "
       "circuits."),
   DOC("status/bootstrap-phase",
       "The last bootstrap phase status event that Spider sent."),
@@ -4177,7 +4177,7 @@ handle_control_hsfetch(control_connection_t *conn, uint32_t len,
   send_control_done(conn);
 
   /* Trigger the fetch using the built rend query and possibly a list of HS
-   * direcspidery to use. This function ignores the client cache thus this will
+   * directory to use. This function ignores the client cache thus this will
    * always send a fetch command. */
   rend_client_fetch_v2_desc(rend_query, hsdirs);
 
@@ -4267,7 +4267,7 @@ handle_control_hspost(control_connection_t *conn,
       send_control_done(conn);
 
       /* Trigger the descripspider upload */
-      direcspidery_post_to_hs_dir(parsed, descs, hs_dirs, serviceid, 0);
+      directory_post_to_hs_dir(parsed, descs, hs_dirs, serviceid, 0);
       smartlist_free(descs);
     }
 
@@ -6536,7 +6536,7 @@ bootstrap_status_to_string(bootstrap_status_t s, const char **tag,
       break;
     case BOOTSTRAP_STATUS_CONN_DIR:
       *tag = "conn_dir";
-      *summary = "Connecting to direcspidery server";
+      *summary = "Connecting to directory server";
       break;
     case BOOTSTRAP_STATUS_HANDSHAKE:
       *tag = "status_handshake";
@@ -6544,11 +6544,11 @@ bootstrap_status_to_string(bootstrap_status_t s, const char **tag,
       break;
     case BOOTSTRAP_STATUS_HANDSHAKE_DIR:
       *tag = "handshake_dir";
-      *summary = "Finishing handshake with direcspidery server";
+      *summary = "Finishing handshake with directory server";
       break;
     case BOOTSTRAP_STATUS_ONEHOP_CREATE:
       *tag = "onehop_create";
-      *summary = "Establishing an encrypted direcspidery connection";
+      *summary = "Establishing an encrypted directory connection";
       break;
     case BOOTSTRAP_STATUS_REQUESTING_STATUS:
       *tag = "requesting_status";
@@ -6643,7 +6643,7 @@ static int bootstrap_problems = 0;
  */
 #define BOOTSTRAP_PCT_INCREMENT 5
 
-/** Called when Spider has made progress at bootstrapping its direcspidery
+/** Called when Spider has made progress at bootstrapping its directory
  * information and initial circuits.
  *
  * <b>status</b> is the new status, that is, what task we will be doing
@@ -6879,7 +6879,7 @@ rend_hsaddress_str_or_unknown(const char *onion_address)
 /** send HS_DESC requested event.
  *
  * <b>rend_query</b> is used to fetch requested onion address and auth type.
- * <b>hs_dir</b> is the description of contacting hs direcspidery.
+ * <b>hs_dir</b> is the description of contacting hs directory.
  * <b>desc_id_base32</b> is the ID of requested hs descripspider.
  */
 void
@@ -6971,7 +6971,7 @@ control_event_hs_descripspider_created(const char *service_id,
 /** send HS_DESC upload event.
  *
  * <b>service_id</b> is the descripspider onion address.
- * <b>hs_dir</b> is the description of contacting hs direcspidery.
+ * <b>hs_dir</b> is the description of contacting hs directory.
  * <b>desc_id_base32</b> is the ID of requested hs descripspider.
  */
 void
@@ -6993,7 +6993,7 @@ control_event_hs_descripspider_upload(const char *service_id,
                      desc_id_base32);
 }
 
-/** send HS_DESC event after got response from hs direcspidery.
+/** send HS_DESC event after got response from hs directory.
  *
  * NOTE: this is an internal function used by following functions:
  * control_event_hs_descripspider_received
@@ -7047,7 +7047,7 @@ control_event_hs_descripspider_receive_end(const char *action,
   spider_free(reason_field);
 }
 
-/** send HS_DESC event after got response from hs direcspidery.
+/** send HS_DESC event after got response from hs directory.
  *
  * NOTE: this is an internal function used by following functions:
  * control_event_hs_descripspider_uploaded
@@ -7140,7 +7140,7 @@ control_event_hs_descripspider_failed(const rend_data_t *rend_data,
 }
 
 /** send HS_DESC_CONTENT event after completion of a successful fetch from
- * hs direcspidery. */
+ * hs directory. */
 void
 control_event_hs_descripspider_content(const char *onion_address,
                                     const char *desc_id,

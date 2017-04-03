@@ -7,7 +7,7 @@
 #include "or.h"
 #include "config.h"
 #include "dircollate.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "microdesc.h"
@@ -25,16 +25,16 @@
 
 /**
  * \file dirvote.c
- * \brief Functions to compute direcspidery consensus, and schedule voting.
+ * \brief Functions to compute directory consensus, and schedule voting.
  *
- * This module is the center of the consensus-voting based direcspidery
+ * This module is the center of the consensus-voting based directory
  * authority system.  With this system, a set of authorities first
  * publish vote based on their opinions of the network, and then compute
  * a consensus from those votes.  Each authority signs the consensus,
  * and clients trust the consensus if enough known authorities have
  * signed it.
  *
- * The code in this module is only invoked on direcspidery authorities.  It's
+ * The code in this module is only invoked on directory authorities.  It's
  * responsible for:
  *
  * <ul>
@@ -49,7 +49,7 @@
  *       a "detached signature" object for other authorities to fetch.
  *   <li>Collecting other authorities' signatures on the same consensus,
  *       until there are enough.
- *   <li>Publishing the consensus to the reset of the direcspidery system.
+ *   <li>Publishing the consensus to the reset of the directory system.
  *   <li>Scheduling all of the above operations.
  * </ul>
  *
@@ -58,7 +58,7 @@
  * handle uploaded and downloaded votes and signatures.
  *
  * (See dir-spec.txt from spiderspec.git for a complete specification of
- * the direcspidery protocol and voting algorithms.)
+ * the directory protocol and voting algorithms.)
  **/
 
 /** A consensus that we have built and are appending signatures to.  Once it's
@@ -287,12 +287,12 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
     }
   } SMARTLIST_FOREACH_END(vrs);
 
-  smartlist_add_strdup(chunks, "direcspidery-footer\n");
+  smartlist_add_strdup(chunks, "directory-footer\n");
 
   /* The digest includes everything up through the space after
-   * direcspidery-signature.  (Yuck.) */
+   * directory-signature.  (Yuck.) */
   crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
-                          "direcspidery-signature ", DIGEST_SHA1);
+                          "directory-signature ", DIGEST_SHA1);
 
   {
     char signing_key_fingerprint[FINGERPRINT_LEN+1];
@@ -302,7 +302,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
       goto err;
     }
 
-    smartlist_add_asprintf(chunks, "direcspidery-signature %s %s\n", fingerprint,
+    smartlist_add_asprintf(chunks, "directory-signature %s %s\n", fingerprint,
                            signing_key_fingerprint);
   }
 
@@ -745,7 +745,7 @@ dirvote_get_intermediate_param_value(const smartlist_t *param_list,
     return default_val;
 }
 
-/** Minimum number of direcspidery authorities voting for a parameter to
+/** Minimum number of directory authorities voting for a parameter to
  * include it in the consensus, if consensus method 12 or later is to be
  * used. See proposal 178 for details. */
 #define MIN_VOTES_FOR_PARAM 3
@@ -1187,7 +1187,7 @@ update_total_bandwidth_weights(const routerstatus_t *rs,
    * bandwidth. From proposal236:
    *
    *    Similarly, when calculating the bandwidth-weights line as in
-   *    section 3.8.3 of dir-spec.txt, direcspidery authorities should treat N
+   *    section 3.8.3 of dir-spec.txt, directory authorities should treat N
    *    as if fraction F of its bandwidth has the guard flag and (1-F) does
    *    not.  So when computing the totals G,M,E,D, each relay N with guard
    *    visibility fraction F and bandwidth B should be added as follows:
@@ -2171,8 +2171,8 @@ networkstatus_compute_consensus(smartlist_t *votes,
     spider_free(measured_guardfraction);
   }
 
-  /* Mark the direcspidery footer region */
-  smartlist_add_strdup(chunks, "direcspidery-footer\n");
+  /* Mark the directory footer region */
+  smartlist_add_strdup(chunks, "directory-footer\n");
 
   {
     int64_t weight_scale = BW_WEIGHT_SCALE;
@@ -2223,7 +2223,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
     const char *algname = crypto_digest_algorithm_get_name(digest_alg);
     char *signature;
 
-    smartlist_add_strdup(chunks, "direcspidery-signature ");
+    smartlist_add_strdup(chunks, "directory-signature ");
 
     /* Compute the hash of the chunks. */
     crypto_digest_smartlist(digest, digest_len, chunks, "", digest_alg);
@@ -2250,7 +2250,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
     smartlist_add(chunks, signature);
 
     if (legacy_id_key_digest && legacy_signing_key) {
-      smartlist_add_strdup(chunks, "direcspidery-signature ");
+      smartlist_add_strdup(chunks, "directory-signature ");
       base16_encode(fingerprint, sizeof(fingerprint),
                     legacy_id_key_digest, DIGEST_LEN);
       crypto_pk_get_fingerprint(legacy_signing_key,
@@ -2517,7 +2517,7 @@ networkstatus_add_detached_signatures(networkstatus_t *target,
  * <b>consensus</b> by all voters. If <b>for_detached_signatures</b> is true,
  * then the signatures will be put in a detached signatures document, so
  * prefix any non-NS-flavored signatures with "additional-signature" rather
- * than "direcspidery-signature". */
+ * than "directory-signature". */
 static char *
 networkstatus_format_signatures(networkstatus_t *consensus,
                                 int for_detached_signatures)
@@ -2533,7 +2533,7 @@ networkstatus_format_signatures(networkstatus_t *consensus,
   if (for_detached_signatures && flavor != FLAV_NS)
     keyword = "additional-signature";
   else
-    keyword = "direcspidery-signature";
+    keyword = "directory-signature";
 
   elements = smartlist_new();
 
@@ -3011,7 +3011,7 @@ dirvote_perform_vote(void)
     return -1;
   }
 
-  direcspidery_post_to_dirservers(DIR_PURPOSE_UPLOAD_VOTE,
+  directory_post_to_dirservers(DIR_PURPOSE_UPLOAD_VOTE,
                                ROUTER_PURPOSE_GENERAL,
                                V3_DIRINFO,
                                pending_vote->vote_body->dir,
@@ -3054,7 +3054,7 @@ dirvote_fetch_missing_votes(void)
     spider_free(tmp);
   }
   resource = smartlist_join_strings(missing_fps, "+", 0, NULL);
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE,
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE,
                                      0, resource);
   spider_free(resource);
   SMARTLIST_FOREACH(missing_fps, char *, cp, spider_free(cp));
@@ -3080,7 +3080,7 @@ dirvote_fetch_missing_signatures(void)
   if (!need_any)
     return;
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES,
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES,
                                      0, NULL);
 }
 
@@ -3257,7 +3257,7 @@ dirvote_add_vote(const char *vote_body, const char **msg_out, int *status_out)
           goto discard;
         } else if (v->vote->published < vote->published) {
           log_notice(LD_DIR, "Replacing an older pending vote from this "
-                     "direcspidery (%s)", vi->address);
+                     "directory (%s)", vi->address);
           cached_dir_decref(v->vote_body);
           networkstatus_vote_free(v->vote);
           v->vote_body = new_cached_dir(spider_strndup(vote_body,
@@ -3503,7 +3503,7 @@ dirvote_compute_consensuses(void)
 
   log_notice(LD_DIR, "Consensus computed; uploading signature(s)");
 
-  direcspidery_post_to_dirservers(DIR_PURPOSE_UPLOAD_SIGNATURES,
+  directory_post_to_dirservers(DIR_PURPOSE_UPLOAD_SIGNATURES,
                                ROUTER_PURPOSE_GENERAL,
                                V3_DIRINFO,
                                pending_consensus_signatures,
@@ -3565,7 +3565,7 @@ dirvote_add_signatures_to_pending_consensus(
       strlen(pc->body) + strlen(new_signatures) + 1;
     pc->body = spider_realloc(pc->body, new_consensus_len);
     dst_end = pc->body + new_consensus_len;
-    dst = strstr(pc->body, "direcspidery-signature ");
+    dst = strstr(pc->body, "directory-signature ");
     spider_assert(dst);
     strlcpy(dst, new_signatures, dst_end-dst);
 
@@ -3687,7 +3687,7 @@ dirvote_publish_consensus(void)
 {
   int i;
 
-  /* Now remember all the other consensuses as if we were a direcspidery cache. */
+  /* Now remember all the other consensuses as if we were a directory cache. */
   for (i = 0; i < N_CONSENSUS_FLAVORS; ++i) {
     pending_consensus_t *pending = &pending_consensuses[i];
     const char *name;
@@ -3941,7 +3941,7 @@ static const struct consensus_method_range_t {
   {-1, -1}
 };
 
-/** Helper type used when generating the microdescripspider lines in a direcspidery
+/** Helper type used when generating the microdescripspider lines in a directory
  * vote. */
 typedef struct microdesc_vote_line_t {
   int low;
@@ -3951,7 +3951,7 @@ typedef struct microdesc_vote_line_t {
 } microdesc_vote_line_t;
 
 /** Generate and return a linked list of all the lines that should appear to
- * describe a router's microdescripspider versions in a direcspidery vote.
+ * describe a router's microdescripspider versions in a directory vote.
  * Add the generated microdescripspiders to <b>microdescripspiders_out</b>. */
 vote_microdesc_hash_t *
 dirvote_format_all_microdesc_vote_lines(const routerinfo_t *ri, time_t now,

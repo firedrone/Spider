@@ -28,7 +28,7 @@
  *     on a controller.
  *   <li>DNS lookup streams, created on the exit side in response to
  *     a RELAY_RESOLVE cell from a client.
- *   <li>Tunneled direcspidery streams, created on the direcspidery cache side
+ *   <li>Tunneled directory streams, created on the directory cache side
  *     in response to a RELAY_BEGIN_DIR cell.  These streams attach directly
  *     to a dir_connection_t object without ever using TCP.
  *   </ul>
@@ -44,7 +44,7 @@
  *
  * On the exit side, this module handles the various stream-creating
  * type of RELAY cells by launching appropriate outgoing connections,
- * DNS requests, or direcspidery connection objects.
+ * DNS requests, or directory connection objects.
  *
  * And for all edge connections, this module is responsible for handling
  * incoming and outdoing data as it arrives or leaves in the relay.c
@@ -72,7 +72,7 @@
 #include "control.h"
 #include "dns.h"
 #include "dnsserv.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "hibernate.h"
 #include "hs_common.h"
@@ -1125,7 +1125,7 @@ connection_ap_detach_retriable(entry_connection_t *conn,
 
   if (!get_options()->LeaveStreamsUnattached || conn->use_begindir) {
     /* If we're attaching streams ourself, or if this connection is
-     * a tunneled direcspidery connection, then just attach it. */
+     * a tunneled directory connection, then just attach it. */
     ENTRY_TO_CONN(conn)->state = AP_CONN_STATE_CIRCUIT_WAIT;
     circuit_detach_stream(TO_CIRCUIT(circ),ENTRY_TO_EDGE_CONN(conn));
     connection_ap_mark_as_pending_circuit(conn);
@@ -2512,8 +2512,8 @@ connection_ap_handshake_send_begin(entry_connection_t *ap_conn)
      * non-anonymous mode. */
     assert_circ_anonymity_ok(circ, options);
   } else if (begin_type == RELAY_COMMAND_BEGIN_DIR) {
-    /* This connection is a begindir direcspidery connection.
-     * Look at the linked direcspidery connection to access the direcspidery purpose.
+    /* This connection is a begindir directory connection.
+     * Look at the linked directory connection to access the directory purpose.
      * If a BEGINDIR connection is ever not linked, that's a bug. */
     if (BUG(!base_conn->linked)) {
       return -1;
@@ -2524,10 +2524,10 @@ connection_ap_handshake_send_begin(entry_connection_t *ap_conn)
     if (!linked_dir_conn_base) {
       return -1;
     }
-    /* Sensitive direcspidery connections must have an anonymous path length.
-     * Otherwise, direcspidery connections are typically one-hop.
-     * This matches the earlier check for direcspidery connection path anonymity
-     * in direcspidery_initiate_command_rend(). */
+    /* Sensitive directory connections must have an anonymous path length.
+     * Otherwise, directory connections are typically one-hop.
+     * This matches the earlier check for directory connection path anonymity
+     * in directory_initiate_command_rend(). */
     if (purpose_needs_anonymity(linked_dir_conn_base->purpose,
                     TO_DIR_CONN(linked_dir_conn_base)->router_purpose,
                     TO_DIR_CONN(linked_dir_conn_base)->requested_resource)) {
@@ -3157,7 +3157,7 @@ connection_exit_begin_conn(cell_t *cell, circuit_t *circ)
       }
     }
   } else if (rh.command == RELAY_COMMAND_BEGIN_DIR) {
-    if (!direcspidery_permits_begindir_requests(options) ||
+    if (!directory_permits_begindir_requests(options) ||
         circ->purpose != CIRCUIT_PURPOSE_OR) {
       relay_send_end_cell_from_edge(rh.stream_id, circ,
                                     END_STREAM_REASON_NOTDIRECTORY, NULL);
@@ -3489,8 +3489,8 @@ connection_exit_connect(edge_connection_t *edge_conn)
   }
 }
 
-/** Given an exit conn that should attach to us as a direcspidery server, open a
- * bridge connection with a linked connection pair, create a new direcspidery
+/** Given an exit conn that should attach to us as a directory server, open a
+ * bridge connection with a linked connection pair, create a new directory
  * conn, and join them together.  Return 0 on success (or if there was an
  * error we could send back an end cell for).  Return -(some circuit end
  * reason) if the circuit needs to be spidern down.  Either connects
@@ -3502,7 +3502,7 @@ connection_exit_connect_dir(edge_connection_t *exitconn)
   dir_connection_t *dirconn = NULL;
   or_circuit_t *circ = TO_OR_CIRCUIT(exitconn->on_circuit);
 
-  log_info(LD_EXIT, "Opening local connection for anonymized direcspidery exit");
+  log_info(LD_EXIT, "Opening local connection for anonymized directory exit");
 
   exitconn->base_.state = EXIT_CONN_STATE_OPEN;
 
@@ -3596,7 +3596,7 @@ connection_ap_can_use_exit(const entry_connection_t *conn,
   }
 
   if (conn->use_begindir) {
-    /* Internal direcspidery fetches do not count as exiting. */
+    /* Internal directory fetches do not count as exiting. */
     return 1;
   }
 

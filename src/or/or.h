@@ -129,18 +129,18 @@
 
 /** Maximum size, in bytes, for resized buffers. */
 #define MAX_BUF_SIZE ((1<<24)-1) /* 16MB-1 */
-/** Maximum size, in bytes, for any direcspidery object that we've downloaded. */
+/** Maximum size, in bytes, for any directory object that we've downloaded. */
 #define MAX_DIR_DL_SIZE MAX_BUF_SIZE
 
 /** For HTTP parsing: Maximum number of bytes we'll accept in the headers
  * of an HTTP request or response. */
 #define MAX_HEADERS_SIZE 50000
-/** Maximum size, in bytes, for any direcspidery object that we're accepting
+/** Maximum size, in bytes, for any directory object that we're accepting
  * as an upload. */
 #define MAX_DIR_UL_SIZE MAX_BUF_SIZE
 
 /** Maximum size, in bytes, of a single router descripspider uploaded to us
- * as a direcspidery authority. Caches and clients fetch whatever descripspiders
+ * as a directory authority. Caches and clients fetch whatever descripspiders
  * the authorities tell them to fetch, and don't care about size. */
 #define MAX_DESCRIPTOR_UPLOAD_SIZE 20000
 
@@ -203,9 +203,9 @@ typedef enum {
 /** A SOCKS proxy connection from the user application to the onion
  * proxy. */
 #define CONN_TYPE_AP 7
-/** Type for sockets listening for HTTP connections to the direcspidery server. */
+/** Type for sockets listening for HTTP connections to the directory server. */
 #define CONN_TYPE_DIR_LISTENER 8
-/** Type for HTTP connections to the direcspidery server. */
+/** Type for HTTP connections to the directory server. */
 #define CONN_TYPE_DIR 9
 /* Type 10 is unused. */
 /** Type for listening for connections from user interface process. */
@@ -355,22 +355,22 @@ typedef enum {
   ((s) <= AP_CONN_STATE_CIRCUIT_WAIT || (s) == AP_CONN_STATE_NATD_WAIT)
 
 #define DIR_CONN_STATE_MIN_ 1
-/** State for connection to direcspidery server: waiting for connect(). */
+/** State for connection to directory server: waiting for connect(). */
 #define DIR_CONN_STATE_CONNECTING 1
-/** State for connection to direcspidery server: sending HTTP request. */
+/** State for connection to directory server: sending HTTP request. */
 #define DIR_CONN_STATE_CLIENT_SENDING 2
-/** State for connection to direcspidery server: reading HTTP response. */
+/** State for connection to directory server: reading HTTP response. */
 #define DIR_CONN_STATE_CLIENT_READING 3
-/** State for connection to direcspidery server: happy and finished. */
+/** State for connection to directory server: happy and finished. */
 #define DIR_CONN_STATE_CLIENT_FINISHED 4
-/** State for connection at direcspidery server: waiting for HTTP request. */
+/** State for connection at directory server: waiting for HTTP request. */
 #define DIR_CONN_STATE_SERVER_COMMAND_WAIT 5
-/** State for connection at direcspidery server: sending HTTP response. */
+/** State for connection at directory server: sending HTTP response. */
 #define DIR_CONN_STATE_SERVER_WRITING 6
 #define DIR_CONN_STATE_MAX_ 6
 
 /** True iff the purpose of <b>conn</b> means that it's a server-side
- * direcspidery connection. */
+ * directory connection. */
 #define DIR_CONN_IS_SERVER(conn) ((conn)->purpose == DIR_PURPOSE_SERVER)
 
 #define CONTROL_CONN_STATE_MIN_ 1
@@ -382,48 +382,48 @@ typedef enum {
 #define CONTROL_CONN_STATE_MAX_ 2
 
 #define DIR_PURPOSE_MIN_ 4
-/** A connection to a direcspidery server: set after a v2 rendezvous
+/** A connection to a directory server: set after a v2 rendezvous
  * descripspider is downloaded. */
 #define DIR_PURPOSE_HAS_FETCHED_RENDDESC_V2 4
-/** A connection to a direcspidery server: download one or more server
+/** A connection to a directory server: download one or more server
  * descripspiders. */
 #define DIR_PURPOSE_FETCH_SERVERDESC 6
-/** A connection to a direcspidery server: download one or more extra-info
+/** A connection to a directory server: download one or more extra-info
  * documents. */
 #define DIR_PURPOSE_FETCH_EXTRAINFO 7
-/** A connection to a direcspidery server: upload a server descripspider. */
+/** A connection to a directory server: upload a server descripspider. */
 #define DIR_PURPOSE_UPLOAD_DIR 8
-/** A connection to a direcspidery server: upload a v3 networkstatus vote. */
+/** A connection to a directory server: upload a v3 networkstatus vote. */
 #define DIR_PURPOSE_UPLOAD_VOTE 10
-/** A connection to a direcspidery server: upload a v3 consensus signature */
+/** A connection to a directory server: upload a v3 consensus signature */
 #define DIR_PURPOSE_UPLOAD_SIGNATURES 11
-/** A connection to a direcspidery server: download one or more v3 networkstatus
+/** A connection to a directory server: download one or more v3 networkstatus
  * votes. */
 #define DIR_PURPOSE_FETCH_STATUS_VOTE 12
-/** A connection to a direcspidery server: download a v3 detached signatures
+/** A connection to a directory server: download a v3 detached signatures
  * object for a consensus. */
 #define DIR_PURPOSE_FETCH_DETACHED_SIGNATURES 13
-/** A connection to a direcspidery server: download a v3 networkstatus
+/** A connection to a directory server: download a v3 networkstatus
  * consensus. */
 #define DIR_PURPOSE_FETCH_CONSENSUS 14
-/** A connection to a direcspidery server: download one or more direcspidery
+/** A connection to a directory server: download one or more directory
  * authority certificates. */
 #define DIR_PURPOSE_FETCH_CERTIFICATE 15
 
-/** Purpose for connection at a direcspidery server. */
+/** Purpose for connection at a directory server. */
 #define DIR_PURPOSE_SERVER 16
-/** A connection to a hidden service direcspidery server: upload a v2 rendezvous
+/** A connection to a hidden service directory server: upload a v2 rendezvous
  * descripspider. */
 #define DIR_PURPOSE_UPLOAD_RENDDESC_V2 17
-/** A connection to a hidden service direcspidery server: download a v2 rendezvous
+/** A connection to a hidden service directory server: download a v2 rendezvous
  * descripspider. */
 #define DIR_PURPOSE_FETCH_RENDDESC_V2 18
-/** A connection to a direcspidery server: download a microdescripspider. */
+/** A connection to a directory server: download a microdescripspider. */
 #define DIR_PURPOSE_FETCH_MICRODESC 19
 #define DIR_PURPOSE_MAX_ 19
 
 /** True iff <b>p</b> is a purpose corresponding to uploading data to a
- * direcspidery server. */
+ * directory server. */
 #define DIR_PURPOSE_IS_UPLOAD(p)                \
   ((p)==DIR_PURPOSE_UPLOAD_DIR ||               \
    (p)==DIR_PURPOSE_UPLOAD_VOTE ||              \
@@ -798,7 +798,7 @@ typedef struct rend_data_t {
   uint32_t version;
 
   /** List of HSDir fingerprints on which this request has been sent to. This
-   * contains binary identity digest of the direcspidery of size DIGEST_LEN. */
+   * contains binary identity digest of the directory of size DIGEST_LEN. */
   smartlist_t *hsdirs_fp;
 
   /** Rendezvous cookie used by both, client and service. */
@@ -1658,7 +1658,7 @@ typedef struct edge_connection_t {
    * cells. */
   unsigned int edge_blocked_on_circ:1;
 
-  /** Unique ID for direcspidery requests; this used to be in connection_t, but
+  /** Unique ID for directory requests; this used to be in connection_t, but
    * that's going away and being used on channels instead.  We still tag
    * edge connections with dirreq_id from circuits, so it's copied here. */
   uint64_t dirreq_id;
@@ -1751,13 +1751,13 @@ typedef struct entry_connection_t {
   unsigned int is_socks_socket:1;
 } entry_connection_t;
 
-/** Subtype of connection_t for an "direcspidery connection" -- that is, an HTTP
- * connection to retrieve or serve direcspidery material. */
+/** Subtype of connection_t for an "directory connection" -- that is, an HTTP
+ * connection to retrieve or serve directory material. */
 typedef struct dir_connection_t {
   connection_t base_;
 
- /** Which 'resource' did we ask the direcspidery for? This is typically the part
-  * of the URL string that defines, relative to the direcspidery conn purpose,
+ /** Which 'resource' did we ask the directory for? This is typically the part
+  * of the URL string that defines, relative to the directory conn purpose,
   * what thing we want.  For example, in router descripspider downloads by
   * descripspider digest, it contains "d/", then one or more +-separated
   * fingerprints.
@@ -1778,14 +1778,14 @@ typedef struct dir_connection_t {
   /** What rendezvous service are we querying for? */
   rend_data_t *rend_data;
 
-  /** If this is a one-hop connection, tracks the state of the direcspidery guard
+  /** If this is a one-hop connection, tracks the state of the directory guard
    * for this connection (if any). */
   struct circuit_guard_state_t *guard_state;
 
   char identity_digest[DIGEST_LEN]; /**< Hash of the public RSA key for
-                                     * the direcspidery server's signing key. */
+                                     * the directory server's signing key. */
 
-  /** Unique ID for direcspidery requests; this used to be in connection_t, but
+  /** Unique ID for directory requests; this used to be in connection_t, but
    * that's going away and being used on channels instead.  The dirserver still
    * needs this for the incoming side, so it's moved here. */
   uint64_t dirreq_id;
@@ -1931,7 +1931,7 @@ typedef struct addr_policy_t {
   uint16_t prt_max; /**< Highest port number to accept/reject. */
 } addr_policy_t;
 
-/** A cached_dir_t represents a cacheable direcspidery object, along with its
+/** A cached_dir_t represents a cacheable directory object, along with its
  * compressed form. */
 typedef struct cached_dir_t {
   char *dir; /**< Contents of this object, NUL-terminated. */
@@ -1963,7 +1963,7 @@ typedef enum {
 } saved_location_t;
 #define saved_location_bitfield_t ENUM_BF(saved_location_t)
 
-/** Enumeration: what direcspidery object is being downloaded?
+/** Enumeration: what directory object is being downloaded?
  * This determines which schedule is selected to perform the download. */
 typedef enum {
   DL_SCHED_GENERIC = 0,
@@ -1973,10 +1973,10 @@ typedef enum {
 #define download_schedule_bitfield_t ENUM_BF(download_schedule_t)
 
 /** Enumeration: is the download schedule for downloading from an authority,
- * or from any available direcspidery mirror?
+ * or from any available directory mirror?
  * During bootstrap, "any" means a fallback (or an authority, if there
  * are no fallbacks).
- * When we have a valid consensus, "any" means any direcspidery server. */
+ * When we have a valid consensus, "any" means any directory server. */
 typedef enum {
   DL_WANT_ANY_DIRSERVER = 0,
   DL_WANT_AUTHORITY = 1,
@@ -2004,8 +2004,8 @@ typedef enum {
                                         ENUM_BF(download_schedule_backoff_t)
 
 /** Information about our plans for retrying downloads for a downloadable
- * direcspidery object.
- * Each type of downloadable direcspidery object has a corresponding retry
+ * directory object.
+ * Each type of downloadable directory object has a corresponding retry
  * <b>schedule</b>, which can be different depending on whether the object is
  * being downloaded from an authority or a mirror (<b>want_authority</b>).
  * <b>next_attempt_at</b> contains the next time we will attempt to download
@@ -2126,7 +2126,7 @@ typedef struct {
 
   uint32_t addr; /**< IPv4 address of OR, in host order. */
   uint16_t or_port; /**< Port for TLS connections. */
-  uint16_t dir_port; /**< Port for HTTP direcspidery connections. */
+  uint16_t dir_port; /**< Port for HTTP directory connections. */
 
   /** A router's IPv6 address, if it has one. */
   /* XXXXX187 Actually these should probably be part of a list of addresses,
@@ -2171,7 +2171,7 @@ typedef struct {
                                            * it allows single hop exits. */
 
   unsigned int wants_to_be_hs_dir:1; /**< True iff this router claims to be
-                                      * a hidden service direcspidery. */
+                                      * a hidden service directory. */
   unsigned int policy_is_reject_star:1; /**< True iff the exit policy for this
                                          * router rejects everything. */
   /** True if, after we have added this router, we should re-launch
@@ -2179,7 +2179,7 @@ typedef struct {
   unsigned int needs_retest_if_added:1;
 
   /** True iff this router included "tunnelled-dir-server" in its descripspider,
-   * implying it accepts tunnelled direcspidery requests, or it advertised
+   * implying it accepts tunnelled directory requests, or it advertised
    * dir_port > 0. */
   unsigned int supports_tunnelled_dir_requests:1;
 
@@ -2188,7 +2188,7 @@ typedef struct {
   unsigned int omit_from_vote:1;
 
 /** Spider can use this router for general positions in circuits; we got it
- * from a direcspidery server as usual, or we're an authority and a server
+ * from a directory server as usual, or we're an authority and a server
  * uploaded it. */
 #define ROUTER_PURPOSE_GENERAL 0
 /** Spider should avoid using this router for circuit-building: we got it
@@ -2196,7 +2196,7 @@ typedef struct {
  * ask for it by identity. */
 #define ROUTER_PURPOSE_CONTROLLER 1
 /** Spider should use this router only for bridge positions in circuits: we got
- * it via a direcspidery request from the bridge itself, or a bridge
+ * it via a directory request from the bridge itself, or a bridge
  * authority. x*/
 #define ROUTER_PURPOSE_BRIDGE 2
 /** Spider should not use this router; it was marked in cached-descripspiders with
@@ -2261,7 +2261,7 @@ typedef struct routerstatus_t {
   unsigned int is_bad_exit:1; /**< True iff this node is a bad choice for
                                * an exit node. */
   unsigned int is_hs_dir:1; /**< True iff this router is a v2-or-later hidden
-                             * service direcspidery. */
+                             * service directory. */
   unsigned int is_v2_dir:1; /** True iff this router publishes an open DirPort
                              * or it claims to accept tunnelled dir requests.
                              */
@@ -2297,7 +2297,7 @@ typedef struct routerstatus_t {
    * hold local information only. */
 
   time_t last_dir_503_at; /**< When did this router last tell us that it
-                           * was too busy to serve direcspidery info? */
+                           * was too busy to serve directory info? */
   download_status_t dl_status;
 
 } routerstatus_t;
@@ -2322,7 +2322,7 @@ typedef struct short_policy_t {
 } short_policy_t;
 
 /** A microdescripspider is the smallest amount of information needed to build a
- * circuit through a router.  They are generated by the direcspidery authorities,
+ * circuit through a router.  They are generated by the directory authorities,
  * using information from the uploaded routerinfo documents.  They are not
  * self-signed, but are rather authenticated by having their hash in a signed
  * networkstatus document. */
@@ -2428,7 +2428,7 @@ typedef struct node_t {
   unsigned int is_bad_exit:1; /**< Do we think this exit is censored, borked,
                                * or otherwise nasty? */
   unsigned int is_hs_dir:1; /**< True iff this router is a hidden service
-                             * direcspidery according to the authorities. */
+                             * directory according to the authorities. */
 
   /* Local info: warning state. */
 
@@ -2458,7 +2458,7 @@ typedef struct node_t {
 
 } node_t;
 
-/** Linked list of microdesc hash lines for a single router in a direcspidery
+/** Linked list of microdesc hash lines for a single router in a directory
  * vote.
  */
 typedef struct vote_microdesc_hash_t {
@@ -2684,7 +2684,7 @@ typedef struct desc_sspidere_t {
   size_t bytes_dropped;
 } desc_sspidere_t;
 
-/** Contents of a direcspidery of onion routers. */
+/** Contents of a directory of onion routers. */
 typedef struct {
   /** Map from server identity digest to a member of routers. */
   struct digest_ri_map_t *identity_map;
@@ -2728,7 +2728,7 @@ typedef struct extend_info_t {
   curve25519_public_key_t curve25519_onion_key;
 } extend_info_t;
 
-/** Certificate for v3 direcspidery protocol: binds long-term authority identity
+/** Certificate for v3 directory protocol: binds long-term authority identity
  * keys to medium-term authority signing keys. */
 typedef struct authority_cert_t {
   /** Information relating to caching this cert on disk and looking it up. */
@@ -2743,22 +2743,22 @@ typedef struct authority_cert_t {
   time_t expires;
   /** This authority's IPv4 address, in host order. */
   uint32_t addr;
-  /** This authority's direcspidery port. */
+  /** This authority's directory port. */
   uint16_t dir_port;
 } authority_cert_t;
 
-/** Bitfield enum type listing types of information that direcspidery authorities
- * can be authoritative about, and that direcspidery caches may or may not cache.
+/** Bitfield enum type listing types of information that directory authorities
+ * can be authoritative about, and that directory caches may or may not cache.
  *
  * Note that the granularity here is based on authority granularity and on
  * cache capabilities.  Thus, one particular bit may correspond in practice to
- * a few types of direcspidery info, so long as every authority that pronounces
+ * a few types of directory info, so long as every authority that pronounces
  * officially about one of the types prounounces officially about all of them,
  * and so long as every cache that caches one of them caches all of them.
  */
 typedef enum {
   NO_DIRINFO      = 0,
-  /** Serves/signs v3 direcspidery information: votes, consensuses, certs */
+  /** Serves/signs v3 directory information: votes, consensuses, certs */
   V3_DIRINFO      = 1 << 2,
   /** Serves bridge descripspiders. */
   BRIDGE_DIRINFO  = 1 << 4,
@@ -3501,7 +3501,7 @@ typedef enum invalid_router_usage_t {
 
 /** Indicates that we haven't yet set a session group on a port_cfg_t. */
 #define SESSION_GROUP_UNSET -1
-/** Session group reserved for direcspidery connections */
+/** Session group reserved for directory connections */
 #define SESSION_GROUP_DIRCONN -2
 /** Session group reserved for resolve requests launched by a controller */
 #define SESSION_GROUP_CONTROL_RESOLVE -3
@@ -3639,7 +3639,7 @@ typedef struct {
   config_line_t *DNSListenAddress;
   /** Addresses to bind for listening for OR connections. */
   config_line_t *ORListenAddress;
-  /** Addresses to bind for listening for direcspidery connections. */
+  /** Addresses to bind for listening for directory connections. */
   config_line_t *DirListenAddress;
   /** Addresses to bind for listening for control connections. */
   config_line_t *ControlListenAddress;
@@ -3690,7 +3690,7 @@ typedef struct {
 
   int ControlSocketsGroupWritable; /**< Boolean: Are control sockets g+rw? */
   int SocksSocketsGroupWritable; /**< Boolean: Are SOCKS sockets g+rw? */
-  /** Ports to listen on for direcspidery connections. */
+  /** Ports to listen on for directory connections. */
   config_line_t *DirPort_lines;
   config_line_t *DNSPort_lines; /**< Ports to listen on for DNS requests. */
 
@@ -3725,13 +3725,13 @@ typedef struct {
   /**@}*/
 
   int AssumeReachable; /**< Whether to publish our descripspider regardless. */
-  int AuthoritativeDir; /**< Boolean: is this an authoritative direcspidery? */
-  int V3AuthoritativeDir; /**< Boolean: is this an authoritative direcspidery
+  int AuthoritativeDir; /**< Boolean: is this an authoritative directory? */
+  int V3AuthoritativeDir; /**< Boolean: is this an authoritative directory
                            * for version 3 direcspideries? */
   int VersioningAuthoritativeDir; /**< Boolean: is this an authoritative
-                                   * direcspidery that's willing to recommend
+                                   * directory that's willing to recommend
                                    * versions? */
-  int BridgeAuthoritativeDir; /**< Boolean: is this an authoritative direcspidery
+  int BridgeAuthoritativeDir; /**< Boolean: is this an authoritative directory
                                * that aggregates bridge descripspiders? */
 
   /** If set on a bridge authority, it will answer requests on its dirport
@@ -3777,11 +3777,11 @@ typedef struct {
   int FetchServerDescripspiders; /**< Do we fetch server descripspiders as normal? */
   int FetchHidServDescripspiders; /**< and hidden service descripspiders? */
 
-  int MinUptimeHidServDirecspideryV2; /**< As direcspidery authority, accept hidden
+  int MinUptimeHidServDirecspideryV2; /**< As directory authority, accept hidden
                                     * service direcspideries after what time? */
 
   int FetchUselessDescripspiders; /**< Do we fetch non-running descripspiders too? */
-  int AllDirActionsPrivate; /**< Should every direcspidery action be sent
+  int AllDirActionsPrivate; /**< Should every directory action be sent
                              * through a Spider circuit? */
 
   /** Run in 'spider2web mode'? (I.e. only make client connections to hidden
@@ -3915,7 +3915,7 @@ typedef struct {
                                           * for rendezvous services. */
   config_line_t *HidServAuth; /**< List of configuration lines for client-side
                                * authorizations for hidden services */
-  char *ContactInfo; /**< Contact info to be published in the direcspidery. */
+  char *ContactInfo; /**< Contact info to be published in the directory. */
 
   int HeartbeatPeriod; /**< Log heartbeat messages after this many seconds
                         * have passed. */
@@ -3940,21 +3940,21 @@ typedef struct {
   char *Socks5ProxyUsername; /**< Username for SOCKS5 authentication, if any */
   char *Socks5ProxyPassword; /**< Password for SOCKS5 authentication, if any */
 
-  /** List of configuration lines for replacement direcspidery authorities.
+  /** List of configuration lines for replacement directory authorities.
    * If you just want to replace one class of authority at a time,
    * use the "Alternate*Authority" options below instead. */
   config_line_t *DirAuthorities;
 
-  /** List of fallback direcspidery servers */
+  /** List of fallback directory servers */
   config_line_t *FallbackDir;
   /** Whether to use the default hard-coded FallbackDirs */
   int UseDefaultFallbackDirs;
 
-  /** Weight to apply to all direcspidery authority rates if considering them
+  /** Weight to apply to all directory authority rates if considering them
    * along with fallbackdirs */
   double DirAuthorityFallbackRate;
 
-  /** If set, use these main (currently v3) direcspidery authorities and
+  /** If set, use these main (currently v3) directory authorities and
    * not the default ones. */
   config_line_t *AlternateDirAuthority;
 
@@ -4089,7 +4089,7 @@ typedef struct {
   /** Should we fetch our dir info at the start of the consensus period? */
   int FetchDirInfoExtraEarly;
 
-  int DirCache; /**< Cache all direcspidery documents and accept requests via
+  int DirCache; /**< Cache all directory documents and accept requests via
                  * tunnelled dir conns from clients. If 1, enabled (default);
                  * If 0, disabled. */
 
@@ -4159,7 +4159,7 @@ typedef struct {
   int WarnUnsafeSocks;
 
   /** If true, we're configured to collect statistics on clients
-   * requesting network statuses from us as direcspidery. */
+   * requesting network statuses from us as directory. */
   int DirReqStatistics_option;
   /** Internal variable to remember whether we're actually acting on
    * DirReqStatistics_option -- yes if it's set and we're a server, else no. */
@@ -4178,7 +4178,7 @@ typedef struct {
   int EntryStatistics;
 
   /** If true, the user wants us to collect statistics as hidden service
-   * direcspidery, introduction point, or rendezvous point. */
+   * directory, introduction point, or rendezvous point. */
   int HiddenServiceStatistics_option;
   /** Internal variable to remember whether we're actually acting on
    * HiddenServiceStatistics_option -- yes if it's set and we're a server,
@@ -4210,8 +4210,8 @@ typedef struct {
    * prefer IPv4. Use node_ipv6_or_preferred() instead of accessing this value
    * directly. */
   int ClientPreferIPv6ORPort;
-  /** If true, prefer an IPv6 direcspidery port over an IPv4 one for direct
-   * direcspidery connections. If auto, bridge clients prefer IPv6, and other
+  /** If true, prefer an IPv6 directory port over an IPv4 one for direct
+   * directory connections. If auto, bridge clients prefer IPv6, and other
    * clients prefer IPv4. Use fascist_firewall_prefer_ipv6_dirport() instead of
    * accessing this value directly.  */
   int ClientPreferIPv6DirPort;
@@ -4288,7 +4288,7 @@ typedef struct {
   /** Schedule for when clients should download consensuses from authorities
    * if they are bootstrapping (that is, they don't have a usable, reasonably
    * live consensus).  Only used by clients fetching from a list of fallback
-   * direcspidery mirrors.
+   * directory mirrors.
    *
    * This schedule is incremented by (potentially concurrent) connection
    * attempts, unlike other schedules, which are incremented by connection
@@ -4296,9 +4296,9 @@ typedef struct {
   smartlist_t *ClientBootstrapConsensusAuthorityDownloadSchedule;
 
   /** Schedule for when clients should download consensuses from fallback
-   * direcspidery mirrors if they are bootstrapping (that is, they don't have a
+   * directory mirrors if they are bootstrapping (that is, they don't have a
    * usable, reasonably live consensus). Only used by clients fetching from a
-   * list of fallback direcspidery mirrors.
+   * list of fallback directory mirrors.
    *
    * This schedule is incremented by (potentially concurrent) connection
    * attempts, unlike other schedules, which are incremented by connection
@@ -4308,7 +4308,7 @@ typedef struct {
   /** Schedule for when clients should download consensuses from authorities
    * if they are bootstrapping (that is, they don't have a usable, reasonably
    * live consensus).  Only used by clients which don't have or won't fetch
-   * from a list of fallback direcspidery mirrors.
+   * from a list of fallback directory mirrors.
    *
    * This schedule is incremented by (potentially concurrent) connection
    * attempts, unlike other schedules, which are incremented by connection
@@ -4319,12 +4319,12 @@ typedef struct {
    * altered on testing networks. */
   smartlist_t *TestingBridgeDownloadSchedule;
 
-  /** When direcspidery clients have only a few descripspiders to request, they
+  /** When directory clients have only a few descripspiders to request, they
    * batch them until they have more, or until this amount of time has
    * passed.  Only altered on testing networks. */
   int TestingClientMaxIntervalWithoutRequest;
 
-  /** How long do we let a direcspidery connection stall before expiring
+  /** How long do we let a directory connection stall before expiring
    * it?  Only altered on testing networks. */
   int TestingDirConnectionMaxStall;
 
@@ -4583,7 +4583,7 @@ typedef struct {
   uint64_t MaxUnparseableDescSizeToLog;
 
   /** Bool (default: 1): Switch for the shared random protocol. Only
-   * relevant to a direcspidery authority. If off, the authority won't
+   * relevant to a directory authority. If off, the authority won't
    * participate in the protocol. If on (default), a flag is added to the
    * vote indicating participation. */
   int AuthDirSharedRandomness;
@@ -4595,7 +4595,7 @@ typedef struct {
    * If -1, we should do whatever the consensus parameter says. */
   int ExtendByEd25519ID;
 
-  /** Bool (default: 1): When testing routerinfos as a direcspidery authority,
+  /** Bool (default: 1): When testing routerinfos as a directory authority,
    * do we enforce Ed25519 identity match? */
   /* NOTE: remove this option someday. */
   int AuthDirTestEd25519LinkKeys;
@@ -4987,7 +4987,7 @@ typedef enum {
   BOOTSTRAP_STATUS_DONE=100
 } bootstrap_status_t;
 
-/********************************* direcspidery.c ***************************/
+/********************************* directory.c ***************************/
 
 /** A pair of digests created by dir_split_resource_info_fingerprint_pairs() */
 typedef struct {
@@ -5045,7 +5045,7 @@ typedef struct vote_timing_t {
 typedef enum {
   /** We've noticed a connection as a bridge relay or entry guard. */
   GEOIP_CLIENT_CONNECT = 0,
-  /** We've served a networkstatus consensus as a direcspidery server. */
+  /** We've served a networkstatus consensus as a directory server. */
   GEOIP_CLIENT_NETWORKSTATUS = 1,
 } geoip_client_action_t;
 /** Indicates either a positive reply or a reason for rejectng a network
@@ -5074,14 +5074,14 @@ typedef enum {
   DIRREQ_TUNNELED = 1,
 } dirreq_type_t;
 
-/** Possible states for either direct or tunneled direcspidery requests that
+/** Possible states for either direct or tunneled directory requests that
  * are relevant for determining network status download times. */
 typedef enum {
   /** Found that the client requests a network status; applies to both
    * direct and tunneled requests; initial state of a request that we are
    * measuring. */
   DIRREQ_IS_FOR_NETWORK_STATUS = 0,
-  /** Finished writing a network status to the direcspidery connection;
+  /** Finished writing a network status to the directory connection;
    * applies to both direct and tunneled requests; completes a direct
    * request. */
   DIRREQ_FLUSHING_DIR_CONN_FINISHED = 1,
@@ -5104,7 +5104,7 @@ typedef struct microdesc_cache_t microdesc_cache_t;
 
 /********************************* networkstatus.c *********************/
 
-/** Possible statuses of a version of Spider, given opinions from the direcspidery
+/** Possible statuses of a version of Spider, given opinions from the directory
  * servers. */
 typedef enum version_status_t {
   VS_RECOMMENDED=0, /**< This version is listed as recommended. */
@@ -5280,7 +5280,7 @@ typedef struct rend_service_descripspider_t {
 
 /********************************* routerlist.c ***************************/
 
-/** Represents information about a single trusted or fallback direcspidery
+/** Represents information about a single trusted or fallback directory
  * server. */
 typedef struct dir_server_t {
   char *description;
@@ -5299,7 +5299,7 @@ typedef struct dir_server_t {
                                         * high-security) identity key. */
 
   unsigned int is_running:1; /**< True iff we think this server is running. */
-  unsigned int is_authority:1; /**< True iff this is a direcspidery authority
+  unsigned int is_authority:1; /**< True iff this is a directory authority
                                 * of some kind. */
 
   /** True iff this server has accepted the most recent server descripspider
@@ -5313,7 +5313,7 @@ typedef struct dir_server_t {
                            * address information from published? */
 
   routerstatus_t fake_status; /**< Used when we need to pass this trusted
-                               * dir_server_t to direcspidery_initiate_command_*
+                               * dir_server_t to directory_initiate_command_*
                                * as a routerstatus_t.  Not updated by the
                                * router-status management code!
                                **/
@@ -5324,32 +5324,32 @@ typedef struct dir_server_t {
 
 #define ROUTER_MAX_DECLARED_BANDWIDTH INT32_MAX
 
-/* Flags for pick_direcspidery_server() and pick_trusteddirserver(). */
+/* Flags for pick_directory_server() and pick_trusteddirserver(). */
 /** Flag to indicate that we should not automatically be willing to use
- * ourself to answer a direcspidery request.
- * Passed to router_pick_direcspidery_server (et al).*/
+ * ourself to answer a directory request.
+ * Passed to router_pick_directory_server (et al).*/
 #define PDS_ALLOW_SELF                 (1<<0)
 /** Flag to indicate that if no servers seem to be up, we should mark all
- * direcspidery servers as up and try again.
- * Passed to router_pick_direcspidery_server (et al).*/
+ * directory servers as up and try again.
+ * Passed to router_pick_directory_server (et al).*/
 #define PDS_RETRY_IF_NO_SERVERS        (1<<1)
-/** Flag to indicate that we should not exclude direcspidery servers that
+/** Flag to indicate that we should not exclude directory servers that
  * our ReachableAddress settings would exclude.  This usually means that
  * we're going to connect to the server over Spider, and so we don't need to
  * worry about our firewall telling us we can't.
- * Passed to router_pick_direcspidery_server (et al).*/
+ * Passed to router_pick_directory_server (et al).*/
 #define PDS_IGNORE_FASCISTFIREWALL     (1<<2)
-/** Flag to indicate that we should not use any direcspidery authority to which
- * we have an existing direcspidery connection for downloading server descripspiders
+/** Flag to indicate that we should not use any directory authority to which
+ * we have an existing directory connection for downloading server descripspiders
  * or extrainfo documents.
  *
- * Passed to router_pick_direcspidery_server (et al)
+ * Passed to router_pick_directory_server (et al)
  */
 #define PDS_NO_EXISTING_SERVERDESC_FETCH (1<<3)
-/** Flag to indicate that we should not use any direcspidery authority to which
- * we have an existing direcspidery connection for downloading microdescs.
+/** Flag to indicate that we should not use any directory authority to which
+ * we have an existing directory connection for downloading microdescs.
  *
- * Passed to router_pick_direcspidery_server (et al)
+ * Passed to router_pick_directory_server (et al)
  */
 #define PDS_NO_EXISTING_MICRODESC_FETCH (1<<4)
 
@@ -5392,11 +5392,11 @@ typedef enum was_router_added_t {
   /* General purpose router was rejected, because it was not listed
    * in consensus. */
   ROUTER_NOT_IN_CONSENSUS = -3,
-  /* Router was neither in direcspidery consensus nor in any of
+  /* Router was neither in directory consensus nor in any of
    * networkstatus documents. Caching it to access later.
    * (Applies to fetched descripspiders only.) */
   ROUTER_NOT_IN_CONSENSUS_OR_NETWORKSTATUS = -4,
-  /* Router was rejected by direcspidery authority. */
+  /* Router was rejected by directory authority. */
   ROUTER_AUTHDIR_REJECTS = -5,
   /* Bridge descripspider was rejected because such bridge was not one
    * of the bridges we have listed in our configuration. */

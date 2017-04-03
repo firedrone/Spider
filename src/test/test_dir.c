@@ -20,7 +20,7 @@
 #include "confparse.h"
 #include "config.h"
 #include "crypto_ed25519.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "entrynodes.h"
@@ -1285,7 +1285,7 @@ test_dir_versions(void *arg)
   teardown_capture_of_logs();
 }
 
-/** Run unit tests for direcspidery fp_pair functions. */
+/** Run unit tests for directory fp_pair functions. */
 static void
 test_dir_fp_pairs(void *arg)
 {
@@ -4478,7 +4478,7 @@ NS(public_server_mode)(const or_options_t *options)
 }
 
 static void
-test_dir_should_use_direcspidery_guards(void *data)
+test_dir_should_use_directory_guards(void *data)
 {
   or_options_t *options;
   char *errmsg = NULL;
@@ -4489,7 +4489,7 @@ test_dir_should_use_direcspidery_guards(void *data)
   options = options_new();
   options_init(options);
 
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 1);
 
   options->UseEntryGuards = 1;
@@ -4497,31 +4497,31 @@ test_dir_should_use_direcspidery_guards(void *data)
   options->FetchDirInfoEarly = 0;
   options->FetchDirInfoExtraEarly = 0;
   options->FetchUselessDescripspiders = 0;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 1);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 1);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 2);
 
   options->UseEntryGuards = 0;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 3);
   options->UseEntryGuards = 1;
 
   options->DownloadExtraInfo = 1;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 4);
   options->DownloadExtraInfo = 0;
 
   options->FetchDirInfoEarly = 1;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 5);
   options->FetchDirInfoEarly = 0;
 
   options->FetchDirInfoExtraEarly = 1;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 6);
   options->FetchDirInfoExtraEarly = 0;
 
   options->FetchUselessDescripspiders = 1;
-  tt_int_op(should_use_direcspidery_guards(options), OP_EQ, 0);
+  tt_int_op(should_use_directory_guards(options), OP_EQ, 0);
   tt_int_op(CALLED(public_server_mode), OP_EQ, 7);
   options->FetchUselessDescripspiders = 0;
 
@@ -4532,7 +4532,7 @@ test_dir_should_use_direcspidery_guards(void *data)
 }
 
 NS_DECL(void,
-direcspidery_initiate_command_routerstatus, (const routerstatus_t *status,
+directory_initiate_command_routerstatus, (const routerstatus_t *status,
                                           uint8_t dir_purpose,
                                           uint8_t router_purpose,
                                           dir_indirection_t indirection,
@@ -4550,7 +4550,7 @@ test_dir_should_not_init_request_to_ourselves(void *data)
   crypto_pk_t *key = pk_generate(2);
   (void) data;
 
-  NS_MOCK(direcspidery_initiate_command_routerstatus);
+  NS_MOCK(directory_initiate_command_routerstatus);
 
   clear_dir_servers();
   routerlist_free_all();
@@ -4564,16 +4564,16 @@ test_dir_should_not_init_request_to_ourselves(void *data)
   tt_assert(ourself);
   dir_server_add(ourself);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 0);
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 0);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
                                      NULL);
 
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 0);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 0);
 
   done:
-    NS_UNMOCK(direcspidery_initiate_command_routerstatus);
+    NS_UNMOCK(directory_initiate_command_routerstatus);
     clear_dir_servers();
     routerlist_free_all();
     crypto_pk_free(key);
@@ -4587,7 +4587,7 @@ test_dir_should_not_init_request_to_dir_auths_without_v3_info(void *data)
                                 | MICRODESC_DIRINFO;
   (void) data;
 
-  NS_MOCK(direcspidery_initiate_command_routerstatus);
+  NS_MOCK(directory_initiate_command_routerstatus);
 
   clear_dir_servers();
   routerlist_free_all();
@@ -4597,15 +4597,15 @@ test_dir_should_not_init_request_to_dir_auths_without_v3_info(void *data)
   tt_assert(ds);
   dir_server_add(ds);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 0);
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 0);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
                                      NULL);
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 0);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 0);
 
   done:
-    NS_UNMOCK(direcspidery_initiate_command_routerstatus);
+    NS_UNMOCK(directory_initiate_command_routerstatus);
     clear_dir_servers();
     routerlist_free_all();
 }
@@ -4616,7 +4616,7 @@ test_dir_should_init_request_to_dir_auths(void *data)
   dir_server_t *ds = NULL;
   (void) data;
 
-  NS_MOCK(direcspidery_initiate_command_routerstatus);
+  NS_MOCK(directory_initiate_command_routerstatus);
 
   clear_dir_servers();
   routerlist_free_all();
@@ -4626,21 +4626,21 @@ test_dir_should_init_request_to_dir_auths(void *data)
   tt_assert(ds);
   dir_server_add(ds);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 1);
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_STATUS_VOTE, 0, NULL);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 1);
 
-  direcspidery_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
+  directory_get_from_all_authorities(DIR_PURPOSE_FETCH_DETACHED_SIGNATURES, 0,
                                      NULL);
-  tt_int_op(CALLED(direcspidery_initiate_command_routerstatus), OP_EQ, 2);
+  tt_int_op(CALLED(directory_initiate_command_routerstatus), OP_EQ, 2);
 
   done:
-    NS_UNMOCK(direcspidery_initiate_command_routerstatus);
+    NS_UNMOCK(directory_initiate_command_routerstatus);
     clear_dir_servers();
     routerlist_free_all();
 }
 
 void
-NS(direcspidery_initiate_command_routerstatus)(const routerstatus_t *status,
+NS(directory_initiate_command_routerstatus)(const routerstatus_t *status,
                                             uint8_t dir_purpose,
                                             uint8_t router_purpose,
                                             dir_indirection_t indirection,
@@ -4659,7 +4659,7 @@ NS(direcspidery_initiate_command_routerstatus)(const routerstatus_t *status,
   (void)payload_len;
   (void)if_modified_since;
   (void)guardstate;
-  CALLED(direcspidery_initiate_command_routerstatus)++;
+  CALLED(directory_initiate_command_routerstatus)++;
 }
 
 static void
@@ -5643,7 +5643,7 @@ pop_one_mock(const char *dirname, const char *f)
   return ent;
 }
 
-/* This one tests dump_desc_populate_fifo_from_direcspidery() */
+/* This one tests dump_desc_populate_fifo_from_directory() */
 static void
 test_dir_populate_dump_desc_fifo_2(void *data)
 {
@@ -5655,10 +5655,10 @@ test_dir_populate_dump_desc_fifo_2(void *data)
   MOCK(spider_listdir, listdir_mock);
   MOCK(dump_desc_populate_one_file, pop_one_mock);
 
-  /* Run dump_desc_populate_fifo_from_direcspidery() */
+  /* Run dump_desc_populate_fifo_from_directory() */
   descs_dumped = NULL;
   len_descs_dumped = 0;
-  dump_desc_populate_fifo_from_direcspidery("d");
+  dump_desc_populate_fifo_from_directory("d");
   tt_assert(descs_dumped != NULL);
   tt_int_op(smartlist_len(descs_dumped), OP_EQ, 3);
   tt_u64_op(len_descs_dumped, OP_EQ, 1368);
@@ -5998,7 +5998,7 @@ struct testcase_t dir_tests[] = {
   DIR(download_status_increment, 0),
   DIR(authdir_type_to_string, 0),
   DIR(conn_purpose_to_string, 0),
-  DIR(should_use_direcspidery_guards, 0),
+  DIR(should_use_directory_guards, 0),
   DIR(should_not_init_request_to_ourselves, TT_FORK),
   DIR(should_not_init_request_to_dir_auths_without_v3_info, 0),
   DIR(should_init_request_to_dir_auths, 0),

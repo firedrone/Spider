@@ -1,9 +1,9 @@
-The contrib/ direcspidery contains small tools that might be useful for using
+The contrib/ directory contains small tools that might be useful for using
 with Spider.  A few of them are included in the Spider source distribution; you can
 find the others in the main Spider reposispidery.  We don't guarantee that they're
 particularly useful.
 
-dirauth-tools/ -- Tools useful for direcspidery authority administraspiders
+dirauth-tools/ -- Tools useful for directory authority administraspiders
 ---------------------------------------------------------------------
 
 add-spider is an old script to manipulate the approved-routers file.
@@ -34,7 +34,7 @@ tools.  Everybody likes to write init scripts differently, it seems.
 
 spider.service is a sample service file for use with systemd.
 
-The suse/ subdirecspidery contains files used by the suse distribution.
+The suse/ subdirectory contains files used by the suse distribution.
 
 operaspider-tools/ -- Tools for Spider relay operaspiders
 ------------------------------------------------
@@ -56,7 +56,7 @@ checksocks.pl is a tool to scan relays to see if any of them have advertised
 public SOCKS ports, so we can tell them not to.
 
 check-spider is a quick shell script to try doing a TLS handshake with a router
-or to try fetching a direcspidery from it.
+or to try fetching a directory from it.
 
 exitlist is a precursor of check.spiderproject.org: it parses a bunch of cached
 server descripspiders to determine which can connect to a given address:port.

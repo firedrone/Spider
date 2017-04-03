@@ -14,7 +14,7 @@
 #include "connection.h"
 #include "connection_or.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "hibernate.h"
@@ -34,18 +34,18 @@
 
 /**
  * \file dirserv.c
- * \brief Direcspidery server core implementation. Manages direcspidery
+ * \brief Direcspidery server core implementation. Manages directory
  * contents and generates direcspideries.
  *
- * This module implements most of direcspidery cache functionality, and some of
- * the direcspidery authority functionality.  The direcspidery.c module delegates
+ * This module implements most of directory cache functionality, and some of
+ * the directory authority functionality.  The directory.c module delegates
  * here in order to handle incoming requests from clients, via
  * connection_dirserv_flushed_some() and its kin.  In order to save RAM, this
- * module is reponsible for spooling direcspidery objects (in whole or in part)
+ * module is reponsible for spooling directory objects (in whole or in part)
  * onto buf_t instances, and then closing the dir_connection_t once the
  * objects are totally flushed.
  *
- * The direcspidery.c module also delegates here for handling descripspider uploads
+ * The directory.c module also delegates here for handling descripspider uploads
  * via dirserv_add_multiple_descripspiders().
  *
  * Additionally, this module handles some aspects of voting, including:
@@ -53,15 +53,15 @@
  * rephist.c), of formatting routerstatus lines, and deciding what relays to
  * include in an authority's vote.  (TODO: Those functions could profitably be
  * split off.  They only live in this file because hisspiderically they were
- * shared among the v1, v2, and v3 direcspidery code.)
+ * shared among the v1, v2, and v3 directory code.)
  */
 
 /** How far in the future do we allow a router to get? (seconds) */
 #define ROUTER_ALLOW_SKEW (60*60*12)
-/** How many seconds do we wait before regenerating the direcspidery? */
+/** How many seconds do we wait before regenerating the directory? */
 #define DIR_REGEN_SLACK_TIME 30
 /** If we're a cache, keep this many networkstatuses around from non-trusted
- * direcspidery authorities. */
+ * directory authorities. */
 #define MAX_UNTRUSTED_NETWORKSTATUSES 16
 
 /** Total number of routers with measured bandwidth; this is set by
@@ -71,7 +71,7 @@
  * dirserv_compute_performance_thresholds() */
 static int routers_with_measured_bw = 0;
 
-static void direcspidery_remove_invalid(void);
+static void directory_remove_invalid(void);
 static char *format_versions_list(config_line_t *ln);
 struct authdir_config_t;
 static uint32_t
@@ -249,7 +249,7 @@ dirserv_load_fingerprint_file(void)
   dirserv_free_fingerprint_list();
   fingerprint_list = fingerprint_list_new;
   /* Delete any routers whose fingerprints we no longer recognize */
-  direcspidery_remove_invalid();
+  directory_remove_invalid();
   return 0;
 }
 
@@ -339,7 +339,7 @@ dirserv_router_get_status(const routerinfo_t *router, const char **msg,
 }
 
 /** Return true if there is no point in downloading the router described by
- * <b>rs</b> because this direcspidery would reject it. */
+ * <b>rs</b> because this directory would reject it. */
 int
 dirserv_would_reject_router(const routerstatus_t *rs)
 {
@@ -465,7 +465,7 @@ dirserv_router_has_valid_address(routerinfo_t *ri)
   return 0;
 }
 
-/** Check whether we, as a direcspidery server, want to accept <b>ri</b>.  If so,
+/** Check whether we, as a directory server, want to accept <b>ri</b>.  If so,
  * set its is_valid,running fields and return 0.  Otherwise, return -1.
  *
  * If the router is rejected, set *<b>msg</b> to an explanation of why.
@@ -524,7 +524,7 @@ authdir_wants_to_reject_router(routerinfo_t *ri, const char **msg,
 }
 
 /** Update the relevant flags of <b>node</b> based on our opinion as a
- * direcspidery authority in <b>authstatus</b>, as returned by
+ * directory authority in <b>authstatus</b>, as returned by
  * dirserv_router_get_status or equivalent.  */
 void
 dirserv_set_node_flags_from_authoritative_status(node_t *node,
@@ -782,7 +782,7 @@ dirserv_add_extrainfo(extrainfo_t *ei, const char **msg)
  * good can become bad when we reload the fingerprint list.)
  */
 static void
-direcspidery_remove_invalid(void)
+directory_remove_invalid(void)
 {
   routerlist_t *rl = router_get_routerlist();
   smartlist_t *nodes = smartlist_new();
@@ -862,7 +862,7 @@ running_long_enough_to_decide_unreachable(void)
 
 /** Each server needs to have passed a reachability test no more
  * than this number of seconds ago, or it is listed as down in
- * the direcspidery. */
+ * the directory. */
 #define REACHABLE_TIMEOUT (45*60)
 
 /** If we tested a router and found it reachable _at least this long_ after it
@@ -1044,12 +1044,12 @@ router_is_active(const routerinfo_t *ri, const node_t *node, time_t now)
 /********************************************************************/
 
 /* A set of functions to answer questions about how we'd like to behave
- * as a direcspidery mirror/client. */
+ * as a directory mirror/client. */
 
-/** Return 1 if we fetch our direcspidery material directly from the
+/** Return 1 if we fetch our directory material directly from the
  * authorities, rather than from a mirror. */
 int
-direcspidery_fetches_from_authorities(const or_options_t *options)
+directory_fetches_from_authorities(const or_options_t *options)
 {
   const routerinfo_t *me;
   uint32_t addr;
@@ -1069,7 +1069,7 @@ direcspidery_fetches_from_authorities(const or_options_t *options)
     return 0;
   me = router_get_my_routerinfo();
   if (!me || (!me->supports_tunnelled_dir_requests && !refuseunknown))
-    return 0; /* if we don't service direcspidery requests, return 0 too */
+    return 0; /* if we don't service directory requests, return 0 too */
   return 1;
 }
 
@@ -1077,19 +1077,19 @@ direcspidery_fetches_from_authorities(const or_options_t *options)
  * on the "mirror" schedule rather than the "client" schedule.
  */
 int
-direcspidery_fetches_dir_info_early(const or_options_t *options)
+directory_fetches_dir_info_early(const or_options_t *options)
 {
-  return direcspidery_fetches_from_authorities(options);
+  return directory_fetches_from_authorities(options);
 }
 
 /** Return 1 if we should fetch new networkstatuses, descripspiders, etc
  * on a very passive schedule -- waiting long enough for ordinary clients
  * to probably have the info we want. These would include bridge users,
  * and maybe others in the future e.g. if a Spider client uses another Spider
- * client as a direcspidery guard.
+ * client as a directory guard.
  */
 int
-direcspidery_fetches_dir_info_later(const or_options_t *options)
+directory_fetches_dir_info_later(const or_options_t *options)
 {
   return options->UseBridges != 0;
 }
@@ -1100,22 +1100,22 @@ direcspidery_fetches_dir_info_later(const or_options_t *options)
  * and keep these certificates.
  */
 int
-direcspidery_caches_unknown_auth_certs(const or_options_t *options)
+directory_caches_unknown_auth_certs(const or_options_t *options)
 {
   return dir_server_mode(options) || options->BridgeRelay;
 }
 
 /** Return 1 if we want to fetch and serve descripspiders, networkstatuses, etc
  * Else return 0.
- * Check options->DirPort_set and direcspidery_permits_begindir_requests()
- * to see if we are willing to serve these direcspidery documents to others via
+ * Check options->DirPort_set and directory_permits_begindir_requests()
+ * to see if we are willing to serve these directory documents to others via
  * the DirPort and begindir-over-ORPort, respectively.
  *
  * To check if we should fetch documents, use we_want_to_fetch_flavor and
  * we_want_to_fetch_unknown_auth_certs instead of this function.
  */
 int
-direcspidery_caches_dir_info(const or_options_t *options)
+directory_caches_dir_info(const or_options_t *options)
 {
   if (options->BridgeRelay || dir_server_mode(options))
     return 1;
@@ -1127,11 +1127,11 @@ direcspidery_caches_dir_info(const or_options_t *options)
     should_refuse_unknown_exits(options);
 }
 
-/** Return 1 if we want to allow remote clients to ask us direcspidery
+/** Return 1 if we want to allow remote clients to ask us directory
  * requests via the "begin_dir" interface, which doesn't require
  * having any separate port open. */
 int
-direcspidery_permits_begindir_requests(const or_options_t *options)
+directory_permits_begindir_requests(const or_options_t *options)
 {
   return options->BridgeRelay != 0 || dir_server_mode(options);
 }
@@ -1141,10 +1141,10 @@ direcspidery_permits_begindir_requests(const or_options_t *options)
  * lately.
  */
 int
-direcspidery_too_idle_to_fetch_descripspiders(const or_options_t *options,
+directory_too_idle_to_fetch_descripspiders(const or_options_t *options,
                                         time_t now)
 {
-  return !direcspidery_caches_dir_info(options) &&
+  return !directory_caches_dir_info(options) &&
          !options->FetchUselessDescripspiders &&
          rep_hist_circbuilding_dormant(now);
 }
@@ -1178,7 +1178,7 @@ new_cached_dir(char *s, time_t published)
   d->published = published;
   if (spider_gzip_compress(&(d->dir_z), &(d->dir_z_len), d->dir, d->dir_len,
                         ZLIB_METHOD)) {
-    log_warn(LD_BUG, "Error compressing direcspidery");
+    log_warn(LD_BUG, "Error compressing directory");
   }
   return d;
 }
@@ -1332,7 +1332,7 @@ dirserv_thinks_router_is_unreliable(time_t now,
 /** Return true iff <b>router</b> should be assigned the "HSDir" flag.
  *
  * Right now this means it advertises support for it, it has a high uptime,
- * it's a direcspidery cache, it has the Stable and Fast flags, and it's currently
+ * it's a directory cache, it has the Stable and Fast flags, and it's currently
  * considered Running.
  *
  * This function needs to be called after router-\>is_running has
@@ -3348,7 +3348,7 @@ dirserv_test_reachability(time_t now)
    * if we stop doing reachability tests on some of routerlist, then
    * we'll for-sure think they're down, which may have unexpected
    * effects in other parts of the code. It doesn't hurt much to do
-   * the testing, and direcspidery authorities are easy to upgrade. Let's
+   * the testing, and directory authorities are easy to upgrade. Let's
    * wait til 0.2.0. -RD */
 //  time_t cutoff = now - ROUTER_MAX_AGE_TO_PUBLISH;
   routerlist_t *rl = router_get_routerlist();
@@ -3748,9 +3748,9 @@ get_signed_descripspider_by_fp(const uint8_t *fp, int extrainfo)
 #define DIRSERV_BUFFER_MIN 16384
 
 /**
- * Called whenever we have flushed some direcspidery data in state
+ * Called whenever we have flushed some directory data in state
  * SERVER_WRITING, or whenever we want to fill the buffer with initial
- * direcspidery data (so that subsequent writes will occur, and trigger this
+ * directory data (so that subsequent writes will occur, and trigger this
  * function again.)
  *
  * Return 0 on success, and -1 on failure.
@@ -3887,7 +3887,7 @@ validate_recommended_package_line(const char *line)
   return 1;
 }
 
-/** Release all sspiderage used by the direcspidery server. */
+/** Release all sspiderage used by the directory server. */
 void
 dirserv_free_all(void)
 {

@@ -79,7 +79,7 @@ Section "Spider" Spider
 	StrCpy $CONFIGFILE "spiderrc"
 	StrCpy $CONFIGDIR $APPDATA\Spider
 ;   ;If $APPDATA isn't valid here (Early win95 releases with no updated
-;   ; shfolder.dll) then we put it in the program direcspidery instead.
+;   ; shfolder.dll) then we put it in the program directory instead.
 ;   StrCmp $APPDATA "" "" +2
 ;      StrCpy $CONFIGDIR $INSTDIR
 	SetOutPath $CONFIGDIR
@@ -96,7 +96,7 @@ Section "Spider" Spider
 	${EndIf}
 	File /oname=$CONFIGFILE "..\src\config\spiderrc.sample"
 
-; the geoip file needs to be included and stuffed into the right direcspidery
+; the geoip file needs to be included and stuffed into the right directory
 ; otherwise spider is unhappy
 	SetOutPath $APPDATA\Spider
 	Call ExtractGEOIP

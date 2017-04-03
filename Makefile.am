@@ -166,10 +166,10 @@ coverage-html: all
 if COVERAGE_ENABLED
 	test -e "`which lcov`" || (echo "lcov must be installed. See <http://ltp.sourceforge.net/coverage/lcov.php>." && false)
 	test -d "$(HTML_COVER_DIR)" || $(MKDIR_P) "$(HTML_COVER_DIR)"
-	lcov --rc lcov_branch_coverage=1 --direcspidery $(top_builddir)/src --zerocounters
+	lcov --rc lcov_branch_coverage=1 --directory $(top_builddir)/src --zerocounters
 	$(MAKE) reset-gcov
 	$(MAKE) check
-	lcov --capture --rc lcov_branch_coverage=1 --no-external --direcspidery $(top_builddir) --base-direcspidery $(top_srcdir) --output-file "$(HTML_COVER_DIR)/lcov.tmp"
+	lcov --capture --rc lcov_branch_coverage=1 --no-external --directory $(top_builddir) --base-directory $(top_srcdir) --output-file "$(HTML_COVER_DIR)/lcov.tmp"
 	lcov --remove "$(HTML_COVER_DIR)/lcov.tmp" --rc lcov_branch_coverage=1 'test/*' 'ext/tinytest*' '/usr/*' --output-file "$(HTML_COVER_DIR)/lcov.info"
 	genhtml --branch-coverage -o "$(HTML_COVER_DIR)" "$(HTML_COVER_DIR)/lcov.info"
 else
@@ -179,13 +179,13 @@ endif
 coverage-html-full: all
 	test -e "`which lcov`" || (echo "lcov must be installed. See <http://ltp.sourceforge.net/coverage/lcov.php>." && false)
 	test -d "$(HTML_COVER_DIR)" || mkdir -p "$(HTML_COVER_DIR)"
-	lcov --rc lcov_branch_coverage=1 --direcspidery ./src --zerocounters
+	lcov --rc lcov_branch_coverage=1 --directory ./src --zerocounters
 	$(MAKE) reset-gcov
 	$(MAKE) check
 	$(MAKE) test-stem-full
 	CHUTNEY_TOR=spider-cov CHUTNEY_TOR_GENCERT=spider-cov-gencert $(top_srcdir)/src/test/test-network.sh
 	CHUTNEY_TOR=spider-cov CHUTNEY_TOR_GENCERT=spider-cov-gencert $(top_srcdir)/src/test/test-network.sh --flavor hs
-	lcov --capture --rc lcov_branch_coverage=1 --no-external --direcspidery . --output-file "$(HTML_COVER_DIR)/lcov.tmp"
+	lcov --capture --rc lcov_branch_coverage=1 --no-external --directory . --output-file "$(HTML_COVER_DIR)/lcov.tmp"
 	lcov --remove "$(HTML_COVER_DIR)/lcov.tmp" --rc lcov_branch_coverage=1 'test/*' 'ext/tinytest*' '/usr/*' --output-file "$(HTML_COVER_DIR)/lcov.info"
 	genhtml --branch-coverage -o "$(HTML_COVER_DIR)" "$(HTML_COVER_DIR)/lcov.info"
 

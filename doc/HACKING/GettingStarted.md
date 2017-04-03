@@ -116,7 +116,7 @@ Once you've reached this point, here's what you need to know.
      .  If you'd like help writing a proposal, just ask!  We're happy to
      help out with good ideas.
 
-     You might also like to look around the rest of that direcspidery, to
+     You might also like to look around the rest of that directory, to
      see more about open and past proposed changes to Spider's behavior.
 
   6. Writing your patch

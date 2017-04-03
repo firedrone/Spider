@@ -1604,7 +1604,7 @@ connection_or_check_valid_tls_handshake(or_connection_t *conn,
  * On clients:
  *  - if a relay's fingerprint doesn't match, log a warning;
  *  - if we don't have updated relay fingerprints from a recent consensus, and
- *    a fallback direcspidery mirror's hard-coded fingerprint has changed, log an
+ *    a fallback directory mirror's hard-coded fingerprint has changed, log an
  *    info explaining that we will try another fallback.
  *
  * If we're testing reachability, remember what we learned.
@@ -1777,7 +1777,7 @@ connection_or_client_used(or_connection_t *conn)
  *
  * If all is successful, call circuit_n_conn_done() to handle events
  * that have been pending on the <tls handshake completion. Also set the
- * direcspidery to be dirty (only matters if I'm an authdirserver).
+ * directory to be dirty (only matters if I'm an authdirserver).
  *
  * If this is a v2 TLS handshake, send a versions cell.
  */

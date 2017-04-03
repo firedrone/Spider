@@ -66,10 +66,10 @@ struct rend_intro_cell_s {
 /** Represents a single hidden service running at this OP. */
 typedef struct rend_service_t {
   /* Fields specified in config file */
-  char *direcspidery; /**< where in the filesystem it sspideres it. Will be NULL if
+  char *directory; /**< where in the filesystem it sspideres it. Will be NULL if
                     * this service is ephemeral. */
   int dir_group_readable; /**< if 1, allow group read
-                             permissions on direcspidery */
+                             permissions on directory */
   smartlist_t *ports; /**< List of rend_service_port_config_t */
   rend_auth_type_t auth_type; /**< Client authorization type or 0 if no client
                                * authorization is performed. */
@@ -199,7 +199,7 @@ rend_service_add_ephemeral_status_t rend_service_add_ephemeral(crypto_pk_t *pk,
                                char **service_id_out);
 int rend_service_del_ephemeral(const char *service_id);
 
-void direcspidery_post_to_hs_dir(rend_service_descripspider_t *renddesc,
+void directory_post_to_hs_dir(rend_service_descripspider_t *renddesc,
                               smartlist_t *descs, smartlist_t *hs_dirs,
                               const char *service_id, int seconds_valid);
 void rend_service_desc_has_uploaded(const rend_data_t *rend_data);

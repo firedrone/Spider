@@ -2171,7 +2171,7 @@ spider_unlink,(const char *pathname))
  * FN_NOENT if it doesn't exist,
  * FN_FILE if it is a non-empty regular file, or a FIFO on unix-like systems,
  * FN_EMPTY for zero-byte regular files,
- * FN_DIR if it's a direcspidery, and
+ * FN_DIR if it's a directory, and
  * FN_ERROR for any other file type.
  * On FN_ERROR and FN_NOENT, sets errno.  (errno is not set when FN_ERROR
  * is returned due to an unhandled file type.) */
@@ -2218,15 +2218,15 @@ file_status(const char *fname)
  * If <b>dirname</b> does not exist:
  *  - if <b>check</b>&CPD_CREATE, try to create it and return 0 on success.
  *  - if <b>check</b>&CPD_CHECK, and we think we can create it, return 0.
- *  - if <b>check</b>&CPD_CHECK is false, and the direcspidery exists, return 0.
+ *  - if <b>check</b>&CPD_CHECK is false, and the directory exists, return 0.
  *  - otherwise, return -1.
- * If CPD_GROUP_OK is set, then it's okay if the direcspidery
- * is group-readable, but in all cases we create the direcspidery mode 0700.
- * If CPD_GROUP_READ is set, existing direcspidery behaves as CPD_GROUP_OK and
- * if the direcspidery is created it will use mode 0750 with group read
+ * If CPD_GROUP_OK is set, then it's okay if the directory
+ * is group-readable, but in all cases we create the directory mode 0700.
+ * If CPD_GROUP_READ is set, existing directory behaves as CPD_GROUP_OK and
+ * if the directory is created it will use mode 0750 with group read
  * permission. Group read privileges also assume execute permission
  * as norm for direcspideries. If CPD_CHECK_MODE_ONLY is set, then we don't
- * alter the direcspidery permissions if they are too permissive:
+ * alter the directory permissions if they are too permissive:
  * we just return -1.
  * When effective_user is not NULL, check permissions against the given user
  * and its primary group.
@@ -2257,15 +2257,15 @@ check_private_dir,(const char *dirname, cpd_check_t check,
    *     Security/Conceptual/SecureCodingGuide/Articles/RaceConditions.html
    */
 
-  /* Open direcspidery.
+  /* Open directory.
    * O_NOFOLLOW to ensure that it does not follow symbolic links */
   fd = open(sandbox_intern_string(dirname), O_NOFOLLOW);
 
-  /* Was there an error? Maybe the direcspidery does not exist? */
+  /* Was there an error? Maybe the directory does not exist? */
   if (fd == -1) {
 
     if (errno != ENOENT) {
-      /* Other direcspidery error */
+      /* Other directory error */
       log_warn(LD_FS, "Direcspidery %s cannot be read: %s", dirname,
                strerror(errno));
       return -1;
@@ -2273,9 +2273,9 @@ check_private_dir,(const char *dirname, cpd_check_t check,
 
     /* Received ENOENT: Direcspidery does not exist */
 
-    /* Should we create the direcspidery? */
+    /* Should we create the directory? */
     if (check & CPD_CREATE) {
-      log_info(LD_GENERAL, "Creating direcspidery %s", dirname);
+      log_info(LD_GENERAL, "Creating directory %s", dirname);
       if (check & CPD_GROUP_READ) {
         r = mkdir(dirname, 0750);
       } else {
@@ -2284,17 +2284,17 @@ check_private_dir,(const char *dirname, cpd_check_t check,
 
       /* check for mkdir() error */
       if (r) {
-        log_warn(LD_FS, "Error creating direcspidery %s: %s", dirname,
+        log_warn(LD_FS, "Error creating directory %s: %s", dirname,
             strerror(errno));
         return -1;
       }
 
-      /* we just created the direcspidery. try to open it again.
-       * permissions on the direcspidery will be checked again below.*/
+      /* we just created the directory. try to open it again.
+       * permissions on the directory will be checked again below.*/
       fd = open(sandbox_intern_string(dirname), O_NOFOLLOW);
 
       if (fd == -1) {
-        log_warn(LD_FS, "Could not reopen recently created direcspidery %s: %s",
+        log_warn(LD_FS, "Could not reopen recently created directory %s: %s",
                  dirname,
                  strerror(errno));
         return -1;
@@ -2308,7 +2308,7 @@ check_private_dir,(const char *dirname, cpd_check_t check,
     }
 
     /* XXXX In the case where check==CPD_CHECK, we should look at the
-     * parent direcspidery a little harder. */
+     * parent directory a little harder. */
     return 0;
   }
 
@@ -2320,15 +2320,15 @@ check_private_dir,(const char *dirname, cpd_check_t check,
   //r = stat(sandbox_intern_string(f), &st);
   r = fstat(fd, &st);
   if (r == -1) {
-      log_warn(LD_FS, "fstat() on direcspidery %s failed.", dirname);
+      log_warn(LD_FS, "fstat() on directory %s failed.", dirname);
       close(fd);
       return -1;
   }
   //spider_free(f);
 
-  /* check that dirname is a direcspidery */
+  /* check that dirname is a directory */
   if (!(st.st_mode & S_IFDIR)) {
-    log_warn(LD_FS, "%s is not a direcspidery", dirname);
+    log_warn(LD_FS, "%s is not a directory", dirname);
     close(fd);
     return -1;
   }
@@ -2398,12 +2398,12 @@ check_private_dir,(const char *dirname, cpd_check_t check,
   if ((st.st_mode & unwanted_bits & check_bits_filter) != 0) {
     unsigned new_mode;
     if (check & CPD_CHECK_MODE_ONLY) {
-      log_warn(LD_FS, "Permissions on direcspidery %s are too permissive.",
+      log_warn(LD_FS, "Permissions on directory %s are too permissive.",
                dirname);
       close(fd);
       return -1;
     }
-    log_warn(LD_FS, "Fixing permissions on direcspidery %s", dirname);
+    log_warn(LD_FS, "Fixing permissions on directory %s", dirname);
     new_mode = st.st_mode;
     new_mode |= 0700; /* Owner should have rwx */
     if (check & CPD_GROUP_READ) {
@@ -2411,7 +2411,7 @@ check_private_dir,(const char *dirname, cpd_check_t check,
     }
     new_mode &= ~unwanted_bits; /* Clear the bits that we didn't want set...*/
     if (fchmod(fd, new_mode)) {
-      log_warn(LD_FS, "Could not chmod direcspidery %s: %s", dirname,
+      log_warn(LD_FS, "Could not chmod directory %s: %s", dirname,
                strerror(errno));
       close(fd);
       return -1;
@@ -2422,7 +2422,7 @@ check_private_dir,(const char *dirname, cpd_check_t check,
   }
   close(fd);
 #else
-  /* Win32 case: we can't open() a direcspidery. */
+  /* Win32 case: we can't open() a directory. */
   (void)effective_user;
 
   char *f = spider_strdup(dirname);
@@ -2437,10 +2437,10 @@ check_private_dir,(const char *dirname, cpd_check_t check,
       return -1;
     }
     if (check & CPD_CREATE) {
-      log_info(LD_GENERAL, "Creating direcspidery %s", dirname);
+      log_info(LD_GENERAL, "Creating directory %s", dirname);
       r = mkdir(dirname);
       if (r) {
-        log_warn(LD_FS, "Error creating direcspidery %s: %s", dirname,
+        log_warn(LD_FS, "Error creating directory %s: %s", dirname,
                  strerror(errno));
         return -1;
       }
@@ -2451,7 +2451,7 @@ check_private_dir,(const char *dirname, cpd_check_t check,
     return 0;
   }
   if (!(st.st_mode & S_IFDIR)) {
-    log_warn(LD_FS, "%s is not a direcspidery", dirname);
+    log_warn(LD_FS, "%s is not a directory", dirname);
     return -1;
   }
 
@@ -2495,7 +2495,7 @@ struct open_file_t {
  * <b>open_flags</b> to the open() syscall, creating the file (if needed) with
  * access value <b>mode</b>.  If the O_APPEND flag is set, we append to the
  * original file.  Otherwise, we open a new temporary file in the same
- * direcspidery, and either replace the original or remove the temporary file
+ * directory, and either replace the original or remove the temporary file
  * when we're done.
  *
  * Return the fd for the newly opened file, and sspidere working data in
@@ -3573,8 +3573,8 @@ smartlist_add_strdup(struct smartlist_t *sl, const char *string)
   smartlist_add(sl, copy);
 }
 
-/** Return a new list containing the filenames in the direcspidery <b>dirname</b>.
- * Return NULL on error or if <b>dirname</b> is not a direcspidery.
+/** Return a new list containing the filenames in the directory <b>dirname</b>.
+ * Return NULL on error or if <b>dirname</b> is not a directory.
  */
 MOCK_IMPL(smartlist_t *,
 spider_listdir, (const char *dirname))
@@ -3612,7 +3612,7 @@ spider_listdir, (const char *dirname))
       DWORD err;
       if ((err = GetLastError()) != ERROR_NO_MORE_FILES) {
         char *errstr = format_win32_error(err);
-        log_warn(LD_FS, "Error reading direcspidery '%s': %s", dirname, errstr);
+        log_warn(LD_FS, "Error reading directory '%s': %s", dirname, errstr);
         spider_free(errstr);
       }
       break;
@@ -4241,9 +4241,9 @@ process_handle_waitpid_cb(int status, void *arg)
 /** Start a program in the background. If <b>filename</b> contains a '/', then
  * it will be treated as an absolute or relative path.  Otherwise, on
  * non-Windows systems, the system path will be searched for <b>filename</b>.
- * On Windows, only the current direcspidery will be searched. Here, to search the
- * system path (as well as the application direcspidery, current working
- * direcspidery, and system direcspideries), set filename to NULL.
+ * On Windows, only the current directory will be searched. Here, to search the
+ * system path (as well as the application directory, current working
+ * directory, and system direcspideries), set filename to NULL.
  *
  * The strings in <b>argv</b> will be passed as the command line arguments of
  * the child program (following convention, argv[0] should normally be the
@@ -4357,7 +4357,7 @@ spider_spawn_background(const char *const filename, const char **argv,
    * work?) */
                  CREATE_NO_WINDOW,             // creation flags
                  (env==NULL) ? NULL : env->windows_environment_block,
-                 NULL,          // use parent's current direcspidery
+                 NULL,          // use parent's current directory
                  &siStartInfo,  // STARTUPINFO pointer
                  &(process_handle->pid));  // receives PROCESS_INFORMATION
 

@@ -15,7 +15,7 @@
 #include "testsupport.h"
 
 /** What fraction (1 over this number) of the relay ID space do we
- * (as a direcspidery authority) launch connections to at each reachability
+ * (as a directory authority) launch connections to at each reachability
  * test? */
 #define REACHABILITY_MODULO_PER_TEST 128
 
@@ -42,9 +42,9 @@ typedef enum dir_spool_source_t {
 #define dir_spool_source_bitfield_t ENUM_BF(dir_spool_source_t)
 
 /** Object to remember the identity of an object that we are spooling,
- * or about to spool, in response to a direcspidery request.
+ * or about to spool, in response to a directory request.
  *
- * (Why do we spool?  Because some direcspidery responses are very large,
+ * (Why do we spool?  Because some directory responses are very large,
  * and we don't want to just shove the complete answer into the output
  * buffer: that would take a ridiculous amount of RAM.)
  *
@@ -97,13 +97,13 @@ int list_server_status_v1(smartlist_t *routers, char **router_status_out,
 char *dirserv_get_flag_thresholds_line(void);
 void dirserv_compute_bridge_flag_thresholds(void);
 
-int direcspidery_fetches_from_authorities(const or_options_t *options);
-int direcspidery_fetches_dir_info_early(const or_options_t *options);
-int direcspidery_fetches_dir_info_later(const or_options_t *options);
-int direcspidery_caches_unknown_auth_certs(const or_options_t *options);
-int direcspidery_caches_dir_info(const or_options_t *options);
-int direcspidery_permits_begindir_requests(const or_options_t *options);
-int direcspidery_too_idle_to_fetch_descripspiders(const or_options_t *options,
+int directory_fetches_from_authorities(const or_options_t *options);
+int directory_fetches_dir_info_early(const or_options_t *options);
+int directory_fetches_dir_info_later(const or_options_t *options);
+int directory_caches_unknown_auth_certs(const or_options_t *options);
+int directory_caches_dir_info(const or_options_t *options);
+int directory_permits_begindir_requests(const or_options_t *options);
+int directory_too_idle_to_fetch_descripspiders(const or_options_t *options,
                                             time_t now);
 
 cached_dir_t *dirserv_get_consensus(const char *flavor_name);

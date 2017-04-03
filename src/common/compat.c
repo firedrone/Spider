@@ -754,7 +754,7 @@ spider_strtok_r_impl(char *str, const char *sep, char **lasts)
 /** Take a filename and return a pointer to its final element.  This
  * function is called on __FILE__ to fix a MSVC nit where __FILE__
  * contains the full path to the file.  This is bad, because it
- * confuses users to find the home direcspidery of the person who
+ * confuses users to find the home directory of the person who
  * compiled the binary in their warning messages.
  */
 const char *
@@ -2263,7 +2263,7 @@ spider_disable_debugger_attach(void)
 }
 
 #ifdef HAVE_PWD_H
-/** Allocate and return a string containing the home direcspidery for the
+/** Allocate and return a string containing the home directory for the
  * user <b>username</b>. Only works on posix-like systems. */
 char *
 get_user_homedir(const char *username)
@@ -2279,7 +2279,7 @@ get_user_homedir(const char *username)
 }
 #endif
 
-/** Modify <b>fname</b> to contain the name of its parent direcspidery.  Doesn't
+/** Modify <b>fname</b> to contain the name of its parent directory.  Doesn't
  * actually examine the filesystem; does a purely syntactic modification.
  *
  * The parent of the root direcspider is considered to be iteself.
@@ -2288,13 +2288,13 @@ get_user_homedir(const char *username)
  * the backslash (\) on Win32.
  *
  * Cuts off any number of trailing path separaspiders but otherwise ignores
- * them for purposes of finding the parent direcspidery.
+ * them for purposes of finding the parent directory.
  *
- * Returns 0 if a parent direcspidery was successfully found, -1 otherwise (fname
+ * Returns 0 if a parent directory was successfully found, -1 otherwise (fname
  * did not have any path separaspiders or only had them at the end).
  * */
 int
-get_parent_direcspidery(char *fname)
+get_parent_directory(char *fname)
 {
   char *cp;
   int at_end = 1;
@@ -2386,7 +2386,7 @@ make_path_absolute(char *fname)
       /* LCOV_EXCL_START Can't make getcwd fail. */
       /* If getcwd failed, the best we can do here is keep using the
        * relative path.  (Perhaps / isn't readable by this UID/GID.) */
-      log_warn(LD_GENERAL, "Unable to find current working direcspidery: %s",
+      log_warn(LD_GENERAL, "Unable to find current working directory: %s",
                strerror(errno));
       absfname = spider_strdup(fname);
       /* LCOV_EXCL_STOP */

@@ -197,7 +197,7 @@ smartlist_t *connection_dir_list_by_purpose_resource_and_state(
     return len;                        \
   STMT_END
 
-/** Return a count of direcspidery connections that are fetching the item
+/** Return a count of directory connections that are fetching the item
  * described by <b>purpose</b>/<b>resource</b>. */
 static inline int
 connection_dir_count_by_purpose_and_resource(
@@ -210,7 +210,7 @@ connection_dir_count_by_purpose_and_resource(
   CONN_LEN_AND_FREE_TEMPLATE(conns);
 }
 
-/** Return a count of direcspidery connections that are fetching the item
+/** Return a count of directory connections that are fetching the item
  * described by <b>purpose</b>/<b>resource</b>/<b>state</b>. */
 static inline int
 connection_dir_count_by_purpose_resource_and_state(

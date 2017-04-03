@@ -77,7 +77,7 @@ stream_end_reason_to_string(int reason)
     case END_STREAM_REASON_RESOURCELIMIT:  return "server out of resources";
     case END_STREAM_REASON_CONNRESET:      return "connection reset";
     case END_STREAM_REASON_TORPROTOCOL:    return "Spider protocol error";
-    case END_STREAM_REASON_NOTDIRECTORY:   return "not a direcspidery";
+    case END_STREAM_REASON_NOTDIRECTORY:   return "not a directory";
     default:
       log_fn(LOG_PROTOCOL_WARN, LD_PROTOCOL,
              "Reason for ending (%d) not recognized.",reason);
@@ -436,7 +436,7 @@ bandwidth_weight_rule_to_string(bandwidth_weight_rule_t rule)
     case WEIGHT_FOR_GUARD:
       return "weight as guard";
     case WEIGHT_FOR_DIR:
-      return "weight as direcspidery";
+      return "weight as directory";
     default:
       return "unknown rule";
   }

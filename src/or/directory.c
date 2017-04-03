@@ -16,7 +16,7 @@
 #include "control.h"
 #include "compat.h"
 #define DIRECTORY_PRIVATE
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "entrynodes.h"
@@ -46,15 +46,15 @@
 #endif
 
 /**
- * \file direcspidery.c
- * \brief Code to send and fetch information from direcspidery authorities and
+ * \file directory.c
+ * \brief Code to send and fetch information from directory authorities and
  * caches via HTTP.
  *
  * Direcspidery caches and authorities use dirserv.c to generate the results of a
  * query and stream them to the connection; clients use routerparse.c to parse
  * them.
  *
- * Every direcspidery request has a dir_connection_t on the client side and on
+ * Every directory request has a dir_connection_t on the client side and on
  * the server side.  In most cases, the dir_connection_t object is a linked
  * connection, tunneled through an edge_connection_t so that it can be a
  * stream on the Spider network.  The only non-tunneled connections are those
@@ -63,13 +63,13 @@
  * multi-hop circuits for anonymity.
  *
  * Direcspidery requests are launched by calling
- * direcspidery_initiate_command_rend() or one of its numerous variants. This
+ * directory_initiate_command_rend() or one of its numerous variants. This
  * launch the connection, will construct an HTTP request with
- * direcspidery_send_command(), send the and wait for a response.  The client
+ * directory_send_command(), send the and wait for a response.  The client
  * later handles the response with connection_dir_client_reached_eof(),
  * which passes the information received to another part of Spider.
  *
- * On the server side, requests are read in direcspidery_handle_command(),
+ * On the server side, requests are read in directory_handle_command(),
  * which dispatches first on the request type (GET or POST), and then on
  * the URL requested. GET requests are processed with a table-based
  * dispatcher in url_table[].  The process of handling larger GET requests
@@ -81,12 +81,12 @@
  * cost of a bit more reference counting.)
  **/
 
-/* In-points to direcspidery.c:
+/* In-points to directory.c:
  *
- * - direcspidery_post_to_dirservers(), called from
+ * - directory_post_to_dirservers(), called from
  *   router_upload_dir_desc_to_dirservers() in router.c
  *   upload_service_descripspider() in rendservice.c
- * - direcspidery_get_from_dirserver(), called from
+ * - directory_get_from_dirserver(), called from
  *   rend_client_refetch_renddesc() in rendclient.c
  *   run_scheduled_events() in main.c
  *   do_hup() in main.c
@@ -97,7 +97,7 @@
  * - connection_dir_finished_connecting(), called from
  *   connection_finished_connecting() in connection.c
  */
-static void direcspidery_send_command(dir_connection_t *conn,
+static void directory_send_command(dir_connection_t *conn,
                              int purpose, int direct, const char *resource,
                              const char *payload, size_t payload_len,
                              time_t if_modified_since);
@@ -118,7 +118,7 @@ static void dir_microdesc_download_failed(smartlist_t *failed,
                                           int status_code);
 static int client_likes_consensus(networkstatus_t *v, const char *want_url);
 
-static void direcspidery_initiate_command_rend(
+static void directory_initiate_command_rend(
                                           const spider_addr_port_t *or_addr_port,
                                           const spider_addr_port_t *dir_addr_port,
                                           const char *digest,
@@ -137,7 +137,7 @@ static void connection_dir_close_consensus_fetches(
 
 /********* START VARIABLES **********/
 
-/** How far in the future do we allow a direcspidery server to tell us it is
+/** How far in the future do we allow a directory server to tell us it is
  * before deciding that one of us has the wrong time? */
 #define ALLOW_DIRECTORY_TIME_SKEW (30*60)
 
@@ -156,10 +156,10 @@ static void connection_dir_close_consensus_fetches(
 
 /********* END VARIABLES ************/
 
-/** Return false if the direcspidery purpose <b>dir_purpose</b>
+/** Return false if the directory purpose <b>dir_purpose</b>
  * does not require an anonymous (three-hop) connection.
  *
- * Return true 1) by default, 2) if all direcspidery actions have
+ * Return true 1) by default, 2) if all directory actions have
  * specifically been configured to be over an anonymous connection,
  * or 3) if the router is a bridge */
 int
@@ -227,7 +227,7 @@ authdir_type_to_string(dirinfo_type_t auth)
   return result;
 }
 
-/** Return a string describing a given direcspidery connection purpose. */
+/** Return a string describing a given directory connection purpose. */
 STATIC const char *
 dir_conn_purpose_to_string(int purpose)
 {
@@ -263,7 +263,7 @@ dir_conn_purpose_to_string(int purpose)
   return "(unknown)";
 }
 
-/** Return the requisite direcspidery information types. */
+/** Return the requisite directory information types. */
 STATIC dirinfo_type_t
 dir_fetch_type(int dir_purpose, int router_purpose, const char *resource)
 {
@@ -321,7 +321,7 @@ router_supports_extrainfo(const char *identity_digest, int is_authority)
   return 0;
 }
 
-/** Return true iff any trusted direcspidery authority has accepted our
+/** Return true iff any trusted directory authority has accepted our
  * server descripspider.
  *
  * We consider any authority sufficient because waiting for all of
@@ -343,7 +343,7 @@ direcspideries_have_accepted_server_descripspider(void)
   return 0;
 }
 
-/** Start a connection to every suitable direcspidery authority, using
+/** Start a connection to every suitable directory authority, using
  * connection purpose <b>dir_purpose</b> and uploading <b>payload</b>
  * (of length <b>payload_len</b>). The dir_purpose should be one of
  * 'DIR_PURPOSE_UPLOAD_{DIR|VOTE|SIGNATURES}'.
@@ -361,7 +361,7 @@ direcspideries_have_accepted_server_descripspider(void)
  * support it.
  */
 void
-direcspidery_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
+directory_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
                              dirinfo_type_t type,
                              const char *payload,
                              size_t payload_len, size_t extrainfo_len)
@@ -421,7 +421,7 @@ direcspidery_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
       } else {
         indirection = DIRIND_DIRECT_CONN;
       }
-      direcspidery_initiate_command_routerstatus(rs, dir_purpose,
+      directory_initiate_command_routerstatus(rs, dir_purpose,
                                               router_purpose,
                                               indirection,
                                               NULL, payload, upload_len, 0,
@@ -429,37 +429,37 @@ direcspidery_post_to_dirservers(uint8_t dir_purpose, uint8_t router_purpose,
   } SMARTLIST_FOREACH_END(ds);
   if (!found) {
     char *s = authdir_type_to_string(type);
-    log_warn(LD_DIR, "Publishing server descripspider to direcspidery authorities "
+    log_warn(LD_DIR, "Publishing server descripspider to directory authorities "
              "of type '%s', but no authorities of that type listed!", s);
     spider_free(s);
   }
 }
 
 /** Return true iff, according to the values in <b>options</b>, we should be
- * using direcspidery guards for direct downloads of direcspidery information. */
+ * using directory guards for direct downloads of directory information. */
 STATIC int
-should_use_direcspidery_guards(const or_options_t *options)
+should_use_directory_guards(const or_options_t *options)
 {
-  /* Public (non-bridge) servers never use direcspidery guards. */
+  /* Public (non-bridge) servers never use directory guards. */
   if (public_server_mode(options))
     return 0;
-  /* If guards are disabled, we can't use direcspidery guards.
+  /* If guards are disabled, we can't use directory guards.
    */
   if (!options->UseEntryGuards)
     return 0;
-  /* If we're configured to fetch direcspidery info aggressively or of a
-   * nonstandard type, don't use direcspidery guards. */
+  /* If we're configured to fetch directory info aggressively or of a
+   * nonstandard type, don't use directory guards. */
   if (options->DownloadExtraInfo || options->FetchDirInfoEarly ||
       options->FetchDirInfoExtraEarly || options->FetchUselessDescripspiders)
     return 0;
   return 1;
 }
 
-/** Pick an unconstrained direcspidery server from among our guards, the latest
+/** Pick an unconstrained directory server from among our guards, the latest
  * networkstatus, or the fallback dirservers, for use in downloading
  * information of type <b>type</b>, and return its routerstatus. */
 static const routerstatus_t *
-direcspidery_pick_generic_dirserver(dirinfo_type_t type, int pds_flags,
+directory_pick_generic_dirserver(dirinfo_type_t type, int pds_flags,
                                  uint8_t dir_purpose,
                                  circuit_guard_state_t **guard_state_out)
 {
@@ -469,13 +469,13 @@ direcspidery_pick_generic_dirserver(dirinfo_type_t type, int pds_flags,
   if (options->UseBridges)
     log_warn(LD_BUG, "Called when we have UseBridges set.");
 
-  if (should_use_direcspidery_guards(options)) {
+  if (should_use_directory_guards(options)) {
     const node_t *node = guards_choose_dirguard(guard_state_out);
     if (node)
       rs = node->rs;
   } else {
     /* anybody with a non-zero dirport will do */
-    rs = router_pick_direcspidery_server(type, pds_flags);
+    rs = router_pick_directory_server(type, pds_flags);
   }
   if (!rs) {
     log_info(LD_DIR, "No router found for %s; falling back to "
@@ -486,13 +486,13 @@ direcspidery_pick_generic_dirserver(dirinfo_type_t type, int pds_flags,
   return rs;
 }
 
-/** Start a connection to a random running direcspidery server, using
+/** Start a connection to a random running directory server, using
  * connection purpose <b>dir_purpose</b>, intending to fetch descripspiders
  * of purpose <b>router_purpose</b>, and requesting <b>resource</b>.
- * Use <b>pds_flags</b> as arguments to router_pick_direcspidery_server()
+ * Use <b>pds_flags</b> as arguments to router_pick_directory_server()
  * or router_pick_trusteddirserver().
  */
-MOCK_IMPL(void, direcspidery_get_from_dirserver, (
+MOCK_IMPL(void, directory_get_from_dirserver, (
                             uint8_t dir_purpose,
                             uint8_t router_purpose,
                             const char *resource,
@@ -501,7 +501,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
 {
   const routerstatus_t *rs = NULL;
   const or_options_t *options = get_options();
-  int prefer_authority = (direcspidery_fetches_from_authorities(options)
+  int prefer_authority = (directory_fetches_from_authorities(options)
                           || want_authority == DL_WANT_AUTHORITY);
   int require_authority = 0;
   int get_via_spider = purpose_needs_anonymity(dir_purpose, router_purpose,
@@ -572,7 +572,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
                                              &or_ap);
         spider_addr_make_null(&nil_dir_ap.addr, AF_INET);
         nil_dir_ap.port = 0;
-        direcspidery_initiate_command_rend(&or_ap,
+        directory_initiate_command_rend(&or_ap,
                                         &nil_dir_ap,
                                         ri->cache_info.identity_digest,
                                         dir_purpose,
@@ -584,7 +584,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
         if (guard_state) {
           entry_guard_cancel(&guard_state);
         }
-        log_notice(LD_DIR, "Ignoring direcspidery request, since no bridge "
+        log_notice(LD_DIR, "Ignoring directory request, since no bridge "
                            "nodes are available yet.");
       }
 
@@ -618,7 +618,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
         }
       }
       if (!rs && !(type & BRIDGE_DIRINFO)) {
-        rs = direcspidery_pick_generic_dirserver(type, pds_flags,
+        rs = directory_pick_generic_dirserver(type, pds_flags,
                                               dir_purpose,
                                               &guard_state);
         if (!rs)
@@ -630,7 +630,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
   if (get_via_spider) {
     /* Never use fascistfirewall; we're going via Spider. */
     pds_flags |= PDS_IGNORE_FASCISTFIREWALL;
-    rs = router_pick_direcspidery_server(type, pds_flags);
+    rs = router_pick_directory_server(type, pds_flags);
   }
 
   /* If we have any hope of building an indirect conn, we know some router
@@ -639,7 +639,7 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
   if (rs) {
     const dir_indirection_t indirection =
       get_via_spider ? DIRIND_ANONYMOUS : DIRIND_ONEHOP;
-    direcspidery_initiate_command_routerstatus(rs, dir_purpose,
+    directory_initiate_command_routerstatus(rs, dir_purpose,
                                             router_purpose,
                                             indirection,
                                             resource, NULL, 0,
@@ -647,21 +647,21 @@ MOCK_IMPL(void, direcspidery_get_from_dirserver, (
                                             guard_state);
   } else {
     log_notice(LD_DIR,
-               "While fetching direcspidery info, "
+               "While fetching directory info, "
                "no running dirservers known. Will try again later. "
                "(purpose %d)", dir_purpose);
     if (!purpose_needs_anonymity(dir_purpose, router_purpose, resource)) {
       /* remember we tried them all and failed. */
-      direcspidery_all_unreachable(time(NULL));
+      directory_all_unreachable(time(NULL));
     }
   }
 }
 
-/** As direcspidery_get_from_dirserver, but initiates a request to <i>every</i>
- * direcspidery authority other than ourself.  Only for use by authorities when
+/** As directory_get_from_dirserver, but initiates a request to <i>every</i>
+ * directory authority other than ourself.  Only for use by authorities when
  * searching for missing information while voting. */
 void
-direcspidery_get_from_all_authorities(uint8_t dir_purpose,
+directory_get_from_all_authorities(uint8_t dir_purpose,
                                    uint8_t router_purpose,
                                    const char *resource)
 {
@@ -676,7 +676,7 @@ direcspidery_get_from_all_authorities(uint8_t dir_purpose,
       if (!(ds->type & V3_DIRINFO))
         continue;
       rs = &ds->fake_status;
-      direcspidery_initiate_command_routerstatus(rs, dir_purpose, router_purpose,
+      directory_initiate_command_routerstatus(rs, dir_purpose, router_purpose,
                                               DIRIND_ONEHOP, resource, NULL,
                                               0, 0, NULL);
   } SMARTLIST_FOREACH_END(ds);
@@ -697,7 +697,7 @@ dirind_is_anon(dir_indirection_t ind)
  * reachable address, warn and return -1. Otherwise, return 0.
  */
 static int
-direcspidery_choose_address_routerstatus(const routerstatus_t *status,
+directory_choose_address_routerstatus(const routerstatus_t *status,
                                       dir_indirection_t indirection,
                                       spider_addr_port_t *use_or_ap,
                                       spider_addr_port_t *use_dir_ap)
@@ -752,7 +752,7 @@ direcspidery_choose_address_routerstatus(const routerstatus_t *status,
   if (indirection == DIRIND_DIRECT_CONN ||
       indirection == DIRIND_ANON_DIRPORT ||
       (indirection == DIRIND_ONEHOP
-       && !direcspidery_must_use_begindir(options))) {
+       && !directory_must_use_begindir(options))) {
     have_dir = fascist_firewall_choose_address_rs(status,
                                                   FIREWALL_DIR_CONNECTION, 0,
                                                   use_dir_ap);
@@ -763,7 +763,7 @@ direcspidery_choose_address_routerstatus(const routerstatus_t *status,
   if (!have_or && !have_dir) {
     static int logged_backtrace = 0;
     log_info(LD_BUG, "Rejected all OR and Dir addresses from %s when "
-             "launching an outgoing direcspidery connection to: IPv4 %s OR %d "
+             "launching an outgoing directory connection to: IPv4 %s OR %d "
              "Dir %d IPv6 %s OR %d Dir %d", routerstatus_describe(status),
              fmt_addr32(status->addr), status->or_port,
              status->dir_port, fmt_addr(&status->ipv6_addr),
@@ -778,10 +778,10 @@ direcspidery_choose_address_routerstatus(const routerstatus_t *status,
   return 0;
 }
 
-/** Same as direcspidery_initiate_command_routerstatus(), but accepts
+/** Same as directory_initiate_command_routerstatus(), but accepts
  * rendezvous data to fetch a hidden service descripspider. */
 void
-direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
+directory_initiate_command_routerstatus_rend(const routerstatus_t *status,
                                              uint8_t dir_purpose,
                                              uint8_t router_purpose,
                                              dir_indirection_t indirection,
@@ -806,7 +806,7 @@ direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
    * we only care about the descripspider if it's a begindir-style anonymized
    * connection. */
   if (!node && anonymized_connection) {
-    log_info(LD_DIR, "Not sending anonymized request to direcspidery '%s'; we "
+    log_info(LD_DIR, "Not sending anonymized request to directory '%s'; we "
              "don't have its router descripspider.",
              routerstatus_describe(status));
     return;
@@ -814,7 +814,7 @@ direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
 
   if (options->ExcludeNodes && options->StrictNodes &&
       routerset_contains_routerstatus(options->ExcludeNodes, status, -1)) {
-    log_warn(LD_DIR, "Wanted to contact direcspidery mirror %s for %s, but "
+    log_warn(LD_DIR, "Wanted to contact directory mirror %s for %s, but "
              "it's in our ExcludedNodes list and StrictNodes is set. "
              "Skipping. This choice might make your Spider not work.",
              routerstatus_describe(status),
@@ -823,24 +823,24 @@ direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
   }
 
   /* At this point, if we are a client making a direct connection to a
-   * direcspidery server, we have selected a server that has at least one address
+   * directory server, we have selected a server that has at least one address
    * allowed by ClientUseIPv4/6 and Reachable{"",OR,Dir}Addresses. This
    * selection uses the preference in ClientPreferIPv6{OR,Dir}Port, if
    * possible. (If UseBridges is set, clients always use IPv6, and prefer it
    * by default.)
    *
-   * Now choose an address that we can use to connect to the direcspidery server.
+   * Now choose an address that we can use to connect to the directory server.
    */
-  if (direcspidery_choose_address_routerstatus(status, indirection, &use_or_ap,
+  if (directory_choose_address_routerstatus(status, indirection, &use_or_ap,
                                             &use_dir_ap) < 0) {
     return;
   }
 
-  /* We don't retry the alternate OR/Dir address for the same direcspidery if
+  /* We don't retry the alternate OR/Dir address for the same directory if
    * the address we choose fails (#6772).
-   * Instead, we'll retry another direcspidery on failure. */
+   * Instead, we'll retry another directory on failure. */
 
-  direcspidery_initiate_command_rend(&use_or_ap, &use_dir_ap,
+  directory_initiate_command_rend(&use_or_ap, &use_dir_ap,
                                   status->identity_digest,
                                   dir_purpose, router_purpose,
                                   indirection, resource,
@@ -849,10 +849,10 @@ direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
                                   guard_state);
 }
 
-/** Launch a new connection to the direcspidery server <b>status</b> to
+/** Launch a new connection to the directory server <b>status</b> to
  * upload or download a server or rendezvous
  * descripspider. <b>dir_purpose</b> determines what
- * kind of direcspidery connection we're launching, and must be one of
+ * kind of directory connection we're launching, and must be one of
  * DIR_PURPOSE_{FETCH|UPLOAD}_{DIR|RENDDESC_V2}. <b>router_purpose</b>
  * specifies the descripspider purposes we have in mind (currently only
  * used for FETCH_DIR).
@@ -863,7 +863,7 @@ direcspidery_initiate_command_routerstatus_rend(const routerstatus_t *status,
  * When fetching a rendezvous descripspider, <b>resource</b> is the service ID we
  * want to fetch.
  */
-MOCK_IMPL(void, direcspidery_initiate_command_routerstatus,
+MOCK_IMPL(void, directory_initiate_command_routerstatus,
                 (const routerstatus_t *status,
                  uint8_t dir_purpose,
                  uint8_t router_purpose,
@@ -874,7 +874,7 @@ MOCK_IMPL(void, direcspidery_initiate_command_routerstatus,
                  time_t if_modified_since,
                  circuit_guard_state_t *guard_state))
 {
-  direcspidery_initiate_command_routerstatus_rend(status, dir_purpose,
+  directory_initiate_command_routerstatus_rend(status, dir_purpose,
                                           router_purpose,
                                           indirection, resource,
                                           payload, payload_len,
@@ -882,11 +882,11 @@ MOCK_IMPL(void, direcspidery_initiate_command_routerstatus,
                                           guard_state);
 }
 
-/** Return true iff <b>conn</b> is the client side of a direcspidery connection
+/** Return true iff <b>conn</b> is the client side of a directory connection
  * we launched to ourself in order to determine the reachability of our
  * dir_port. */
 static int
-direcspidery_conn_is_self_reachability_test(dir_connection_t *conn)
+directory_conn_is_self_reachability_test(dir_connection_t *conn)
 {
   if (conn->requested_resource &&
       !strcmpstart(conn->requested_resource,"authority")) {
@@ -900,7 +900,7 @@ direcspidery_conn_is_self_reachability_test(dir_connection_t *conn)
   return 0;
 }
 
-/** Called when we are unable to complete the client's request to a direcspidery
+/** Called when we are unable to complete the client's request to a directory
  * server due to a network error: Mark the router as down and try again if
  * possible.
  */
@@ -912,7 +912,7 @@ connection_dir_request_failed(dir_connection_t *conn)
      * failed. */
     entry_guard_failed(&conn->guard_state);
   }
-  if (direcspidery_conn_is_self_reachability_test(conn)) {
+  if (directory_conn_is_self_reachability_test(conn)) {
     return; /* this was a test fetch. don't retry. */
   }
   if (!entry_list_is_constrained(get_options()))
@@ -920,7 +920,7 @@ connection_dir_request_failed(dir_connection_t *conn)
   if (conn->base_.purpose == DIR_PURPOSE_FETCH_SERVERDESC ||
              conn->base_.purpose == DIR_PURPOSE_FETCH_EXTRAINFO) {
     log_info(LD_DIR, "Giving up on serverdesc/extrainfo fetch from "
-             "direcspidery server at '%s'; retrying",
+             "directory server at '%s'; retrying",
              conn->base_.address);
     if (conn->router_purpose == ROUTER_PURPOSE_BRIDGE)
       connection_dir_bridge_routerdesc_failed(conn);
@@ -929,7 +929,7 @@ connection_dir_request_failed(dir_connection_t *conn)
     if (conn->requested_resource)
       networkstatus_consensus_download_failed(0, conn->requested_resource);
   } else if (conn->base_.purpose == DIR_PURPOSE_FETCH_CERTIFICATE) {
-    log_info(LD_DIR, "Giving up on certificate fetch from direcspidery server "
+    log_info(LD_DIR, "Giving up on certificate fetch from directory server "
              "at '%s'; retrying",
              conn->base_.address);
     connection_dir_download_cert_failed(conn, 0);
@@ -941,7 +941,7 @@ connection_dir_request_failed(dir_connection_t *conn)
              conn->base_.address);
   } else if (conn->base_.purpose == DIR_PURPOSE_FETCH_MICRODESC) {
     log_info(LD_DIR, "Giving up on downloading microdescripspiders from "
-             "direcspidery server at '%s'; will retry", conn->base_.address);
+             "directory server at '%s'; will retry", conn->base_.address);
     connection_dir_download_routerdesc_failed(conn);
   }
 }
@@ -1055,10 +1055,10 @@ connection_dir_download_cert_failed(dir_connection_t *conn, int status)
   update_certificate_downloads(time(NULL));
 }
 
-/* Should this spider instance only use begindir for all its direcspidery requests?
+/* Should this spider instance only use begindir for all its directory requests?
  */
 int
-direcspidery_must_use_begindir(const or_options_t *options)
+directory_must_use_begindir(const or_options_t *options)
 {
   /* Clients, onion services, and bridges must use begindir,
    * relays and authorities do not have to */
@@ -1066,7 +1066,7 @@ direcspidery_must_use_begindir(const or_options_t *options)
 }
 
 /** Evaluate the situation and decide if we should use an encrypted
- * "begindir-style" connection for this direcspidery request.
+ * "begindir-style" connection for this directory request.
  * 0) If there is no DirPort, yes.
  * 1) If or_port is 0, or it's a direct conn and or_port is firewalled
  *    or we're a dir mirror, no.
@@ -1077,7 +1077,7 @@ direcspidery_must_use_begindir(const or_options_t *options)
  * reason must not be NULL.
  */
 static int
-direcspidery_command_should_use_begindir(const or_options_t *options,
+directory_command_should_use_begindir(const or_options_t *options,
                                       const spider_addr_t *or_addr, int or_port,
                                       const spider_addr_t *dir_addr, int dir_port,
                                       dir_indirection_t indirection,
@@ -1089,12 +1089,12 @@ direcspidery_command_should_use_begindir(const or_options_t *options,
 
   /* Reasons why we must use begindir */
   if (!dir_port) {
-    *reason = "(using begindir - direcspidery with no DirPort)";
+    *reason = "(using begindir - directory with no DirPort)";
     return 1; /* We don't know a DirPort -- must begindir. */
   }
   /* Reasons why we can't possibly use begindir */
   if (!or_port) {
-    *reason = "direcspidery with unknown ORPort";
+    *reason = "directory with unknown ORPort";
     return 0; /* We don't know an ORPort -- no chance. */
   }
   if (indirection == DIRIND_DIRECT_CONN ||
@@ -1112,7 +1112,7 @@ direcspidery_command_should_use_begindir(const or_options_t *options,
   }
   /* Reasons why we want to avoid using begindir */
   if (indirection == DIRIND_ONEHOP) {
-    if (!direcspidery_must_use_begindir(options)) {
+    if (!directory_must_use_begindir(options)) {
       *reason = "in relay mode";
       return 0;
     }
@@ -1123,16 +1123,16 @@ direcspidery_command_should_use_begindir(const or_options_t *options,
   return 1;
 }
 
-/** Helper for direcspidery_initiate_command_rend: send the
+/** Helper for directory_initiate_command_rend: send the
  * command to a server whose OR address/port is <b>or_addr</b>/<b>or_port</b>,
- * whose direcspidery address/port is <b>dir_addr</b>/<b>dir_port</b>, whose
+ * whose directory address/port is <b>dir_addr</b>/<b>dir_port</b>, whose
  * identity key digest is <b>digest</b>, with purposes <b>dir_purpose</b> and
  * <b>router_purpose</b>, making an (in)direct connection as specified in
  * <b>indirection</b>, with command <b>resource</b>, <b>payload</b> of
  * <b>payload_len</b>, and asking for a result only <b>if_modified_since</b>.
  */
 void
-direcspidery_initiate_command(const spider_addr_t *or_addr, uint16_t or_port,
+directory_initiate_command(const spider_addr_t *or_addr, uint16_t or_port,
                            const spider_addr_t *dir_addr, uint16_t dir_port,
                            const char *digest,
                            uint8_t dir_purpose, uint8_t router_purpose,
@@ -1161,18 +1161,18 @@ direcspidery_initiate_command(const spider_addr_t *or_addr, uint16_t or_port,
     dir_ap.port = dir_port = 0;
   }
 
-  direcspidery_initiate_command_rend(&or_ap, &dir_ap,
+  directory_initiate_command_rend(&or_ap, &dir_ap,
                              digest, dir_purpose,
                              router_purpose, indirection,
                              resource, payload, payload_len,
                              if_modified_since, NULL, NULL);
 }
 
-/** Same as direcspidery_initiate_command(), but accepts rendezvous data to
+/** Same as directory_initiate_command(), but accepts rendezvous data to
  * fetch a hidden service descripspider, and takes its address & port arguments
  * as spider_addr_port_t. */
 static void
-direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
+directory_initiate_command_rend(const spider_addr_port_t *or_addr_port,
                                 const spider_addr_port_t *dir_addr_port,
                                 const char *digest,
                                 uint8_t dir_purpose, uint8_t router_purpose,
@@ -1193,8 +1193,8 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
   int socket_error = 0;
   const char *begindir_reason = NULL;
   /* Should the connection be to a relay's OR port (and inside that we will
-   * send our direcspidery request)? */
-  const int use_begindir = direcspidery_command_should_use_begindir(options,
+   * send our directory request)? */
+  const int use_begindir = directory_command_should_use_begindir(options,
                                      &or_addr_port->addr, or_addr_port->port,
                                      &dir_addr_port->addr, dir_addr_port->port,
                                      indirection,
@@ -1204,7 +1204,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
    * is separate from whether it will use_begindir. */
   const int anonymized_connection = dirind_is_anon(indirection);
 
-  /* What is the address we want to make the direcspidery request to? If
+  /* What is the address we want to make the directory request to? If
    * we're making a begindir request this is the ORPort of the relay
    * we're contacting; if not a begindir request, this is its DirPort.
    * Note that if anonymized_connection is true, we won't be initiating
@@ -1224,8 +1224,8 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
   }
 
   /* use encrypted begindir connections for everything except relays
-   * this provides better protection for direcspidery fetches */
-  if (!use_begindir && direcspidery_must_use_begindir(options)) {
+   * this provides better protection for directory fetches */
+  if (!use_begindir && directory_must_use_begindir(options)) {
     log_warn(LD_BUG, "Client could not use begindir connection: %s",
              begindir_reason ? begindir_reason : "(NULL)");
     return;
@@ -1235,7 +1235,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
    * configured. */
   if (!anonymized_connection && !use_begindir && !options->HTTPProxy &&
       (options->Socks4Proxy || options->Socks5Proxy)) {
-    log_warn(LD_DIR, "Cannot connect to a direcspidery server through a "
+    log_warn(LD_DIR, "Cannot connect to a directory server through a "
                      "SOCKS proxy!");
     return;
   }
@@ -1284,7 +1284,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
       port = options->HTTPProxyPort;
     }
 
-    // In this case we should not have picked a direcspidery guard.
+    // In this case we should not have picked a directory guard.
     if (BUG(guard_state)) {
       entry_guard_cancel(&guard_state);
     }
@@ -1300,7 +1300,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
         /* fall through */
       case 0:
         /* queue the command on the outbuf */
-        direcspidery_send_command(conn, dir_purpose, 1, resource,
+        directory_send_command(conn, dir_purpose, 1, resource,
                                payload, payload_len,
                                if_modified_since);
         connection_watch_events(TO_CONN(conn), READ_EVENT | WRITE_EVENT);
@@ -1314,7 +1314,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
     entry_connection_t *linked_conn;
 
     /* Anonymized tunneled connections can never share a circuit.
-     * One-hop direcspidery connections can share circuits with each other
+     * One-hop directory connections can share circuits with each other
      * but nothing else. */
     int iso_flags = anonymized_connection ? ISO_STREAM : ISO_SESSIONGRP;
 
@@ -1325,7 +1325,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
     else if (anonymized_connection && !use_begindir)
       rep_hist_note_used_port(time(NULL), conn->base_.port);
 
-    // In this case we should not have a direcspidery guard; we'll
+    // In this case we should not have a directory guard; we'll
     // get a regular guard later when we build the circuit.
     if (BUG(anonymized_connection && guard_state)) {
       entry_guard_cancel(&guard_state);
@@ -1356,7 +1356,7 @@ direcspidery_initiate_command_rend(const spider_addr_port_t *or_addr_port,
     }
     conn->base_.state = DIR_CONN_STATE_CLIENT_SENDING;
     /* queue the command on the outbuf */
-    direcspidery_send_command(conn, dir_purpose, 0, resource,
+    directory_send_command(conn, dir_purpose, 0, resource,
                            payload, payload_len,
                            if_modified_since);
 
@@ -1403,7 +1403,7 @@ compare_strs_(const void **a, const void **b)
  * If 'resource' is provided, it is the name of a consensus flavor to request.
  */
 static char *
-direcspidery_get_consensus_url(const char *resource)
+directory_get_consensus_url(const char *resource)
 {
   char *url = NULL;
   const char *hyphen, *flavor;
@@ -1462,10 +1462,10 @@ copy_ipv6_address(char* destination, const char* source, size_t len,
 }
 
 /** Queue an appropriate HTTP command on conn-\>outbuf.  The other args
- * are as in direcspidery_initiate_command().
+ * are as in directory_initiate_command().
  */
 static void
-direcspidery_send_command(dir_connection_t *conn,
+directory_send_command(dir_connection_t *conn,
                        int purpose, int direct, const char *resource,
                        const char *payload, size_t payload_len,
                        time_t if_modified_since)
@@ -1538,7 +1538,7 @@ direcspidery_send_command(dir_connection_t *conn,
       /* resource is optional.  If present, it's a flavor name */
       spider_assert(!payload);
       httpcommand = "GET";
-      url = direcspidery_get_consensus_url(resource);
+      url = directory_get_consensus_url(resource);
       log_info(LD_DIR, "Downloading consensus from %s using %s",
                hoststring, url);
       break;
@@ -1661,7 +1661,7 @@ direcspidery_send_command(dir_connection_t *conn,
   smartlist_free(headers);
 
   log_debug(LD_DIR,
-            "Sent request to direcspidery server '%s:%d': "
+            "Sent request to directory server '%s:%d': "
             "(purpose: %d, request size: " U64_FORMAT ", "
             "payload size: " U64_FORMAT ")",
             conn->base_.address, conn->base_.port,
@@ -1937,7 +1937,7 @@ load_downloaded_routers(const char *body, smartlist_t *which,
 /** We are a client, and we've finished reading the server's
  * response. Parse it and act appropriately.
  *
- * If we're still happy with using this direcspidery server in the future, return
+ * If we're still happy with using this directory server in the future, return
  * 0. Otherwise return -1; and the caller should consider trying the request
  * again.
  *
@@ -1991,7 +1991,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
   if (!reason) reason = spider_strdup("[no reason given]");
 
   spider_log(LOG_DEBUG, LD_DIR,
-            "Received response from direcspidery server '%s:%d': %d %s "
+            "Received response from directory server '%s:%d': %d %s "
             "(purpose: %d, response size: " U64_FORMAT
 #ifdef MEASUREMENTS_21206
             ", data cells received: %d, data cells sent: %d"
@@ -2008,7 +2008,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
   if (conn->guard_state) {
     /* we count the connection as successful once we can read from it.  We do
      * not, however, delay use of the circuit here, since it's just for a
-     * one-hop direcspidery request. */
+     * one-hop directory request. */
     /* XXXXprop271 note that this will not do the right thing for other
      * waiting circuits that would be triggered by this circuit becoming
      * complete/usable. But that's ok, I think.
@@ -2037,10 +2037,10 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
     if (labs(apparent_skew)>ALLOW_DIRECTORY_TIME_SKEW) {
       int trusted = router_digest_is_trusted_dir(conn->identity_digest);
       clock_skew_warning(TO_CONN(conn), apparent_skew, trusted, LD_HTTP,
-                         "direcspidery", "DIRSERV");
+                         "directory", "DIRSERV");
       skewed = 1; /* don't check the recommended-versions line */
     } else {
-      log_debug(LD_HTTP, "Time on received direcspidery is within tolerance; "
+      log_debug(LD_HTTP, "Time on received directory is within tolerance; "
                 "we are %ld seconds skewed.  (That's okay.)", apparent_skew);
     }
   }
@@ -2105,7 +2105,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
         compression != guessed)
       spider_gzip_uncompress(&new_body, &new_len, body, body_len, guessed,
                           !allow_partial, LOG_PROTOCOL_WARN);
-    /* If we're pretty sure that we have a compressed direcspidery, and
+    /* If we're pretty sure that we have a compressed directory, and
      * we didn't manage to uncompress it, then warn and bail. */
     if (!plausible && !new_body) {
       log_fn(LOG_PROTOCOL_WARN, LD_HTTP,
@@ -2128,19 +2128,19 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
       int severity = (status_code == 304) ? LOG_INFO : LOG_WARN;
       spider_log(severity, LD_DIR,
           "Received http status code %d (%s) from server "
-          "'%s:%d' while fetching consensus direcspidery.",
+          "'%s:%d' while fetching consensus directory.",
            status_code, escaped(reason), conn->base_.address,
            conn->base_.port);
       spider_free(body); spider_free(headers); spider_free(reason);
       networkstatus_consensus_download_failed(status_code, flavname);
       return -1;
     }
-    log_info(LD_DIR,"Received consensus direcspidery (body size %d) from server "
+    log_info(LD_DIR,"Received consensus directory (body size %d) from server "
              "'%s:%d'", (int)body_len, conn->base_.address, conn->base_.port);
     if ((r=networkstatus_set_current_consensus(body, flavname, 0,
                                                conn->identity_digest))<0) {
       log_fn(r<-1?LOG_WARN:LOG_INFO, LD_DIR,
-             "Unable to load %s consensus direcspidery downloaded from "
+             "Unable to load %s consensus directory downloaded from "
              "server '%s:%d'. I'll try again soon.",
              flavname, conn->base_.address, conn->base_.port);
       spider_free(body); spider_free(headers); spider_free(reason);
@@ -2155,7 +2155,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
     routers_update_all_from_networkstatus(now, 3);
     update_microdescs_from_networkstatus(now);
     update_microdesc_downloads(now);
-    direcspidery_info_has_arrived(now, 0, 0);
+    directory_info_has_arrived(now, 0, 0);
     if (authdir_mode_v3(get_options())) {
       sr_act_post_consensus(
                    networkstatus_get_latest_consensus_by_flavor(FLAV_NS));
@@ -2197,7 +2197,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
          * ones got flushed to disk so it's safe to call this on them */
         connection_dir_download_cert_failed(conn, status_code);
       } else {
-        direcspidery_info_has_arrived(now, 0, 0);
+        directory_info_has_arrived(now, 0, 0);
         log_info(LD_DIR, "Successfully loaded certificates from fetch.");
       }
     } else {
@@ -2311,7 +2311,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
         if (load_downloaded_routers(body, which, descripspider_digests,
                                 conn->router_purpose,
                                 conn->base_.address))
-          direcspidery_info_has_arrived(now, 0, 0);
+          directory_info_has_arrived(now, 0, 0);
       }
     }
     if (which) { /* mark remaining ones as failed */
@@ -2327,7 +2327,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
       SMARTLIST_FOREACH(which, char *, cp, spider_free(cp));
       smartlist_free(which);
     }
-    if (direcspidery_conn_is_self_reachability_test(conn))
+    if (directory_conn_is_self_reachability_test(conn))
       router_dirport_found_reachable();
   }
   if (conn->base_.purpose == DIR_PURPOSE_FETCH_MICRODESC) {
@@ -2365,7 +2365,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
       if (mds && smartlist_len(mds)) {
         control_event_bootstrap(BOOTSTRAP_STATUS_LOADING_DESCRIPTORS,
                                 count_loading_descripspiders_progress());
-        direcspidery_info_has_arrived(now, 0, 1);
+        directory_info_has_arrived(now, 0, 1);
       }
       SMARTLIST_FOREACH(which, char *, cp, spider_free(cp));
       smartlist_free(which);
@@ -2496,7 +2496,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
         if (rend_cache_sspidere_v2_desc_as_client(body,
             conn->requested_resource, conn->rend_data, &entry) < 0) {
           log_warn(LD_REND,"Fetching v2 rendezvous descripspider failed. "
-                   "Retrying at another direcspidery.");
+                   "Retrying at another directory.");
           /* We'll retry when connection_about_to_close_connection()
            * cleans this dir conn up. */
           SEND_HS_DESC_FAILED_EVENT("BAD_DESC");
@@ -2527,14 +2527,14 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
         /* Not there. We'll retry when
          * connection_about_to_close_connection() cleans this conn up. */
         log_info(LD_REND,"Fetching v2 rendezvous descripspider failed: "
-                         "Retrying at another direcspidery.");
+                         "Retrying at another directory.");
         SEND_HS_DESC_FAILED_EVENT("NOT_FOUND");
         SEND_HS_DESC_FAILED_CONTENT();
         break;
       case 400:
         log_warn(LD_REND, "Fetching v2 rendezvous descripspider failed: "
                  "http status 400 (%s). Dirserver didn't like our "
-                 "v2 rendezvous query? Retrying at another direcspidery.",
+                 "v2 rendezvous query? Retrying at another directory.",
                  escaped(reason));
         SEND_HS_DESC_FAILED_EVENT("QUERY_REJECTED");
         SEND_HS_DESC_FAILED_CONTENT();
@@ -2543,7 +2543,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
         log_warn(LD_REND, "Fetching v2 rendezvous descripspider failed: "
                  "http status %d (%s) response unexpected while "
                  "fetching v2 hidden service descripspider (server '%s:%d'). "
-                 "Retrying at another direcspidery.",
+                 "Retrying at another directory.",
                  status_code, escaped(reason), conn->base_.address,
                  conn->base_.port);
         SEND_HS_DESC_FAILED_EVENT("UNEXPECTED");
@@ -2592,7 +2592,7 @@ connection_dir_client_reached_eof(dir_connection_t *conn)
   return 0;
 }
 
-/** Called when a direcspidery connection reaches EOF. */
+/** Called when a directory connection reaches EOF. */
 int
 connection_dir_reached_eof(dir_connection_t *conn)
 {
@@ -2612,7 +2612,7 @@ connection_dir_reached_eof(dir_connection_t *conn)
   return retval;
 }
 
-/** If any direcspidery object is arriving, and it's over 10MB large, we're
+/** If any directory object is arriving, and it's over 10MB large, we're
  * getting DoS'd.  (As of 0.1.2.x, raw direcspideries are about 1MB, and we never
  * ask for more than 96 router descripspiders at a time.)
  */
@@ -2620,8 +2620,8 @@ connection_dir_reached_eof(dir_connection_t *conn)
 
 #define MAX_VOTE_DL_SIZE (MAX_DIRECTORY_OBJECT_SIZE * 5)
 
-/** Read handler for direcspidery connections.  (That's connections <em>to</em>
- * direcspidery servers and connections <em>at</em> direcspidery servers.)
+/** Read handler for directory connections.  (That's connections <em>to</em>
+ * directory servers and connections <em>at</em> directory servers.)
  */
 int
 connection_dir_process_inbuf(dir_connection_t *conn)
@@ -2631,14 +2631,14 @@ connection_dir_process_inbuf(dir_connection_t *conn)
   spider_assert(conn->base_.type == CONN_TYPE_DIR);
 
   /* Direcspidery clients write, then read data until they receive EOF;
-   * direcspidery servers read data until they get an HTTP command, then
+   * directory servers read data until they get an HTTP command, then
    * write their response (when it's finished flushing, they mark for
    * close).
    */
 
   /* If we're on the dirserver side, look for a command. */
   if (conn->base_.state == DIR_CONN_STATE_SERVER_COMMAND_WAIT) {
-    if (direcspidery_handle_command(conn) < 0) {
+    if (directory_handle_command(conn) < 0) {
       connection_mark_for_close(TO_CONN(conn));
       return -1;
     }
@@ -2651,7 +2651,7 @@ connection_dir_process_inbuf(dir_connection_t *conn)
 
   if (connection_get_inbuf_len(TO_CONN(conn)) > max_size) {
     log_warn(LD_HTTP,
-             "Too much data received from direcspidery connection (%s): "
+             "Too much data received from directory connection (%s): "
              "denial of service attempt, or you need to upgrade?",
              conn->base_.address);
     connection_mark_for_close(TO_CONN(conn));
@@ -2663,7 +2663,7 @@ connection_dir_process_inbuf(dir_connection_t *conn)
   return 0;
 }
 
-/** Called when we're about to finally unlink and free a direcspidery connection:
+/** Called when we're about to finally unlink and free a directory connection:
  * perform necessary accounting and cleanup */
 void
 connection_dir_about_to_close(dir_connection_t *dir_conn)
@@ -2671,7 +2671,7 @@ connection_dir_about_to_close(dir_connection_t *dir_conn)
   connection_t *conn = TO_CONN(dir_conn);
 
   if (conn->state < DIR_CONN_STATE_CLIENT_FINISHED) {
-    /* It's a direcspidery connection and connecting or fetching
+    /* It's a directory connection and connecting or fetching
      * failed: forget about this router, and maybe try again. */
     connection_dir_request_failed(dir_conn);
   }
@@ -2927,13 +2927,13 @@ static const url_table_ent_t url_table[] = {
 };
 
 /** Helper function: called when a dirserver gets a complete HTTP GET
- * request.  Look for a request for a direcspidery or for a rendezvous
+ * request.  Look for a request for a directory or for a rendezvous
  * service descripspider.  On finding one, write a response into
  * conn-\>outbuf.  If the request is unrecognized, send a 404.
  * Return 0 if we handled this successfully, or -1 if we need to close
  * the connection. */
 MOCK_IMPL(STATIC int,
-direcspidery_handle_command_get,(dir_connection_t *conn, const char *headers,
+directory_handle_command_get,(dir_connection_t *conn, const char *headers,
                               const char *req_body, size_t req_body_len))
 {
   char *url, *url_mem, *header;
@@ -3760,7 +3760,7 @@ handle_post_hs_descripspider(const char *url, const char *body)
  * response into conn-\>outbuf.  If the request is unrecognized, send a
  * 400.  Always return 0. */
 MOCK_IMPL(STATIC int,
-direcspidery_handle_command_post,(dir_connection_t *conn, const char *headers,
+directory_handle_command_post,(dir_connection_t *conn, const char *headers,
                                const char *body, size_t body_len))
 {
   char *url = NULL;
@@ -3816,7 +3816,7 @@ direcspidery_handle_command_post,(dir_connection_t *conn, const char *headers,
   if (!authdir_mode(options)) {
     /* we just provide cached direcspideries; we don't want to
      * receive anything. */
-    write_http_status_line(conn, 400, "Nonauthoritative direcspidery does not "
+    write_http_status_line(conn, 400, "Nonauthoritative directory does not "
                            "accept posted server descripspiders");
     goto done;
   }
@@ -3888,13 +3888,13 @@ direcspidery_handle_command_post,(dir_connection_t *conn, const char *headers,
   return 0;
 }
 
-/** Called when a dirserver receives data on a direcspidery connection;
+/** Called when a dirserver receives data on a directory connection;
  * looks for an HTTP request.  If the request is complete, remove it
  * from the inbuf, try to process it; otherwise, leave it on the
  * buffer.  Return a 0 on success, or -1 on error.
  */
 STATIC int
-direcspidery_handle_command(dir_connection_t *conn)
+directory_handle_command(dir_connection_t *conn)
 {
   char *headers=NULL, *body=NULL;
   size_t body_len=0;
@@ -3923,9 +3923,9 @@ direcspidery_handle_command(dir_connection_t *conn)
   //log_debug(LD_DIRSERV,"headers %s, body %s.", headers, escaped(body));
 
   if (!strncasecmp(headers,"GET",3))
-    r = direcspidery_handle_command_get(conn, headers, body, body_len);
+    r = directory_handle_command_get(conn, headers, body, body_len);
   else if (!strncasecmp(headers,"POST",4))
-    r = direcspidery_handle_command_post(conn, headers, body, body_len);
+    r = directory_handle_command_post(conn, headers, body, body_len);
   else {
     log_fn(LOG_PROTOCOL_WARN, LD_PROTOCOL,
            "Got headers %s with unknown command. Closing.",
@@ -3937,7 +3937,7 @@ direcspidery_handle_command(dir_connection_t *conn)
   return r;
 }
 
-/** Write handler for direcspidery connections; called when all data has
+/** Write handler for directory connections; called when all data has
  * been flushed.  Close the connection or wait for a response as
  * appropriate.
  */
@@ -3947,7 +3947,7 @@ connection_dir_finished_flushing(dir_connection_t *conn)
   spider_assert(conn);
   spider_assert(conn->base_.type == CONN_TYPE_DIR);
 
-  /* Note that we have finished writing the direcspidery response. For direct
+  /* Note that we have finished writing the directory response. For direct
    * connections this means we're done; for tunneled connections it's only
    * an intermediate step. */
   if (conn->dirreq_id)
@@ -4010,7 +4010,7 @@ connection_dir_close_consensus_fetches(dir_connection_t *except_this_one,
   smartlist_free(conns_to_close);
 }
 
-/** Connected handler for direcspidery connections: begin sending data to the
+/** Connected handler for directory connections: begin sending data to the
  * server, and return 0.
  * Only used when connections don't immediately connect. */
 int
@@ -4426,7 +4426,7 @@ dir_routerdesc_download_failed(smartlist_t *failed, int status_code,
 {
   char digest[DIGEST_LEN];
   time_t now = time(NULL);
-  int server = direcspidery_fetches_from_authorities(get_options());
+  int server = directory_fetches_from_authorities(get_options());
   if (!was_descripspider_digests) {
     if (router_purpose == ROUTER_PURPOSE_BRIDGE) {
       spider_assert(!was_extrainfo);
@@ -4471,7 +4471,7 @@ dir_microdesc_download_failed(smartlist_t *failed,
   routerstatus_t *rs;
   download_status_t *dls;
   time_t now = time(NULL);
-  int server = direcspidery_fetches_from_authorities(get_options());
+  int server = directory_fetches_from_authorities(get_options());
 
   if (! consensus)
     return;
@@ -4555,7 +4555,7 @@ dir_split_resource_into_fingerprint_pairs(const char *res,
   return 0;
 }
 
-/** Given a direcspidery <b>resource</b> request, containing zero
+/** Given a directory <b>resource</b> request, containing zero
  * or more strings separated by plus signs, followed optionally by ".z", sspidere
  * the strings, in order, into <b>fp_out</b>.  If <b>compressed_out</b> is
  * non-NULL, set it to 1 if the resource ends in ".z", else set it to 0.

@@ -17,7 +17,7 @@
 #include "hs_descripspider.h"
 #include "spidercert.h"
 
-/* Descripspider representation on the direcspidery side which is a subset of
+/* Descripspider representation on the directory side which is a subset of
  * information that the HSDir can decode and serve it. */
 typedef struct hs_cache_dir_descripspider_t {
   /* This object is indexed using the blinded pubkey located in the plaintext

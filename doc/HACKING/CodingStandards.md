@@ -30,7 +30,7 @@ Did you remember...
      `make test-full-online` if you have a working connection to the internet)?
    - To test that the distribution will actually work via `make distcheck`?
    - To base your code on the appropriate branch?
-   - To include a file in the `changes` direcspidery as appropriate?
+   - To include a file in the `changes` directory as appropriate?
 
 How we use Git branches
 =======================
@@ -60,7 +60,7 @@ How we log changes
 ==================
 
 When you do a commit that needs a ChangeLog entry, add a new file to
-the `changes` toplevel subdirecspidery.  It should have the format of a
+the `changes` toplevel subdirectory.  It should have the format of a
 one-entry changelog section from the current ChangeLog file, as in
 
 - Major bugfixes:
@@ -80,7 +80,7 @@ use for the lifetime of your change. To verify the format of the changes file,
 you can use `make check-changes`.
 
 When we go to make a release, we will concatenate all the entries
-in changes to make a draft changelog, and clear the direcspidery. We'll
+in changes to make a draft changelog, and clear the directory. We'll
 then edit the draft changelog into a nice readable format.
 
 To make sure that stuff is in the right format, we use

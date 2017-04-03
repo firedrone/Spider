@@ -60,8 +60,8 @@ test_nodelist_node_get_verbose_nickname_not_named(void *arg)
   return;
 }
 
-/** A node should be considered a direcspidery server if it has an open dirport
- * of it accepts tunnelled direcspidery requests.
+/** A node should be considered a directory server if it has an open dirport
+ * of it accepts tunnelled directory requests.
  */
 static void
 test_nodelist_node_is_dir(void *arg)

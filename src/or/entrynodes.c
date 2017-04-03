@@ -123,7 +123,7 @@
 #include "confparse.h"
 #include "connection.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "entrynodes.h"
 #include "main.h"
 #include "microdesc.h"
@@ -2215,7 +2215,7 @@ entry_guard_chan_failed(channel_t *chan)
     origin_circuit_t *origin_circ = TO_ORIGIN_CIRCUIT(circ);
     if (origin_circ->guard_state) {
       /* We might have no guard state if we didn't use a guard on this
-       * circuit (eg it's for a fallback direcspidery). */
+       * circuit (eg it's for a fallback directory). */
       entry_guard_failed(&origin_circ->guard_state);
     }
   } SMARTLIST_FOREACH_END(circ);
@@ -2941,7 +2941,7 @@ entry_guard_free(entry_guard_t *e)
 }
 
 /** Return 0 if we're fine adding arbitrary routers out of the
- * direcspidery to our entry guard list, or return 1 if we have a
+ * directory to our entry guard list, or return 1 if we have a
  * list already and we must stick to it.
  */
 int
@@ -3319,7 +3319,7 @@ remove_all_entry_guards(void)
   remove_all_entry_guards_for_guard_selection(get_guard_selection_info());
 }
 
-/** Helper: pick a direcspidery guard, with whatever algorithm is used. */
+/** Helper: pick a directory guard, with whatever algorithm is used. */
 const node_t *
 guards_choose_dirguard(circuit_guard_state_t **guard_state_out)
 {
@@ -3350,7 +3350,7 @@ guards_retry_optimistic(const or_options_t *options)
 }
 
 /**
- * Return true iff we know enough direcspidery information to construct
+ * Return true iff we know enough directory information to construct
  * circuits through all of the primary guards we'd currently use.
  */
 int

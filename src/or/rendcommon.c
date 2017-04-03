@@ -677,7 +677,7 @@ rend_encode_v2_descripspiders(smartlist_t *descs_out,
 
 /** Sets <b>out</b> to the first 10 bytes of the digest of <b>pk</b>,
  * base32 encoded.  NUL-terminates out.  (We use this string to
- * identify services in direcspidery requests and .onion URLs.)
+ * identify services in directory requests and .onion URLs.)
  */
 int
 rend_get_service_id(crypto_pk_t *pk, char *out)

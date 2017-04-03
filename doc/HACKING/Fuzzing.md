@@ -30,7 +30,7 @@ information on libfuzzer, see http://llvm.org/docs/LibFuzzer.html
 
 Third, there's Google's OSS-Fuzz infrastructure, which expects to get all of
 its.  For more on this, see https://github.com/google/oss-fuzz and the
-projects/spider subdirecspidery.  You'll need to mess around with Docker a bit to
+projects/spider subdirectory.  You'll need to mess around with Docker a bit to
 test this one out; it's meant to run on Google's infrastructure.
 
 In all cases, you'll need some starting examples to give the fuzzer when it
@@ -98,7 +98,7 @@ AFL has a multi-core mode, check the documentation for details.
 You might find the included fuzz-multi.sh script useful for this.
 
 macOS (OS X) requires slightly more preparation, including:
-* using afl-clang (or afl-clang-fast from the llvm direcspidery)
+* using afl-clang (or afl-clang-fast from the llvm directory)
 * disabling external crash reporting (AFL will guide you through this step)
 
 == Triaging Issues

@@ -7,9 +7,9 @@
 /**
  * \file networkstatus.c
  * \brief Functions and structures for handling networkstatus documents as a
- * client or as a direcspidery cache.
+ * client or as a directory cache.
  *
- * A consensus networkstatus object is created by the direcspidery
+ * A consensus networkstatus object is created by the directory
  * authorities.  It authenticates a set of network parameters--most
  * importantly, the list of all the relays in the network.  This list
  * of relays is represented as an array of routerstatus_t objects.
@@ -47,7 +47,7 @@
 #include "connection.h"
 #include "connection_or.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "entrynodes.h"
@@ -806,11 +806,11 @@ networkstatus_nickname_is_unnamed(const char *nickname)
   return strmap_get_lc(unnamed_server_map, nickname) != NULL;
 }
 
-/** How frequently do direcspidery authorities re-download fresh networkstatus
+/** How frequently do directory authorities re-download fresh networkstatus
  * documents? */
 #define AUTHORITY_NS_CACHE_INTERVAL (10*60)
 
-/** How frequently do non-authority direcspidery caches re-download fresh
+/** How frequently do non-authority directory caches re-download fresh
  * networkstatus documents? */
 #define NONAUTHORITY_NS_CACHE_INTERVAL (60*60)
 
@@ -818,7 +818,7 @@ networkstatus_nickname_is_unnamed(const char *nickname)
  *  is the flavor of a consensus networkstatus that we would like to fetch.
  *
  * For certificate fetches, use we_want_to_fetch_unknown_auth_certs, and
- * for serving fetched documents, use direcspidery_caches_dir_info. */
+ * for serving fetched documents, use directory_caches_dir_info. */
 int
 we_want_to_fetch_flavor(const or_options_t *options, int flavor)
 {
@@ -827,7 +827,7 @@ we_want_to_fetch_flavor(const or_options_t *options, int flavor)
     /*XXXX handle unrecognized flavors later */
     return 0;
   }
-  if (authdir_mode_v3(options) || direcspidery_caches_dir_info(options)) {
+  if (authdir_mode_v3(options) || directory_caches_dir_info(options)) {
     /* We want to serve all flavors to others, regardless if we would use
      * it ourselves. */
     return 1;
@@ -845,13 +845,13 @@ we_want_to_fetch_flavor(const or_options_t *options, int flavor)
  * to fetch and sspidere unknown authority certificates.
  *
  * For consensus and descripspider fetches, use we_want_to_fetch_flavor, and
- * for serving fetched certificates, use direcspidery_caches_unknown_auth_certs.
+ * for serving fetched certificates, use directory_caches_unknown_auth_certs.
  */
 int
 we_want_to_fetch_unknown_auth_certs(const or_options_t *options)
 {
   if (authdir_mode_v3(options) ||
-      direcspidery_caches_unknown_auth_certs((options))) {
+      directory_caches_unknown_auth_certs((options))) {
     /* We want to serve all certs to others, regardless if we would use
      * them ourselves. */
     return 1;
@@ -984,7 +984,7 @@ update_consensus_networkstatus_downloads(time_t now)
       /* Try the requested attempt */
       log_info(LD_DIR, "Launching %s standard networkstatus consensus "
                "download.", networkstatus_get_flavor_name(i));
-      direcspidery_get_from_dirserver(DIR_PURPOSE_FETCH_CONSENSUS,
+      directory_get_from_dirserver(DIR_PURPOSE_FETCH_CONSENSUS,
                                    ROUTER_PURPOSE_GENERAL, resource,
                                    PDS_RETRY_IF_NO_SERVERS,
                                    consensus_dl_status[i].want_authority);
@@ -995,7 +995,7 @@ update_consensus_networkstatus_downloads(time_t now)
 /** When we're bootstrapping, launch one or more consensus download
  * connections, if schedule indicates connection(s) should be made after now.
  * If is_authority, connect to an authority, otherwise, use a fallback
- * direcspidery mirror.
+ * directory mirror.
  */
 static void
 update_consensus_bootstrap_attempt_downloads(
@@ -1025,7 +1025,7 @@ update_consensus_bootstrap_attempt_downloads(
                                      ? "authority"
                                      : "mirror"));
 
-    direcspidery_get_from_dirserver(DIR_PURPOSE_FETCH_CONSENSUS,
+    directory_get_from_dirserver(DIR_PURPOSE_FETCH_CONSENSUS,
                                  ROUTER_PURPOSE_GENERAL, resource,
                                  PDS_RETRY_IF_NO_SERVERS, want_authority);
     /* schedule the next attempt */
@@ -1133,7 +1133,7 @@ update_consensus_networkstatus_fetch_time_impl(time_t now, int flav)
       }
     }
 
-    if (direcspidery_fetches_dir_info_early(options)) {
+    if (directory_fetches_dir_info_early(options)) {
       /* We want to cache the next one at some point after this one
        * is no longer fresh... */
       start = (time_t)(c->fresh_until + min_sec_before_caching);
@@ -1155,7 +1155,7 @@ update_consensus_networkstatus_fetch_time_impl(time_t now, int flav)
 
       /* If we're a bridge user, make use of the numbers we just computed
        * to choose the rest of the interval *after* them. */
-      if (direcspidery_fetches_dir_info_later(options)) {
+      if (directory_fetches_dir_info_later(options)) {
         /* Give all the *clients* enough time to download the consensus. */
         start = (time_t)(start + dl_interval + min_sec_before_caching);
         /* But try to get it before ours actually expires. */
@@ -1210,12 +1210,12 @@ update_consensus_networkstatus_fetch_time(time_t now)
   }
 }
 
-/** Return 1 if there's a reason we shouldn't try any direcspidery
+/** Return 1 if there's a reason we shouldn't try any directory
  * fetches yet (e.g. we demand bridges and none are yet known).
  * Else return 0.
 
  * If we return 1 and <b>msg_out</b> is provided, set <b>msg_out</b>
- * to an explanation of why direcspidery fetches are delayed. (If we
+ * to an explanation of why directory fetches are delayed. (If we
  * return 0, we set msg_out to NULL.)
  */
 int
@@ -1266,7 +1266,7 @@ update_networkstatus_downloads(time_t now)
   update_certificate_downloads(now);
 }
 
-/** Launch requests as appropriate for missing direcspidery authority
+/** Launch requests as appropriate for missing directory authority
  * certificates. */
 void
 update_certificate_downloads(time_t now)
@@ -1418,7 +1418,7 @@ networkstatus_get_reasonably_live_consensus(time_t now, int flavor)
  * If we have no consensus, or our consensus is unusably old, return 1.
  * As soon as we have received a consensus, return 0, even if we don't have
  * enough certificates to validate it.
- * If a fallback direcspidery gives us a consensus we can never get certs for,
+ * If a fallback directory gives us a consensus we can never get certs for,
  * check_consensus_waiting_for_certs() will wait 20 minutes before failing
  * the cert downloads. After that, a new consensus will be fetched from a
  * randomly chosen fallback. */
@@ -1455,7 +1455,7 @@ networkstatus_consensus_can_use_multiple_direcspideries(
   return !public_server_mode(options);
 }
 
-/** Check if we can use fallback direcspidery mirrors for a consensus download.
+/** Check if we can use fallback directory mirrors for a consensus download.
  * If we have fallbacks and don't want to fetch from the authorities,
  * we can use them. */
 MOCK_IMPL(int,
@@ -1468,7 +1468,7 @@ networkstatus_consensus_can_use_extra_fallbacks,(const or_options_t *options))
              >= smartlist_len(router_get_trusted_dir_servers()));
   /* If we don't fetch from the authorities, and we have additional mirrors,
    * we can use them. */
-  return (!direcspidery_fetches_from_authorities(options)
+  return (!directory_fetches_from_authorities(options)
           && (smartlist_len(router_get_fallback_dir_servers())
               > smartlist_len(router_get_trusted_dir_servers())));
 }
@@ -1702,7 +1702,7 @@ handle_missing_protocol_warning(const networkstatus_t *c,
  * If flags & NSSET_ACCEPT_OBSOLETE, then we should be willing to take this
  * consensus, even if it comes from many days in the past.
  *
- * If source_dir is non-NULL, it's the identity digest for a direcspidery that
+ * If source_dir is non-NULL, it's the identity digest for a directory that
  * we've just successfully retrieved a consensus or certificates from, so try
  * it first to fetch any missing certificates.
  *
@@ -2019,7 +2019,7 @@ networkstatus_set_current_consensus(const char *consensus,
 /** Called when we have gotten more certificates: see whether we can
  * now verify a pending consensus.
  *
- * If source_dir is non-NULL, it's the identity digest for a direcspidery that
+ * If source_dir is non-NULL, it's the identity digest for a directory that
  * we've just successfully retrieved certificates from, so try it first to
  * fetch any missing certificates.
  */
@@ -2061,7 +2061,7 @@ routers_update_all_from_networkstatus(time_t now, int dir_version)
 
   /* calls router_dir_info_changed() when it's done -- more routers
    * might be up or down now, which might affect whether there's enough
-   * direcspidery info. */
+   * directory info. */
   routers_update_status_from_consensus_networkstatus(rl->routers, 0);
 
   SMARTLIST_FOREACH(rl->routers, routerinfo_t *, ri,
@@ -2077,14 +2077,14 @@ routers_update_all_from_networkstatus(time_t now, int dir_version)
     status = spider_version_is_obsolete(VERSION, recommended);
 
     if (status == VS_RECOMMENDED) {
-      log_info(LD_GENERAL, "The direcspidery authorities say my version is ok.");
+      log_info(LD_GENERAL, "The directory authorities say my version is ok.");
     } else if (status == VS_EMPTY) {
       log_info(LD_GENERAL,
-               "The direcspidery authorities don't recommend any versions.");
+               "The directory authorities don't recommend any versions.");
     } else if (status == VS_NEW || status == VS_NEW_IN_SERIES) {
       if (!have_warned_about_new_version) {
         log_notice(LD_GENERAL, "This version of Spider (%s) is newer than any "
-                   "recommended version%s, according to the direcspidery "
+                   "recommended version%s, according to the directory "
                    "authorities. Recommended versions are: %s",
                    VERSION,
                    status == VS_NEW_IN_SERIES ? " in its series" : "",
@@ -2096,7 +2096,7 @@ routers_update_all_from_networkstatus(time_t now, int dir_version)
       }
     } else {
       log_warn(LD_GENERAL, "Please upgrade! "
-               "This version of Spider (%s) is %s, according to the direcspidery "
+               "This version of Spider (%s) is %s, according to the directory "
                "authorities. Recommended versions are: %s",
                VERSION,
                status == VS_OLD ? "obsolete" : "not recommended",
@@ -2409,7 +2409,7 @@ networkstatus_get_bw_weight(networkstatus_t *ns, const char *weight_name,
 }
 
 /** Return the name of the consensus flavor <b>flav</b> as used to identify
- * the flavor in direcspidery documents. */
+ * the flavor in directory documents. */
 const char *
 networkstatus_get_flavor_name(consensus_flavor_t flav)
 {

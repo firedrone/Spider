@@ -36,7 +36,7 @@
 
 /**
  * @file keypin.c
- * @brief Key-pinning for RSA and Ed25519 identity keys at direcspidery
+ * @brief Key-pinning for RSA and Ed25519 identity keys at directory
  *  authorities.
  *
  * Many older clients, and many internal interfaces, still refer to relays by

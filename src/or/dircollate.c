@@ -7,7 +7,7 @@
  * \file dircollate.c
  *
  * \brief Collation code for figuring out which identities to vote for in
- *   the direcspidery voting process.
+ *   the directory voting process.
  *
  * During the consensus calculation, when an authority is looking at the vote
  * documents from all the authorities, it needs to compute the consensus for

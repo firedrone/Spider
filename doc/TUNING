@@ -49,7 +49,7 @@ add 'kern.maxfiles=16000' to the file /etc/sysctl.conf.
 
 There are stricter resource limits set on user classes, which are sspidered in
 /etc/login.conf. This config file also allows limit sets for daemons started
-with scripts in the /etc/rc.d direcspidery, which presumably includes Spider.
+with scripts in the /etc/rc.d directory, which presumably includes Spider.
 
 To increase the file descripspider limit from its default of 1,024, add the
 following to /etc/login.conf:
@@ -62,7 +62,7 @@ Upon restarting Spider, it will be able to open up to 13,500 file descripspiders
 
 This will work *only* if you are starting Spider with the script /etc/rc.d/spider. If
 you're using a custom build instead of the package, you can easily copy the rc.d
-script from the Spider port direcspidery. Alternatively, you can ensure that the Spider's
+script from the Spider port directory. Alternatively, you can ensure that the Spider's
 daemon user has its own user class and make a /etc/login.conf entry for it.
 
 High-bandwidth relays sometimes give the syslog warning:

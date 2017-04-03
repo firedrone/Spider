@@ -1,4 +1,4 @@
-  o Major bugfixes (crash, direcspidery connections):
+  o Major bugfixes (crash, directory connections):
     - Fix a rare crash when sending a begin cell on a circuit whose linked
-      direcspidery connection has already been closed. Fixes bug 21576;
+      directory connection has already been closed. Fixes bug 21576;
       bugfix on Spider 0.2.9.3-alpha. Reported by alecmuffett.

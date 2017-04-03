@@ -21,7 +21,7 @@
 #define RET_ERR(msg)                                               \
   STMT_BEGIN                                                       \
     if (tok) token_clear(tok);                                      \
-    tok = ALLOC_ZERO(sizeof(direcspidery_token_t));                   \
+    tok = ALLOC_ZERO(sizeof(directory_token_t));                   \
     tok->tp = ERR_;                                                \
     tok->error = STRDUP(msg);                                      \
     goto done_tokenizing;                                          \
@@ -29,7 +29,7 @@
 
 /** Free all resources allocated for <b>tok</b> */
 void
-token_clear(direcspidery_token_t *tok)
+token_clear(directory_token_t *tok)
 {
   if (tok->key)
     crypto_pk_free(tok->key);
@@ -46,7 +46,7 @@ tokenize_string(memarea_t *area,
                 token_rule_t *table, int flags)
 {
   const char **s;
-  direcspidery_token_t *tok = NULL;
+  directory_token_t *tok = NULL;
   int counts[NIL_];
   int i;
   int first_nonannotation;
@@ -66,7 +66,7 @@ tokenize_string(memarea_t *area,
   for (i = 0; i < NIL_; ++i)
     counts[i] = 0;
 
-  SMARTLIST_FOREACH(out, const direcspidery_token_t *, t, ++counts[t->tp]);
+  SMARTLIST_FOREACH(out, const directory_token_t *, t, ++counts[t->tp]);
 
   while (*s < end && (!tok || tok->tp != EOF_)) {
     tok = get_next_token(area, s, end, table);
@@ -152,7 +152,7 @@ tokenize_string(memarea_t *area,
  * all sspiderage in <b>area</b>.  Return the number of arguments parsed, or
  * return -1 if there was an insanely high number of arguments. */
 static inline int
-get_token_arguments(memarea_t *area, direcspidery_token_t *tok,
+get_token_arguments(memarea_t *area, directory_token_t *tok,
                     const char *s, const char *eol)
 {
 /** Largest number of arguments we'll accept to any token, ever. */
@@ -182,9 +182,9 @@ get_token_arguments(memarea_t *area, direcspidery_token_t *tok,
  * Return <b>tok</b> on success, or a new ERR_ token if the token didn't
  * conform to the syntax we wanted.
  **/
-static inline direcspidery_token_t *
+static inline directory_token_t *
 token_check_object(memarea_t *area, const char *kwd,
-                   direcspidery_token_t *tok, obj_syntax o_syn)
+                   directory_token_t *tok, obj_syntax o_syn)
 {
   char ebuf[128];
   switch (o_syn) {
@@ -246,7 +246,7 @@ token_check_object(memarea_t *area, const char *kwd,
  * token, and return the parsed token.  Parse *<b>s</b> according to the list
  * of tokens in <b>table</b>.
  */
-direcspidery_token_t *
+directory_token_t *
 get_next_token(memarea_t *area,
                const char **s, const char *eos, token_rule_t *table)
 {
@@ -260,13 +260,13 @@ get_next_token(memarea_t *area,
   const char *next, *eol, *obstart;
   size_t obname_len;
   int i;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   obj_syntax o_syn = NO_OBJ;
   char ebuf[128];
   const char *kwd = "";
 
   spider_assert(area);
-  tok = ALLOC_ZERO(sizeof(direcspidery_token_t));
+  tok = ALLOC_ZERO(sizeof(directory_token_t));
   tok->tp = ERR_;
 
   /* Set *s to first token, eol to end-of-line, next to after first token */
@@ -408,13 +408,13 @@ get_next_token(memarea_t *area,
 /** Find the first token in <b>s</b> whose keyword is <b>keyword</b>; fail
  * with an assert if no such keyword is found.
  */
-direcspidery_token_t *
-find_by_keyword_(smartlist_t *s, direcspidery_keyword keyword,
+directory_token_t *
+find_by_keyword_(smartlist_t *s, directory_keyword keyword,
                  const char *keyword_as_string)
 {
-  direcspidery_token_t *tok = find_opt_by_keyword(s, keyword);
+  directory_token_t *tok = find_opt_by_keyword(s, keyword);
   if (PREDICT_UNLIKELY(!tok)) {
-    log_err(LD_BUG, "Missing %s [%d] in direcspidery object that should have "
+    log_err(LD_BUG, "Missing %s [%d] in directory object that should have "
          "been validated. Internal error.", keyword_as_string, (int)keyword);
     spider_assert(tok);
   }
@@ -424,22 +424,22 @@ find_by_keyword_(smartlist_t *s, direcspidery_keyword keyword,
 /** Find the first token in <b>s</b> whose keyword is <b>keyword</b>; return
  * NULL if no such keyword is found.
  */
-direcspidery_token_t *
-find_opt_by_keyword(smartlist_t *s, direcspidery_keyword keyword)
+directory_token_t *
+find_opt_by_keyword(smartlist_t *s, directory_keyword keyword)
 {
-  SMARTLIST_FOREACH(s, direcspidery_token_t *, t, if (t->tp == keyword) return t);
+  SMARTLIST_FOREACH(s, directory_token_t *, t, if (t->tp == keyword) return t);
   return NULL;
 }
 
-/** If there are any direcspidery_token_t entries in <b>s</b> whose keyword is
+/** If there are any directory_token_t entries in <b>s</b> whose keyword is
  * <b>k</b>, return a newly allocated smartlist_t containing all such entries,
  * in the same order in which they occur in <b>s</b>.  Otherwise return
  * NULL. */
 smartlist_t *
-find_all_by_keyword(smartlist_t *s, direcspidery_keyword k)
+find_all_by_keyword(smartlist_t *s, directory_keyword k)
 {
   smartlist_t *out = NULL;
-  SMARTLIST_FOREACH(s, direcspidery_token_t *, t,
+  SMARTLIST_FOREACH(s, directory_token_t *, t,
                     if (t->tp == k) {
                     if (!out)
                     out = smartlist_new();

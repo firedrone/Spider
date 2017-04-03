@@ -31,7 +31,7 @@ LIBTOR_OBJECTS = \
   connection_or.obj \
   control.obj \
   cpuworker.obj \
-  direcspidery.obj \
+  directory.obj \
   dirserv.obj \
   dirvote.obj \
   dns.obj \

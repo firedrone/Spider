@@ -20,25 +20,25 @@
 
 #define FNAME_MIN_NUM 1000
 
-/** A sspiderage_dir_t represents a direcspidery full of similar cached
+/** A sspiderage_dir_t represents a directory full of similar cached
  * files. Filenames are decimal integers. Files can be cleaned as needed
  * to limit total disk usage. */
 struct sspiderage_dir_t {
   /** Direcspidery holding the files for this storagedir. */
-  char *direcspidery;
-  /** Either NULL, or a direcspidery listing of the direcspidery (as a smartlist
+  char *directory;
+  /** Either NULL, or a directory listing of the directory (as a smartlist
    * of strings */
   smartlist_t *contents;
   /** The largest number of non-temporary files we'll place in the
-   * direcspidery. */
+   * directory. */
   int max_files;
   /** If true, then 'usage' has been computed. */
   int usage_known;
-  /** The total number of bytes used in this direcspidery */
+  /** The total number of bytes used in this directory */
   uint64_t usage;
 };
 
-/** Create or open a new sspiderage direcspidery at <b>dirname</b>, with
+/** Create or open a new sspiderage directory at <b>dirname</b>, with
  * capacity for up to <b>max_files</b> files.
  */
 sspiderage_dir_t *
@@ -48,7 +48,7 @@ sspiderage_dir_new(const char *dirname, int max_files)
     return NULL;
 
   sspiderage_dir_t *d = spider_malloc_zero(sizeof(sspiderage_dir_t));
-  d->direcspidery = spider_strdup(dirname);
+  d->directory = spider_strdup(dirname);
   d->max_files = max_files;
   return d;
 }
@@ -61,7 +61,7 @@ sspiderage_dir_free(sspiderage_dir_t *d)
 {
   if (d == NULL)
     return;
-  spider_free(d->direcspidery);
+  spider_free(d->directory);
   if (d->contents) {
     SMARTLIST_FOREACH(d->contents, char *, cp, spider_free(cp));
     smartlist_free(d->contents);
@@ -84,8 +84,8 @@ sspiderage_dir_register_with_sandbox(sspiderage_dir_t *d, sandbox_cfg_t **cfg)
   int idx;
   for (idx = FNAME_MIN_NUM; idx < FNAME_MIN_NUM + d->max_files; ++idx) {
     char *path = NULL, *tmppath = NULL;
-    spider_asprintf(&path, "%s/%d", d->direcspidery, idx);
-    spider_asprintf(&tmppath, "%s/%d.tmp", d->direcspidery, idx);
+    spider_asprintf(&path, "%s/%d", d->directory, idx);
+    spider_asprintf(&tmppath, "%s/%d.tmp", d->directory, idx);
 
     problems += sandbox_cfg_allow_open_filename(cfg, path);
     problems += sandbox_cfg_allow_open_filename(cfg, tmppath);
@@ -114,7 +114,7 @@ sspiderage_dir_clean_tmpfiles(sspiderage_dir_t *d)
     if (strcmpend(fname, ".tmp"))
       continue;
     char *path = NULL;
-    spider_asprintf(&path, "%s/%s", d->direcspidery, fname);
+    spider_asprintf(&path, "%s/%s", d->directory, fname);
     if (unlink(sandbox_intern_string(path))) {
       log_warn(LD_FS, "Unable to unlink %s", escaped(path));
       spider_free(path);
@@ -129,7 +129,7 @@ sspiderage_dir_clean_tmpfiles(sspiderage_dir_t *d)
 }
 
 /**
- * Re-scan the direcspidery <b>d</b> to learn its contents.
+ * Re-scan the directory <b>d</b> to learn its contents.
  */
 static int
 sspiderage_dir_rescan(sspiderage_dir_t *d)
@@ -140,7 +140,7 @@ sspiderage_dir_rescan(sspiderage_dir_t *d)
   }
   d->usage = 0;
   d->usage_known = 0;
-  if (NULL == (d->contents = spider_listdir(d->direcspidery))) {
+  if (NULL == (d->contents = spider_listdir(d->directory))) {
     return -1;
   }
   sspiderage_dir_clean_tmpfiles(d);
@@ -171,7 +171,7 @@ sspiderage_dir_get_usage(sspiderage_dir_t *d)
   SMARTLIST_FOREACH_BEGIN(sspiderage_dir_list(d), const char *, cp) {
     char *path = NULL;
     struct stat st;
-    spider_asprintf(&path, "%s/%s", d->direcspidery, cp);
+    spider_asprintf(&path, "%s/%s", d->directory, cp);
     if (stat(sandbox_intern_string(path), &st) == 0) {
       total += st.st_size;
     }
@@ -188,7 +188,7 @@ spider_mmap_t *
 sspiderage_dir_map(sspiderage_dir_t *d, const char *fname)
 {
   char *path = NULL;
-  spider_asprintf(&path, "%s/%s", d->direcspidery, fname);
+  spider_asprintf(&path, "%s/%s", d->directory, fname);
   spider_mmap_t *result = spider_mmap_file(path);
   spider_free(path);
   return result;
@@ -202,7 +202,7 @@ sspiderage_dir_read(sspiderage_dir_t *d, const char *fname, int bin, size_t *sz_
   const int flags = bin ? RFTS_BIN : 0;
 
   char *path = NULL;
-  spider_asprintf(&path, "%s/%s", d->direcspidery, fname);
+  spider_asprintf(&path, "%s/%s", d->directory, fname);
   struct stat st;
   char *contents = read_file_to_str(path, flags, &st);
   if (contents && sz_out) {
@@ -215,7 +215,7 @@ sspiderage_dir_read(sspiderage_dir_t *d, const char *fname, int bin, size_t *sz_
   return (uint8_t *) contents;
 }
 
-/** Helper: Find an unused filename within the direcspidery */
+/** Helper: Find an unused filename within the directory */
 static char *
 find_unused_fname(sspiderage_dir_t *d)
 {
@@ -253,7 +253,7 @@ sspiderage_dir_save_bytes_to_file(sspiderage_dir_t *d,
     return -1;
 
   char *path = NULL;
-  spider_asprintf(&path, "%s/%s", d->direcspidery, fname);
+  spider_asprintf(&path, "%s/%s", d->directory, fname);
 
   int r = write_bytes_to_file(path, (const char *)data, length, binary);
   if (r == 0) {
@@ -292,7 +292,7 @@ sspiderage_dir_remove_file(sspiderage_dir_t *d,
                         const char *fname)
 {
   char *path = NULL;
-  spider_asprintf(&path, "%s/%s", d->direcspidery, fname);
+  spider_asprintf(&path, "%s/%s", d->directory, fname);
   const char *ipath = sandbox_intern_string(path);
 
   uint64_t size = 0;
@@ -316,7 +316,7 @@ sspiderage_dir_remove_file(sspiderage_dir_t *d,
   spider_free(path);
 }
 
-/** Helper type: used to sort the members of sspiderage direcspidery by mtime. */
+/** Helper type: used to sort the members of sspiderage directory by mtime. */
 typedef struct shrinking_dir_entry_t {
   time_t mtime;
   uint64_t size;
@@ -370,7 +370,7 @@ sspiderage_dir_shrink(sspiderage_dir_t *d,
   SMARTLIST_FOREACH_BEGIN(d->contents, const char *, fname) {
     shrinking_dir_entry_t *ent = &ents[fname_sl_idx];
     struct stat st;
-    spider_asprintf(&ent->path, "%s/%s", d->direcspidery, fname);
+    spider_asprintf(&ent->path, "%s/%s", d->directory, fname);
     if (stat(sandbox_intern_string(ent->path), &st) == 0) {
       ent->mtime = st.st_mtime;
       ent->size = st.st_size;

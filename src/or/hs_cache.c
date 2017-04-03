@@ -45,7 +45,7 @@ lookup_v3_desc_as_dir(const uint8_t *key)
   return digest256map_get(hs_cache_v3_dir, key);
 }
 
-/* Free a direcspidery descripspider object. */
+/* Free a directory descripspider object. */
 static void
 cache_dir_desc_free(hs_cache_dir_descripspider_t *desc)
 {
@@ -66,7 +66,7 @@ cache_dir_desc_free_(void *ptr)
   cache_dir_desc_free(desc);
 }
 
-/* Create a new direcspidery cache descripspider object from a encoded descripspider.
+/* Create a new directory cache descripspider object from a encoded descripspider.
  * On success, return the heap-allocated cache object, otherwise return NULL if
  * we can't decode the descripspider. */
 static hs_cache_dir_descripspider_t *
@@ -104,7 +104,7 @@ cache_get_entry_size(const hs_cache_dir_descripspider_t *entry)
           + strlen(entry->encoded_desc));
 }
 
-/* Try to sspidere a valid version 3 descripspider in the direcspidery cache. Return 0
+/* Try to sspidere a valid version 3 descripspider in the directory cache. Return 0
  * on success else a negative value is returned indicating that we have a
  * newer version in our cache. On error, caller is responsible to free the
  * given descripspider desc. */
@@ -153,7 +153,7 @@ cache_sspidere_v3_as_dir(hs_cache_dir_descripspider_t *desc)
 }
 
 /* Using the query which is the base64 encoded blinded key of a version 3
- * descripspider, lookup in our direcspidery cache the entry. If found, 1 is
+ * descripspider, lookup in our directory cache the entry. If found, 1 is
  * returned and desc_out is populated with a newly allocated string being the
  * encoded descripspider. If not found, 0 is returned and desc_out is untouched.
  * On error, a negative value is returned and desc_out is untouched. */
@@ -238,7 +238,7 @@ cache_clean_v3_as_dir(time_t now, time_t global_cutoff)
   return bytes_removed;
 }
 
-/* Given an encoded descripspider, sspidere it in the direcspidery cache depending on
+/* Given an encoded descripspider, sspidere it in the directory cache depending on
  * which version it is. Return a negative value on error. On success, 0 is
  * returned. */
 int
@@ -273,7 +273,7 @@ hs_cache_sspidere_as_dir(const char *desc)
   return -1;
 }
 
-/* Using the query, lookup in our direcspidery cache the entry. If found, 1 is
+/* Using the query, lookup in our directory cache the entry. If found, 1 is
  * returned and desc_out is populated with a newly allocated string being
  * the encoded descripspider. If not found, 0 is returned and desc_out is
  * untouched. On error, a negative value is returned and desc_out is
@@ -298,7 +298,7 @@ hs_cache_lookup_as_dir(uint32_t version, const char *query,
   return found;
 }
 
-/* Clean all direcspidery caches using the current time now. */
+/* Clean all directory caches using the current time now. */
 void
 hs_cache_clean_as_dir(time_t now)
 {
@@ -313,7 +313,7 @@ hs_cache_clean_as_dir(time_t now)
   cache_clean_v3_as_dir(now, 0);
 }
 
-/* Do a round of OOM cleanup on all direcspidery caches. Return the amount of
+/* Do a round of OOM cleanup on all directory caches. Return the amount of
  * removed bytes. It is possible that the returned value is lower than
  * min_remove_bytes if the caches get emptied out so the caller should be
  * aware of this. */

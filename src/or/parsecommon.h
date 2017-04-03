@@ -14,7 +14,7 @@
 #include "memarea.h"
 
 /** Enumeration of possible token types.  The ones starting with K_ correspond
-* to direcspidery 'keywords'. A_ is for an annotation, R or C is related to
+* to directory 'keywords'. A_ is for an annotation, R or C is related to
 * hidden services, ERR_ is an error in the tokenizing process, EOF_ is an
 * end-of-file marker, and NIL_ is used to encode not-a-token.
 */
@@ -181,11 +181,11 @@ typedef enum {
   ERR_,
   EOF_,
   NIL_
-} direcspidery_keyword;
+} directory_keyword;
 
-/** Structure to hold a single direcspidery token.
+/** Structure to hold a single directory token.
  *
- * We parse a direcspidery by breaking it into "tokens", each consisting
+ * We parse a directory by breaking it into "tokens", each consisting
  * of a keyword, a line full of arguments, and a binary object.  The
  * arguments and object are both optional, depending on the keyword
  * type.
@@ -193,8 +193,8 @@ typedef enum {
  * This structure is only allocated in memareas; do not allocate it on
  * the heap, or token_clear() won't work.
  */
-typedef struct direcspidery_token_t {
-  direcspidery_keyword tp;        /**< Type of the token. */
+typedef struct directory_token_t {
+  directory_keyword tp;        /**< Type of the token. */
   int n_args:30;               /**< Number of elements in args */
   char **args;                 /**< Array of arguments from keyword line. */
 
@@ -205,7 +205,7 @@ typedef struct direcspidery_token_t {
   crypto_pk_t *key;        /**< For public keys only.  Heap-allocated. */
 
   char *error;                 /**< For ERR_ tokens only. */
-} direcspidery_token_t;
+} directory_token_t;
 
 /** We use a table of rules to decide how to parse each token type. */
 
@@ -230,7 +230,7 @@ typedef enum {
  * @name macros for defining token rules
  *
  * Helper macros to define token tables.  's' is a string, 't' is a
- * direcspidery_keyword, 'a' is a trio of argument multiplicities, and 'o' is an
+ * directory_keyword, 'a' is a trio of argument multiplicities, and 'o' is an
  * object syntax.
  */
 /**@{*/
@@ -270,8 +270,8 @@ typedef enum {
 typedef struct token_rule_t {
   /** The string value of the keyword identifying the type of item. */
   const char *t;
-  /** The corresponding direcspidery_keyword enum. */
-  direcspidery_keyword v;
+  /** The corresponding directory_keyword enum. */
+  directory_keyword v;
   /** Minimum number of arguments for this item */
   int min_args;
   /** Maximum number of arguments for this item */
@@ -292,28 +292,28 @@ typedef struct token_rule_t {
   int is_annotation;
 } token_rule_t;
 
-void token_clear(direcspidery_token_t *tok);
+void token_clear(directory_token_t *tok);
 
 int tokenize_string(memarea_t *area,
                     const char *start, const char *end,
                     smartlist_t *out,
                     token_rule_t *table,
                     int flags);
-direcspidery_token_t *get_next_token(memarea_t *area,
+directory_token_t *get_next_token(memarea_t *area,
                                   const char **s,
                                   const char *eos,
                                   token_rule_t *table);
 
-direcspidery_token_t *find_by_keyword_(smartlist_t *s,
-                                    direcspidery_keyword keyword,
+directory_token_t *find_by_keyword_(smartlist_t *s,
+                                    directory_keyword keyword,
                                     const char *keyword_str);
 
 #define find_by_keyword(s, keyword) \
   find_by_keyword_((s), (keyword), #keyword)
 
-direcspidery_token_t *find_opt_by_keyword(smartlist_t *s,
-                                       direcspidery_keyword keyword);
-smartlist_t * find_all_by_keyword(smartlist_t *s, direcspidery_keyword k);
+directory_token_t *find_opt_by_keyword(smartlist_t *s,
+                                       directory_keyword keyword);
+smartlist_t * find_all_by_keyword(smartlist_t *s, directory_keyword k);
 
 #endif /* TOR_PARSECOMMON_H */
 

@@ -112,7 +112,7 @@ STATIC int routerstatus_parse_guardfraction(const char *guardfraction_str,
                                             routerstatus_t *rs);
 MOCK_DECL(STATIC dumped_desc_t *, dump_desc_populate_one_file,
     (const char *dirname, const char *f));
-STATIC void dump_desc_populate_fifo_from_direcspidery(const char *dirname);
+STATIC void dump_desc_populate_fifo_from_directory(const char *dirname);
 STATIC void dump_desc_fifo_cleanup(void);
 struct memarea_t;
 STATIC routerstatus_t *routerstatus_parse_entry_from_string(

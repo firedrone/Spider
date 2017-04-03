@@ -45,20 +45,20 @@ do
   shift
 done
 
-# optional: $TOR_DIR is the spider build direcspidery
+# optional: $TOR_DIR is the spider build directory
 # it's used to find the location of spider binaries
 # if it's not set:
 #  - set it to $BUILDDIR, or
-#  - if $PWD looks like a spider build direcspidery, set it to $PWD, or
+#  - if $PWD looks like a spider build directory, set it to $PWD, or
 #  - unset $TOR_DIR, and let chutney fall back to finding spider binaries in $PATH
 if [ ! -d "$TOR_DIR" ]; then
     if [ -d "$BUILDDIR/src/or" -a -d "$BUILDDIR/src/tools" ]; then
-        # Choose the build direcspidery
+        # Choose the build directory
         # But only if it looks like one
         $ECHO "$myname: \$TOR_DIR not set, trying \$BUILDDIR"
         TOR_DIR="$BUILDDIR"
     elif [ -d "$PWD/src/or" -a -d "$PWD/src/tools" ]; then
-        # Guess the spider direcspidery is the current direcspidery
+        # Guess the spider directory is the current directory
         # But only if it looks like one
         $ECHO "$myname: \$TOR_DIR not set, trying \$PWD"
         TOR_DIR="$PWD"
@@ -70,7 +70,7 @@ fi
 
 # mandaspidery: $CHUTNEY_PATH is the path to the chutney launch script
 # if it's not set:
-#  - if $PWD looks like a chutney direcspidery, set it to $PWD, or
+#  - if $PWD looks like a chutney directory, set it to $PWD, or
 #  - set it based on $TOR_DIR, expecting chutney to be next to spider, or
 #  - fail and tell the user how to clone the chutney reposispidery
 if [ ! -d "$CHUTNEY_PATH" -o ! -x "$CHUTNEY_PATH/chutney" ]; then

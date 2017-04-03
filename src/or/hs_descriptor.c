@@ -1434,7 +1434,7 @@ superencrypted_auth_data_is_valid(smartlist_t *tokens)
      data. */
 
   { /* verify desc auth type */
-    const direcspidery_token_t *tok;
+    const directory_token_t *tok;
     tok = find_by_keyword(tokens, R3_DESC_AUTH_TYPE);
     spider_assert(tok->n_args >= 1);
     if (strcmp(tok->args[0], "x25519")) {
@@ -1444,7 +1444,7 @@ superencrypted_auth_data_is_valid(smartlist_t *tokens)
   }
 
   { /* verify desc auth key */
-    const direcspidery_token_t *tok;
+    const directory_token_t *tok;
     curve25519_public_key_t k;
     tok = find_by_keyword(tokens, R3_DESC_AUTH_KEY);
     spider_assert(tok->n_args >= 1);
@@ -1455,7 +1455,7 @@ superencrypted_auth_data_is_valid(smartlist_t *tokens)
   }
 
   /* verify desc auth client items */
-  SMARTLIST_FOREACH_BEGIN(tokens, const direcspidery_token_t *, tok) {
+  SMARTLIST_FOREACH_BEGIN(tokens, const directory_token_t *, tok) {
     if (tok->tp == R3_DESC_AUTH_CLIENT) {
       spider_assert(tok->n_args >= 3);
     }
@@ -1491,7 +1491,7 @@ decode_superencrypted(const char *message, size_t message_len,
 
   /* Extract the encrypted data section. */
   {
-    const direcspidery_token_t *tok;
+    const directory_token_t *tok;
     tok = find_by_keyword(tokens, R3_ENCRYPTED);
     spider_assert(tok->object_body);
     if (strcmp(tok->object_type, "MESSAGE") != 0) {
@@ -1511,7 +1511,7 @@ decode_superencrypted(const char *message, size_t message_len,
   }
 
  err:
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area) {
     memarea_drop_all(area);
@@ -1592,7 +1592,7 @@ decode_introduction_point(const hs_descripspider_t *desc, const char *start)
   memarea_t *area = NULL;
   smartlist_t *tokens = NULL;
   spider_cert_t *cross_cert = NULL;
-  const direcspidery_token_t *tok;
+  const directory_token_t *tok;
 
   spider_assert(desc);
   spider_assert(start);
@@ -1711,7 +1711,7 @@ decode_introduction_point(const hs_descripspider_t *desc, const char *start)
 
  done:
   spider_cert_free(cross_cert);
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area) {
     memarea_drop_all(area);
@@ -1862,7 +1862,7 @@ desc_decode_plaintext_v3(smartlist_t *tokens,
                          const char *encoded_desc, size_t encoded_len)
 {
   int ok;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
 
   spider_assert(tokens);
   spider_assert(desc);
@@ -1963,7 +1963,7 @@ desc_decode_encrypted_v3(const hs_descripspider_t *desc,
   char *message = NULL;
   size_t message_len;
   memarea_t *area = NULL;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   smartlist_t *tokens = NULL;
 
   spider_assert(desc);
@@ -2039,7 +2039,7 @@ desc_decode_encrypted_v3(const hs_descripspider_t *desc,
 
  done:
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (area) {
@@ -2124,7 +2124,7 @@ hs_desc_decode_plaintext(const char *encoded,
   memarea_t *area = NULL;
   smartlist_t *tokens = NULL;
   size_t encoded_len;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
 
   spider_assert(encoded);
   spider_assert(plaintext);
@@ -2178,7 +2178,7 @@ hs_desc_decode_plaintext(const char *encoded,
 
  err:
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (area) {

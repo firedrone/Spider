@@ -37,7 +37,7 @@ test_checkdir_perms(void *testdata)
 
   umask(022);
 
-  /* setup data direcspidery before tests. */
+  /* setup data directory before tests. */
   spider_free(options->DataDirecspidery);
   options->DataDirecspidery = spider_strdup(get_fname(subdir));
   tt_int_op(mkdir(options->DataDirecspidery, 0750), OP_EQ, 0);

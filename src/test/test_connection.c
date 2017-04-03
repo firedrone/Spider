@@ -15,7 +15,7 @@
 #include "microdesc.h"
 #include "networkstatus.h"
 #include "rendcache.h"
-#include "direcspidery.h"
+#include "directory.h"
 
 static void test_conn_lookup_addr_helper(const char *address,
                                          int family,
@@ -265,7 +265,7 @@ test_conn_get_rend_setup(const struct testcase_t *tc)
 
   rend_cache_init();
 
-  /* TODO: use direcspidery_initiate_command_rend() to do this - maybe? */
+  /* TODO: use directory_initiate_command_rend() to do this - maybe? */
   spider_assert(strlen(TEST_CONN_REND_ADDR) == REND_SERVICE_ID_LEN_BASE32);
   conn->rend_data = rend_data_client_create(TEST_CONN_REND_ADDR, NULL, NULL,
                                             REND_NO_AUTH);
@@ -827,7 +827,7 @@ test_conn_download_status(void *arg)
                                                          other_res) == 0);
 
   /* a connection for the other flavor (could happen if a client is set to
-   * cache direcspidery documents), one preferred flavor downloading
+   * cache directory documents), one preferred flavor downloading
    */
   conn4 = test_conn_download_status_add_a_connection(other_res);
   tt_assert(networkstatus_consensus_is_already_downloading(res) == 1);
@@ -840,7 +840,7 @@ test_conn_download_status(void *arg)
                                                         other_res) == 1);
 
   /* a connection for the other flavor (could happen if a client is set to
-   * cache direcspidery documents), both flavors downloading
+   * cache directory documents), both flavors downloading
    */
   conn4->base_.state = TEST_CONN_DL_STATE;
   /* ignore the return value, it's free'd using the connection list */

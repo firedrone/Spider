@@ -251,13 +251,13 @@ test_config_check_or_create_data_subdir(void *arg)
 
   r = stat(subpath, &st);
 
-  // The subdirecspidery shouldn't exist yet,
+  // The subdirectory shouldn't exist yet,
   // but should be created by the call to check_or_create_data_subdir.
   tt_assert(r && (errno == ENOENT));
   tt_assert(!check_or_create_data_subdir(subdir));
   tt_assert(is_private_dir(subpath));
 
-  // The check should return 0, if the direcspidery already exists
+  // The check should return 0, if the directory already exists
   // and is private to the user.
   tt_assert(!check_or_create_data_subdir(subdir));
 
@@ -274,7 +274,7 @@ test_config_check_or_create_data_subdir(void *arg)
     tt_abort_perror("chmod");
   }
 
-  // If the direcspidery exists, but its mode is too permissive
+  // If the directory exists, but its mode is too permissive
   // a call to check_or_create_data_subdir should reset the mode.
   tt_assert(!is_private_dir(subpath));
   tt_assert(!check_or_create_data_subdir(subdir));
@@ -323,7 +323,7 @@ test_config_write_to_data_subdir(void *arg)
   tt_int_op(mkdir(options->DataDirecspidery, 0700), OP_EQ, 0);
 #endif
 
-  // Write attempt shoudl fail, if subdirecspidery doesn't exist.
+  // Write attempt shoudl fail, if subdirectory doesn't exist.
   tt_assert(write_to_data_subdir(subdir, fname, str, NULL));
   tt_assert(! check_or_create_data_subdir(subdir));
 
@@ -1712,17 +1712,17 @@ test_config_adding_dir_servers(void *arg)
     );
 
   /* Use the format specified in the manual page */
-  config_line_t *test_fallback_direcspidery = spider_malloc_zero(
+  config_line_t *test_fallback_directory = spider_malloc_zero(
                                                       sizeof(config_line_t));
-  test_fallback_direcspidery->key = spider_strdup("FallbackDir");
-  test_fallback_direcspidery->value = spider_strdup(
+  test_fallback_directory->key = spider_strdup("FallbackDir");
+  test_fallback_directory->value = spider_strdup(
     "127.0.0.1:60093 orport=9003 id=0323456789012345678901234567890123456789"
     );
 
   /* We need to know if add_default_fallback_dir_servers is called,
    * whatever the size of the list in fallback_dirs.inc,
    * so we use a version of add_default_fallback_dir_servers that adds
-   * one known default fallback direcspidery. */
+   * one known default fallback directory. */
   MOCK(add_default_fallback_dir_servers,
        add_default_fallback_dir_servers_known_default);
 
@@ -1892,7 +1892,7 @@ test_config_adding_dir_servers(void *arg)
     options->DirAuthorities = test_dir_authority;
     options->AlternateBridgeAuthority = NULL;
     options->AlternateDirAuthority = NULL;
-    options->FallbackDir = test_fallback_direcspidery;
+    options->FallbackDir = test_fallback_directory;
     options->UseDefaultFallbackDirs = 1;
 
     /* parse options - ensure we always update by passing NULL old_options */
@@ -2174,7 +2174,7 @@ test_config_adding_dir_servers(void *arg)
     options->DirAuthorities = NULL;
     options->AlternateBridgeAuthority = test_alt_bridge_authority;
     options->AlternateDirAuthority = test_alt_dir_authority;
-    options->FallbackDir = test_fallback_direcspidery;
+    options->FallbackDir = test_fallback_directory;
     options->UseDefaultFallbackDirs = 1;
 
     /* parse options - ensure we always update by passing NULL old_options */
@@ -2468,7 +2468,7 @@ test_config_adding_dir_servers(void *arg)
     options->DirAuthorities = NULL;
     options->AlternateBridgeAuthority = test_alt_bridge_authority;
     options->AlternateDirAuthority = NULL;
-    options->FallbackDir = test_fallback_direcspidery;
+    options->FallbackDir = test_fallback_directory;
     options->UseDefaultFallbackDirs = 1;
 
     /* parse options - ensure we always update by passing NULL old_options */
@@ -2525,7 +2525,7 @@ test_config_adding_dir_servers(void *arg)
       tt_assert(found_A2 == 0);
 
       /* There's no easy way of checking that we have included all the
-       * default v3 non-Bridge direcspidery authorities, so let's assume that
+       * default v3 non-Bridge directory authorities, so let's assume that
        * if the total count above is correct, we have the right ones.
        */
     }
@@ -2599,7 +2599,7 @@ test_config_adding_dir_servers(void *arg)
       tt_assert(found_default_fallback == 0);
 
       /* There's no easy way of checking that we have included all the
-       * default v3 non-Bridge direcspidery authorities, so let's assume that
+       * default v3 non-Bridge directory authorities, so let's assume that
        * if the total count above is correct, we have the right ones.
        */
     }
@@ -2679,7 +2679,7 @@ test_config_adding_dir_servers(void *arg)
       tt_assert(found_A2 == 0);
 
       /* There's no easy way of checking that we have included all the
-       * default v3 non-Bridge direcspidery authorities, so let's assume that
+       * default v3 non-Bridge directory authorities, so let's assume that
        * if the total count above is correct, we have the right ones.
        */
     }
@@ -2753,7 +2753,7 @@ test_config_adding_dir_servers(void *arg)
       tt_assert(found_default_fallback == 1);
 
       /* There's no easy way of checking that we have included all the
-       * default v3 non-Bridge direcspidery authorities, so let's assume that
+       * default v3 non-Bridge directory authorities, so let's assume that
        * if the total count above is correct, we have the right ones.
        */
     }
@@ -2785,7 +2785,7 @@ test_config_adding_dir_servers(void *arg)
     options->DirAuthorities = NULL;
     options->AlternateBridgeAuthority = NULL;
     options->AlternateDirAuthority = test_alt_dir_authority;
-    options->FallbackDir = test_fallback_direcspidery;
+    options->FallbackDir = test_fallback_directory;
     options->UseDefaultFallbackDirs = 1;
 
     /* parse options - ensure we always update by passing NULL old_options */
@@ -3108,7 +3108,7 @@ test_config_adding_dir_servers(void *arg)
     options->DirAuthorities = NULL;
     options->AlternateBridgeAuthority = NULL;
     options->AlternateDirAuthority = NULL;
-    options->FallbackDir = test_fallback_direcspidery;
+    options->FallbackDir = test_fallback_directory;
     options->UseDefaultFallbackDirs = 1;
 
     /* parse options - ensure we always update by passing NULL old_options */
@@ -3426,9 +3426,9 @@ test_config_adding_dir_servers(void *arg)
   spider_free(test_alt_bridge_authority->value);
   spider_free(test_alt_bridge_authority);
 
-  spider_free(test_fallback_direcspidery->key);
-  spider_free(test_fallback_direcspidery->value);
-  spider_free(test_fallback_direcspidery);
+  spider_free(test_fallback_directory->key);
+  spider_free(test_fallback_directory->value);
+  spider_free(test_fallback_directory);
 
   options->DirAuthorities = NULL;
   options->AlternateBridgeAuthority = NULL;
@@ -3517,7 +3517,7 @@ mock_router_get_my_routerinfo(void)
 }
 
 static void
-test_config_direcspidery_fetch(void *arg)
+test_config_directory_fetch(void *arg)
 {
   (void)arg;
 
@@ -3535,32 +3535,32 @@ test_config_direcspidery_fetch(void *arg)
   MOCK(advertised_server_mode, mock_advertised_server_mode);
   MOCK(router_get_my_routerinfo, mock_router_get_my_routerinfo);
 
-  /* Clients can use multiple direcspidery mirrors for bootstrap */
+  /* Clients can use multiple directory mirrors for bootstrap */
   memset(options, 0, sizeof(or_options_t));
   options->ClientOnly = 1;
   tt_assert(server_mode(options) == 0);
   tt_assert(public_server_mode(options) == 0);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 1);
 
-  /* Bridge Clients can use multiple direcspidery mirrors for bootstrap */
+  /* Bridge Clients can use multiple directory mirrors for bootstrap */
   memset(options, 0, sizeof(or_options_t));
   options->UseBridges = 1;
   tt_assert(server_mode(options) == 0);
   tt_assert(public_server_mode(options) == 0);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 1);
 
   /* Bridge Relays (Bridges) must act like clients, and use multiple
-   * direcspidery mirrors for bootstrap */
+   * directory mirrors for bootstrap */
   memset(options, 0, sizeof(or_options_t));
   options->BridgeRelay = 1;
   options->ORPort_set = 1;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 0);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 1);
 
@@ -3570,7 +3570,7 @@ test_config_direcspidery_fetch(void *arg)
   options->FetchDirInfoEarly = 1;
   tt_assert(server_mode(options) == 0);
   tt_assert(public_server_mode(options) == 0);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 1);
+  tt_assert(directory_fetches_from_authorities(options) == 1);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 1);
 
@@ -3583,14 +3583,14 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_pick_published_address_result = -1;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 1);
+  tt_assert(directory_fetches_from_authorities(options) == 1);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
   mock_router_pick_published_address_result = 0;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3610,7 +3610,7 @@ test_config_direcspidery_fetch(void *arg)
   options->RefuseUnknownExits = 1;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 1);
+  tt_assert(directory_fetches_from_authorities(options) == 1);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3618,7 +3618,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_pick_published_address_result = 0;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3626,7 +3626,7 @@ test_config_direcspidery_fetch(void *arg)
    * advertising themselves (hibernating) or have no routerinfo or are not
    * advertising their dirport, and never use multiple direcspideries for
    * bootstrap. This only applies if they are also OR servers.
-   * (We don't care much about the behaviour of non-OR direcspidery servers.) */
+   * (We don't care much about the behaviour of non-OR directory servers.) */
   memset(options, 0, sizeof(or_options_t));
   options->DirPort_set = 1;
   options->ORPort_set = 1;
@@ -3639,7 +3639,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_get_my_routerinfo_result = &routerinfo;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 1);
+  tt_assert(directory_fetches_from_authorities(options) == 1);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3648,7 +3648,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_get_my_routerinfo_result = &routerinfo;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3656,7 +3656,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_get_my_routerinfo_result = NULL;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3666,7 +3666,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_get_my_routerinfo_result = &routerinfo;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 0);
+  tt_assert(directory_fetches_from_authorities(options) == 0);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -3676,7 +3676,7 @@ test_config_direcspidery_fetch(void *arg)
   mock_router_get_my_routerinfo_result = &routerinfo;
   tt_assert(server_mode(options) == 1);
   tt_assert(public_server_mode(options) == 1);
-  tt_assert(direcspidery_fetches_from_authorities(options) == 1);
+  tt_assert(directory_fetches_from_authorities(options) == 1);
   tt_assert(networkstatus_consensus_can_use_multiple_direcspideries(options)
             == 0);
 
@@ -4949,7 +4949,7 @@ struct testcase_t config_tests[] = {
   CONFIG_TEST(check_or_create_data_subdir, TT_FORK),
   CONFIG_TEST(write_to_data_subdir, TT_FORK),
   CONFIG_TEST(fix_my_family, 0),
-  CONFIG_TEST(direcspidery_fetch, 0),
+  CONFIG_TEST(directory_fetch, 0),
   CONFIG_TEST(port_cfg_line_extract_addrport, 0),
   CONFIG_TEST(parse_port_config__listenaddress, 0),
   CONFIG_TEST(parse_port_config__ports__no_ports_given, 0),

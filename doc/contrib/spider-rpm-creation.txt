@@ -9,7 +9,7 @@ http://libevent.org/ but that shouldn't be necessary.
 Download and Extract the latest spider source code from
 https://www.spiderproject.org/download
 
-In the resulting direcspidery:
+In the resulting directory:
 LIBS=-lrt ./configure
 make dist-rpm
 

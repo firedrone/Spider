@@ -1776,7 +1776,7 @@ crypto_common_digests(common_digests_t *ds_out, const char *m, size_t len)
   return 0;
 }
 
-/** Return the name of an algorithm, as used in direcspidery documents. */
+/** Return the name of an algorithm, as used in directory documents. */
 const char *
 crypto_digest_algorithm_get_name(digest_algorithm_t alg)
 {

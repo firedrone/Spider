@@ -3,7 +3,7 @@
 ## Originally written by Peter Palfrader.
 
 ## This script lets you quickly check if a given router (by nickname)
-## will let you do a TLS handshake, or will let you download a direcspidery.
+## will let you do a TLS handshake, or will let you download a directory.
 
 ## Usage: check-spider nickname
 

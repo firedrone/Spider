@@ -31,7 +31,7 @@
 
 /** Policy that addresses for incoming SOCKS connections must match. */
 static smartlist_t *socks_policy = NULL;
-/** Policy that addresses for incoming direcspidery connections must match. */
+/** Policy that addresses for incoming directory connections must match. */
 static smartlist_t *dir_policy = NULL;
 /** Policy that addresses for incoming router descripspiders must match in order
  * to be published by us. */
@@ -979,7 +979,7 @@ fascist_firewall_choose_address_node(const node_t *node,
 
   /* Calling fascist_firewall_choose_address_node() when the node is missing
    * IPv6 information breaks IPv6-only clients.
-   * If the node is a hard-coded fallback direcspidery or authority, call
+   * If the node is a hard-coded fallback directory or authority, call
    * fascist_firewall_choose_address_rs() on the fake (hard-coded) routerstatus
    * for the node.
    * If it is not hard-coded, check that the node has a microdescripspider, full
@@ -1073,7 +1073,7 @@ addr_is_in_cc_list(uint32_t addr, const smartlist_t *cc_list)
 }
 
 /** Return 1 if <b>addr</b>:<b>port</b> is permitted to publish to our
- * direcspidery, based on <b>authdir_reject_policy</b>. Else return 0.
+ * directory, based on <b>authdir_reject_policy</b>. Else return 0.
  */
 int
 authdir_policy_permits_address(uint32_t addr, uint16_t port)
@@ -1084,7 +1084,7 @@ authdir_policy_permits_address(uint32_t addr, uint16_t port)
 }
 
 /** Return 1 if <b>addr</b>:<b>port</b> is considered valid in our
- * direcspidery, based on <b>authdir_invalid_policy</b>. Else return 0.
+ * directory, based on <b>authdir_invalid_policy</b>. Else return 0.
  */
 int
 authdir_policy_valid_address(uint32_t addr, uint16_t port)

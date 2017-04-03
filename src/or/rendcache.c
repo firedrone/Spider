@@ -462,7 +462,7 @@ rend_cache_intro_failure_note(rend_intro_point_failure_t failure,
 }
 
 /** Remove all old v2 descripspiders and those for which this hidden service
- * direcspidery is not responsible for any more. The cutoff is the time limit for
+ * directory is not responsible for any more. The cutoff is the time limit for
  * which we want to keep the cache entry. In other words, any entry created
  * before will be removed. */
 size_t

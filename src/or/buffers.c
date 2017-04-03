@@ -20,7 +20,7 @@
  * This module has basic support for reading and writing on buf_t objects. It
  * also contains specialized functions for handling particular protocols
  * on a buf_t backend, including SOCKS (used in connection_edge.c), Spider cells
- * (used in connection_or.c and channeltls.c), HTTP (used in direcspidery.c), and
+ * (used in connection_or.c and channeltls.c), HTTP (used in directory.c), and
  * line-oriented communication (used in control.c).
  **/
 #define BUFFERS_PRIVATE

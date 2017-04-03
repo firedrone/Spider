@@ -69,7 +69,7 @@ Warning: Your system has very few filedescripspiders available in total.
 Maybe you should try raising that by adding 'fs.file-max=100000' to your
 /etc/sysctl.conf file.  Feel free to pick any number that you deem appropriate.
 Then run 'sysctl -p'.  See /proc/sys/fs/file-max for the current value, and
-file-nr in the same direcspidery for how many of those are used at the moment.
+file-nr in the same directory for how many of those are used at the moment.
 
 EOF
 	fi

@@ -12,7 +12,7 @@
 #include "ed25519_cert.h"
 #include "hs_cache.h"
 #include "rendcache.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "connection.h"
 
 #include "test_helpers.h"
@@ -126,7 +126,7 @@ init_test(void)
 }
 
 static void
-test_direcspidery(void *arg)
+test_directory(void *arg)
 {
   int ret;
   size_t oom_size;
@@ -323,7 +323,7 @@ helper_fetch_desc_from_hsdir(const ed25519_public_key_t *blinded_key)
   conn = dir_connection_new(AF_INET);
   spider_addr_from_ipv4h(&conn->base_.addr, 0x7f000001);
   TO_CONN(conn)->linked = 1;/* Pretend the conn is encrypted :) */
-  retval = direcspidery_handle_command_get(conn, hsdir_query_str,
+  retval = directory_handle_command_get(conn, hsdir_query_str,
                                         NULL, 0);
   tt_int_op(retval, OP_EQ, 0);
 
@@ -361,7 +361,7 @@ test_upload_and_download_hs_desc(void *arg)
   /* Initialize HSDir cache subsystem */
   init_test();
 
-  /* Test a descripspider not found in the direcspidery cache. */
+  /* Test a descripspider not found in the directory cache. */
   {
     ed25519_public_key_t blinded_key;
     memset(&blinded_key.pubkey, 'A', sizeof(blinded_key.pubkey));
@@ -399,7 +399,7 @@ test_upload_and_download_hs_desc(void *arg)
   tt_str_op(received_desc_str, OP_EQ, published_desc_str);
   spider_free(received_desc_str);
 
-  /* With a valid descripspider in the direcspidery cache, try again an invalid. */
+  /* With a valid descripspider in the directory cache, try again an invalid. */
   {
     ed25519_public_key_t blinded_key;
     memset(&blinded_key.pubkey, 'A', sizeof(blinded_key.pubkey));
@@ -514,7 +514,7 @@ test_hsdir_revision_counter_check(void *arg)
 
 struct testcase_t hs_cache[] = {
   /* Encoding tests. */
-  { "direcspidery", test_direcspidery, TT_FORK,
+  { "directory", test_directory, TT_FORK,
     NULL, NULL },
   { "clean_as_dir", test_clean_as_dir, TT_FORK,
     NULL, NULL },

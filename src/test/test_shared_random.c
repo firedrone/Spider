@@ -38,7 +38,7 @@ trusteddirserver_get_by_v3_auth_digest_m(const char *digest)
 }
 
 /* Setup a minimal dirauth environment by initializing the SR state and
- * making sure the options are set to be an authority direcspidery. */
+ * making sure the options are set to be an authority directory. */
 static void
 init_authority_state(void)
 {
@@ -631,7 +631,7 @@ test_state_load_from_disk(void *arg)
   ret = disk_state_load_from_disk_impl("NONEXISTENTNONEXISTENT");
   tt_assert(ret == -ENOENT);
 
-  /* Now create a mock state direcspidery and state file */
+  /* Now create a mock state directory and state file */
 #ifdef _WIN32
   ret = mkdir(dir);
 #else
@@ -641,7 +641,7 @@ test_state_load_from_disk(void *arg)
   ret = write_str_to_file(sr_state_path, sr_state_str, 0);
   tt_assert(ret == 0);
 
-  /* Try to load the direcspidery itself. Should fail. */
+  /* Try to load the directory itself. Should fail. */
   ret = disk_state_load_from_disk_impl(dir);
   tt_int_op(ret, OP_LT, 0);
 

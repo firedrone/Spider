@@ -5,7 +5,7 @@
  * \file geoip.c
  * \brief Functions related to maintaining an IP-to-country database;
  * to summarizing client connections by country to entry guards, bridges,
- * and direcspidery servers; and for statistics on answering network status
+ * and directory servers; and for statistics on answering network status
  * requests.
  *
  * There are two main kinds of functions in this module: geoip functions,
@@ -573,7 +573,7 @@ geoip_note_client_seen(geoip_client_action_t action,
         (!(options->BridgeRelay && options->BridgeRecordUsageByCountry)))
       return;
   } else {
-    /* Only gather direcspidery-request statistics if configured, and
+    /* Only gather directory-request statistics if configured, and
      * forcibly disable them on bridge authorities. */
     if (!options->DirReqStatistics || options->BridgeAuthoritativeDir)
       return;
@@ -687,7 +687,7 @@ c_hist_compare_(const void **_a, const void **_b)
     return strcmp(a->country, b->country);
 }
 
-/** When there are incomplete direcspidery requests at the end of a 24-hour
+/** When there are incomplete directory requests at the end of a 24-hour
  * period, consider those requests running for longer than this timeout as
  * failed, the others as still running. */
 #define DIRREQ_TIMEOUT (10*60)
@@ -704,7 +704,7 @@ typedef struct dirreq_map_entry_t {
    * locally unique identifier of a circuit (tunneled request). This ID is
    * only unique among other direct or tunneled requests, respectively. */
   uint64_t dirreq_id;
-  unsigned int state:3; /**< State of this direcspidery request. */
+  unsigned int state:3; /**< State of this directory request. */
   unsigned int type:1; /**< Is this a direct or a tunneled request? */
   unsigned int completed:1; /**< Is this request complete? */
   /** When did we receive the request and started sending the response? */
@@ -713,7 +713,7 @@ typedef struct dirreq_map_entry_t {
   struct timeval completion_time; /**< When did the request succeed? */
 } dirreq_map_entry_t;
 
-/** Map of all direcspidery requests asking for v2 or v3 network statuses in
+/** Map of all directory requests asking for v2 or v3 network statuses in
  * the current geoip-stats interval. Values are
  * of type *<b>dirreq_map_entry_t</b>. */
 static HT_HEAD(dirreqmap, dirreq_map_entry_t) dirreq_map =
@@ -740,7 +740,7 @@ HT_PROTOTYPE(dirreqmap, dirreq_map_entry_t, node, dirreq_map_ent_hash,
 HT_GENERATE2(dirreqmap, dirreq_map_entry_t, node, dirreq_map_ent_hash,
              dirreq_map_ent_eq, 0.6, spider_reallocarray_, spider_free_)
 
-/** Helper: Put <b>entry</b> into map of direcspidery requests using
+/** Helper: Put <b>entry</b> into map of directory requests using
  * <b>type</b> and <b>dirreq_id</b> as key parts. If there is
  * already an entry for that key, print out a BUG warning and return. */
 static void
@@ -756,13 +756,13 @@ dirreq_map_put_(dirreq_map_entry_t *entry, dirreq_type_t type,
    * critical-path, it's sane to leave it alone. */
   old_ent = HT_REPLACE(dirreqmap, &dirreq_map, entry);
   if (old_ent && old_ent != entry) {
-    log_warn(LD_BUG, "Error when putting direcspidery request into local "
+    log_warn(LD_BUG, "Error when putting directory request into local "
              "map. There was already an entry for the same identifier.");
     return;
   }
 }
 
-/** Helper: Look up and return an entry in the map of direcspidery requests
+/** Helper: Look up and return an entry in the map of directory requests
  * using <b>type</b> and <b>dirreq_id</b> as key parts. If there
  * is no such entry, return NULL. */
 static dirreq_map_entry_t *
@@ -774,7 +774,7 @@ dirreq_map_get_(dirreq_type_t type, uint64_t dirreq_id)
   return HT_FIND(dirreqmap, &dirreq_map, &lookup);
 }
 
-/** Note that an either direct or tunneled (see <b>type</b>) direcspidery
+/** Note that an either direct or tunneled (see <b>type</b>) directory
  * request for a v3 network status with unique ID <b>dirreq_id</b> of size
  * <b>response_size</b> has started. */
 void
@@ -793,9 +793,9 @@ geoip_start_dirreq(uint64_t dirreq_id, size_t response_size,
 }
 
 /** Change the state of the either direct or tunneled (see <b>type</b>)
- * direcspidery request with <b>dirreq_id</b> to <b>new_state</b> and
+ * directory request with <b>dirreq_id</b> to <b>new_state</b> and
  * possibly mark it as completed. If no entry can be found for the given
- * key parts (e.g., if this is a direcspidery request that we are not
+ * key parts (e.g., if this is a directory request that we are not
  * measuring, or one that was started in the previous measurement period),
  * or if the state cannot be advanced to <b>new_state</b>, do nothing. */
 void
@@ -1021,7 +1021,7 @@ geoip_get_dirreq_hisspidery(dirreq_type_t type)
 
 /** Sspidere a newly allocated comma-separated string in
  * *<a>country_str</a> containing entries for all the countries from
- * which we've seen enough clients connect as a bridge, direcspidery
+ * which we've seen enough clients connect as a bridge, directory
  * server, or entry guard. The entry format is cc=num where num is the
  * number of IPs we've seen connecting from that country, and cc is a
  * lowercased country code. *<a>country_str</a> is set to NULL if
@@ -1164,11 +1164,11 @@ geoip_get_request_hisspidery(void)
   return result;
 }
 
-/** Start time of direcspidery request stats or 0 if we're not collecting
- * direcspidery request statistics. */
+/** Start time of directory request stats or 0 if we're not collecting
+ * directory request statistics. */
 static time_t start_of_dirreq_stats_interval;
 
-/** Initialize direcspidery request stats. */
+/** Initialize directory request stats. */
 void
 geoip_dirreq_stats_init(time_t now)
 {
@@ -1207,7 +1207,7 @@ geoip_reset_dirreq_stats(time_t now)
   start_of_dirreq_stats_interval = now;
 }
 
-/** Stop collecting direcspidery request stats in a way that we can re-start
+/** Stop collecting directory request stats in a way that we can re-start
  * doing so in geoip_dirreq_stats_init(). */
 void
 geoip_dirreq_stats_term(void)

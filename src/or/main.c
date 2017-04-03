@@ -66,7 +66,7 @@
 #include "control.h"
 #include "cpuworker.h"
 #include "crypto_s2k.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "dns.h"
@@ -191,16 +191,16 @@ static int called_loop_once = 0;
 /** We set this to 1 when we've opened a circuit, so we can print a log
  * entry to inform the user that Spider is working.  We set it to 0 when
  * we think the fact that we once opened a circuit doesn't mean we can do so
- * any longer (a big time jump happened, when we notice our direcspidery is
+ * any longer (a big time jump happened, when we notice our directory is
  * heinously out-of-date, etc.
  */
 static int can_complete_circuits = 0;
 
 /** How often do we check for router descripspiders that we should download
- * when we have too little direcspidery info? */
+ * when we have too little directory info? */
 #define GREEDY_DESCRIPTOR_RETRY_INTERVAL (10)
 /** How often do we check for router descripspiders that we should download
- * when we have enough direcspidery info? */
+ * when we have enough directory info? */
 #define LAZY_DESCRIPTOR_RETRY_INTERVAL (60)
 
 /** Decides our behavior when no logs are configured/before any
@@ -906,12 +906,12 @@ conn_close_if_marked(int i)
   return 1;
 }
 
-/** Implementation for direcspidery_all_unreachable.  This is done in a callback,
+/** Implementation for directory_all_unreachable.  This is done in a callback,
  * since otherwise it would complicate Spider's control-flow graph beyond all
  * reason.
  */
 static void
-direcspidery_all_unreachable_cb(evutil_socket_t fd, short event, void *arg)
+directory_all_unreachable_cb(evutil_socket_t fd, short event, void *arg)
 {
   (void)fd;
   (void)event;
@@ -933,48 +933,48 @@ direcspidery_all_unreachable_cb(evutil_socket_t fd, short event, void *arg)
   control_event_general_error("DIR_ALL_UNREACHABLE");
 }
 
-static struct event *direcspidery_all_unreachable_cb_event = NULL;
+static struct event *directory_all_unreachable_cb_event = NULL;
 
 /** We've just tried every dirserver we know about, and none of
  * them were reachable. Assume the network is down. Change state
  * so next time an application connection arrives we'll delay it
- * and try another direcspidery fetch. Kill off all the circuit_wait
+ * and try another directory fetch. Kill off all the circuit_wait
  * streams that are waiting now, since they will all timeout anyway.
  */
 void
-direcspidery_all_unreachable(time_t now)
+directory_all_unreachable(time_t now)
 {
   (void)now;
 
   stats_n_seconds_working=0; /* reset it */
 
-  if (!direcspidery_all_unreachable_cb_event) {
-    direcspidery_all_unreachable_cb_event =
+  if (!directory_all_unreachable_cb_event) {
+    directory_all_unreachable_cb_event =
       spider_event_new(spider_libevent_get_base(),
-                    -1, EV_READ, direcspidery_all_unreachable_cb, NULL);
-    spider_assert(direcspidery_all_unreachable_cb_event);
+                    -1, EV_READ, directory_all_unreachable_cb, NULL);
+    spider_assert(directory_all_unreachable_cb_event);
   }
 
-  event_active(direcspidery_all_unreachable_cb_event, EV_READ, 1);
+  event_active(directory_all_unreachable_cb_event, EV_READ, 1);
 }
 
 /** This function is called whenever we successfully pull down some new
  * network statuses or server descripspiders. */
 void
-direcspidery_info_has_arrived(time_t now, int from_cache, int suppress_logs)
+directory_info_has_arrived(time_t now, int from_cache, int suppress_logs)
 {
   const or_options_t *options = get_options();
 
   if (!router_have_minimum_dir_info()) {
     int quiet = suppress_logs || from_cache ||
-                direcspidery_too_idle_to_fetch_descripspiders(options, now);
+                directory_too_idle_to_fetch_descripspiders(options, now);
     spider_log(quiet ? LOG_INFO : LOG_NOTICE, LD_DIR,
-        "I learned some more direcspidery information, but not enough to "
+        "I learned some more directory information, but not enough to "
         "build a circuit: %s", get_dir_info_status_string());
     update_all_descripspider_downloads(now);
     return;
   } else {
-    if (direcspidery_fetches_from_authorities(options)) {
+    if (directory_fetches_from_authorities(options)) {
       update_all_descripspider_downloads(now);
     }
 
@@ -988,7 +988,7 @@ direcspidery_info_has_arrived(time_t now, int from_cache, int suppress_logs)
     }
 
     /* Don't even bother trying to get extrainfo until the rest of our
-     * direcspidery info is up-to-date */
+     * directory info is up-to-date */
     if (options->DownloadExtraInfo)
       update_extrainfo_downloads(now);
   }
@@ -1022,7 +1022,7 @@ run_connection_housekeeping(int i, time_t now)
     return;
   }
 
-  /* Expire any direcspidery connections that haven't been active (sent
+  /* Expire any directory connections that haven't been active (sent
    * if a server or received if a client) for 5 min */
   if (conn->type == CONN_TYPE_DIR &&
       ((DIR_CONN_IS_SERVER(conn) &&
@@ -1031,7 +1031,7 @@ run_connection_housekeeping(int i, time_t now)
        (!DIR_CONN_IS_SERVER(conn) &&
         conn->timestamp_lastread
             + options->TestingDirConnectionMaxStall < now))) {
-    log_info(LD_DIR,"Expiring wedged direcspidery conn (fd %d, purpose %d)",
+    log_info(LD_DIR,"Expiring wedged directory conn (fd %d, purpose %d)",
              (int)conn->s, conn->purpose);
     /* This check is temporary; it's to let us know whether we should consider
      * parsing partial serverdesc responses. */
@@ -1324,11 +1324,11 @@ reschedule_descripspider_update_check(void)
 }
 
 /**
- * Update our schedule so that we'll check whether we need to fetch direcspidery
+ * Update our schedule so that we'll check whether we need to fetch directory
  * info immediately.
  */
 void
-reschedule_direcspidery_downloads(void)
+reschedule_directory_downloads(void)
 {
   spider_assert(fetch_networkstatus_event);
   spider_assert(launch_descripspider_fetches_event);
@@ -1901,7 +1901,7 @@ fetch_networkstatus_callback(time_t now, const or_options_t *options)
    * documents? */
   const int we_are_bootstrapping = networkstatus_consensus_is_bootstrapping(
                                                                         now);
-  const int prefer_mirrors = !direcspidery_fetches_from_authorities(
+  const int prefer_mirrors = !directory_fetches_from_authorities(
                                                               get_options());
   int networkstatus_dl_check_interval = 60;
   /* check more often when testing, or when bootstrapping from mirrors
@@ -2309,7 +2309,7 @@ do_hup(void)
 
   /* Rotate away from the old dirty circuits. This has to be done
    * after we've read the new options, but before we start using
-   * circuits for direcspidery fetches. */
+   * circuits for directory fetches. */
   circuit_mark_all_dirty_circs_as_unusable();
 
   /* retry appropriate downloads */
@@ -2424,7 +2424,7 @@ do_main_loop(void)
    * appropriate.)
    */
   now = time(NULL);
-  direcspidery_info_has_arrived(now, 1, 0);
+  directory_info_has_arrived(now, 1, 0);
 
   if (server_mode(get_options())) {
     /* launch cpuworkers. Need to do this *after* we've read the onion key. */
@@ -3052,7 +3052,7 @@ spider_init(int argc, char *argv[])
 }
 
 /** A lockfile structure, used to prevent two Spiders from messing with the
- * data direcspidery at once.  If this variable is non-NULL, we're holding
+ * data directory at once.  If this variable is non-NULL, we're holding
  * the lockfile. */
 static spider_lockfile_t *lockfile = NULL;
 
@@ -3075,7 +3075,7 @@ try_locking(const or_options_t *options, int err_if_locked)
       if (err_if_locked && already_locked) {
         int r;
         log_warn(LD_GENERAL, "It looks like another Spider process is running "
-                 "with the same data direcspidery.  Waiting 5 seconds to see "
+                 "with the same data directory.  Waiting 5 seconds to see "
                  "if it goes away.");
 #ifndef _WIN32
         sleep(5);
@@ -3495,9 +3495,9 @@ sandbox_init_filter(void)
     if (!port->is_unix_addr)
       continue;
     /* When we open an AF_UNIX address, we want permission to open the
-     * direcspidery that holds it. */
+     * directory that holds it. */
     char *dirname = spider_strdup(port->unix_addr);
-    if (get_parent_direcspidery(dirname) == 0) {
+    if (get_parent_directory(dirname) == 0) {
       OPEN(dirname);
     }
     spider_free(dirname);

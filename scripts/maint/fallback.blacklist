@@ -1,10 +1,10 @@
-# updateFallbackDirs.py direcspidery mirror blacklist
+# updateFallbackDirs.py directory mirror blacklist
 #
 # Format:
 # [ IPv4[:DirPort] ] [ orport=<ORPort> ] [ id=<ID> ] ...
 #   [ ipv6=<IPv6>[:<IPv6 ORPort>] ]
 #
-# If a sufficiently specific group of attributes matches, the direcspidery mirror
+# If a sufficiently specific group of attributes matches, the directory mirror
 # will be excluded: (each group is listed on its own line)
 # <IPv4>, <DirPort>
 # <IPv4>, <ORPort>

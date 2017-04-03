@@ -12,7 +12,7 @@
  * from (signing key fingerprint, identity key fingerprint) to void *.  The
  * fingerprints here are SHA1 digests of RSA keys.
  *
- * This structure is used in direcspidery.c and in routerlist.c for handling
+ * This structure is used in directory.c and in routerlist.c for handling
  * handling authority certificates, since we never want more than a single
  * certificate for any (ID key, signing key) pair.
  **/

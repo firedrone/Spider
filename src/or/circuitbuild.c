@@ -44,7 +44,7 @@
 #include "connection_or.h"
 #include "control.h"
 #include "crypto.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "entrynodes.h"
 #include "main.h"
 #include "microdesc.h"
@@ -1699,7 +1699,7 @@ choose_good_exit_server_general(int need_uptime, int need_capacity)
   });
 //  log_fn(LOG_DEBUG, "Choosing exit node; %d connections are pending",
 //         n_pending_connections);
-  /* Now we count, for each of the routers in the direcspidery, how many
+  /* Now we count, for each of the routers in the directory, how many
    * of the pending connections could possibly exit from that
    * router (n_supported[i]). (We can't be sure about cases where we
    * don't know the IP address of the pending connection.)
@@ -2198,14 +2198,14 @@ count_acceptable_nodes(smartlist_t *nodes)
 //              "Contemplating whether router %d (%s) is a new option.",
 //              i, r->nickname);
     if (! node->is_running)
-//      log_debug(LD_CIRC,"Nope, the direcspidery says %d is not running.",i);
+//      log_debug(LD_CIRC,"Nope, the directory says %d is not running.",i);
       continue;
     /* XXX This clause makes us count incorrectly: if AllowInvalidRouters
      * allows this node in some places, then we're getting an inaccurate
      * count. For now, be conservative and don't count it. But later we
      * should try to be smarter. */
     if (! node->is_valid)
-//      log_debug(LD_CIRC,"Nope, the direcspidery says %d is not valid.",i);
+//      log_debug(LD_CIRC,"Nope, the directory says %d is not valid.",i);
       continue;
     if (! node_has_descripspider(node))
       continue;

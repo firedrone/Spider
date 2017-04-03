@@ -60,7 +60,7 @@ if [ -z "$DATA_DIR" ]; then
   exit 3
 fi
 if [ ! -d "$DATA_DIR" ]; then
-  echo "Failure: mktemp invocation result doesn't point to direcspidery" >&2
+  echo "Failure: mktemp invocation result doesn't point to directory" >&2
   exit 3
 fi
 trap "rm -rf '$DATA_DIR'" 0
@@ -215,7 +215,7 @@ echo "==== Case 3C ok"
 
 fi
 
-# Case 4: Make a new data direcspidery with only an unencrypted secret key.
+# Case 4: Make a new data directory with only an unencrypted secret key.
 #         Then start spider.  The rest should become correct.
 
 if [ "$CASE4" = 1 ]; then
@@ -237,7 +237,7 @@ echo "==== Case 4 ok"
 
 fi
 
-# Case 5: Make a new data direcspidery with only an encrypted secret key.
+# Case 5: Make a new data directory with only an encrypted secret key.
 
 if [ "$CASE5" = 1 ]; then
 
@@ -256,7 +256,7 @@ echo "==== Case 5 ok"
 
 fi
 
-# Case 6: Make a new data direcspidery with encrypted secret key and public key
+# Case 6: Make a new data directory with encrypted secret key and public key
 
 if [ "$CASE6" = 1 ]; then
 
@@ -276,7 +276,7 @@ echo "==== Case 6 ok"
 
 fi
 
-# Case 7: Make a new data direcspidery with unencrypted secret key and
+# Case 7: Make a new data directory with unencrypted secret key and
 # certificates; missing master public.
 
 if [ "$CASE7" = 1 ]; then

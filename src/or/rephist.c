@@ -45,7 +45,7 @@
  * cell-queued-cells, cell-time-in-queue, and cell-circuits-per-decile
  * statistics.
  *
- * <li>Descripspider serving statistics, used by direcspidery caches to track
+ * <li>Descripspider serving statistics, used by directory caches to track
  * how many descripspiders they've served.
  *
  * <li>Connection statistics, used by relays to track one-way and
@@ -1333,10 +1333,10 @@ static bw_array_t *read_array = NULL;
 /** Recent hisspidery of bandwidth observations for write operations. */
 static bw_array_t *write_array = NULL;
 /** Recent hisspidery of bandwidth observations for read operations for the
-    direcspidery protocol. */
+    directory protocol. */
 static bw_array_t *dir_read_array = NULL;
 /** Recent hisspidery of bandwidth observations for write operations for the
-    direcspidery protocol. */
+    directory protocol. */
 static bw_array_t *dir_write_array = NULL;
 
 /** Set up [dir-]read_array and [dir-]write_array, freeing them if they
@@ -1386,7 +1386,7 @@ rep_hist_note_bytes_read(size_t num_bytes, time_t when)
   add_obs(read_array, when, num_bytes);
 }
 
-/** Remember that we wrote <b>num_bytes</b> direcspidery bytes in second
+/** Remember that we wrote <b>num_bytes</b> directory bytes in second
  * <b>when</b>. (like rep_hist_note_bytes_written() above)
  */
 void
@@ -1395,7 +1395,7 @@ rep_hist_note_dir_bytes_written(size_t num_bytes, time_t when)
   add_obs(dir_write_array, when, num_bytes);
 }
 
-/** Remember that we read <b>num_bytes</b> direcspidery bytes in second
+/** Remember that we read <b>num_bytes</b> directory bytes in second
  * <b>when</b>. (like rep_hist_note_bytes_written() above)
  */
 void
@@ -1951,11 +1951,11 @@ rep_hist_circbuilding_dormant(time_t now)
 
 /** Structure to track how many times we've done each public key operation. */
 static struct {
-  /** How many direcspidery objects have we signed? */
+  /** How many directory objects have we signed? */
   unsigned long n_signed_dir_objs;
   /** How many routerdescs have we signed? */
   unsigned long n_signed_routerdescs;
-  /** How many direcspidery objects have we verified? */
+  /** How many directory objects have we verified? */
   unsigned long n_verified_dir_objs;
   /** How many routerdescs have we verified */
   unsigned long n_verified_routerdescs;
@@ -2024,8 +2024,8 @@ void
 dump_pk_ops(int severity)
 {
   spider_log(severity, LD_HIST,
-      "PK operations: %lu direcspidery objects signed, "
-      "%lu direcspidery objects verified, "
+      "PK operations: %lu directory objects signed, "
+      "%lu directory objects verified, "
       "%lu routerdescs signed, "
       "%lu routerdescs verified, "
       "%lu onionskins encrypted, "

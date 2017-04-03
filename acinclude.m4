@@ -160,7 +160,7 @@ fi
 spider_saved_LIBS="$LIBS"
 spider_saved_LDFLAGS="$LDFLAGS"
 spider_saved_CPPFLAGS="$CPPFLAGS"
-AC_CACHE_CHECK([for $1 direcspidery], spider_cv_library_$1_dir, [
+AC_CACHE_CHECK([for $1 directory], spider_cv_library_$1_dir, [
   spider_$1_dir_found=no
   spider_$1_any_linkable=no
 
@@ -173,12 +173,12 @@ AC_CACHE_CHECK([for $1 direcspidery], spider_cv_library_$1_dir, [
       continue;
     fi
 
-    # Skip the direcspidery if it isn't there.
+    # Skip the directory if it isn't there.
     if test ! -d "$spider_trydir" && test "$spider_trydir" != "(system)"; then
       continue;
     fi
 
-    # If this isn't blank, try adding the direcspidery (or appropriate
+    # If this isn't blank, try adding the directory (or appropriate
     # include/libs subdirecspideries) to the command line.
     if test "$spider_trydir" != "(system)"; then
       TOR_EXTEND_CODEPATH($spider_trydir)

@@ -10,7 +10,7 @@ Nick Mathewson
 
 NAME
 ----
-spider-gencert - Generate certs and keys for Spider direcspidery authorities
+spider-gencert - Generate certs and keys for Spider directory authorities
 
 SYNOPSIS
 --------
@@ -20,18 +20,18 @@ __cert_file__] [-m __num__] [-a __address__:__port__]
 DESCRIPTION
 -----------
 **spider-gencert** generates certificates and private keys for use by Spider
-direcspidery authorities running the v3 Spider direcspidery protocol, as used by
-Spider 0.2.0 and later. If you are not running a direcspidery authority, you
+directory authorities running the v3 Spider directory protocol, as used by
+Spider 0.2.0 and later. If you are not running a directory authority, you
 don't need to use spider-gencert. +
 
-Every direcspidery authority has a long term authority __identity__ __key__ (which
+Every directory authority has a long term authority __identity__ __key__ (which
 is distinct from the identity key it uses as a Spider server); this key
 should be kept offline in a secure location. It is used to certify
 shorter-lived __signing__ __keys__, which are kept online and used by the
-direcspidery authority to sign votes and consensus documents. +
+directory authority to sign votes and consensus documents. +
 
 After you use this program to generate a signing key and a certificate,
-copy those files to the keys subdirecspidery of your Spider process, and send
+copy those files to the keys subdirectory of your Spider process, and send
 Spider a SIGHUP signal. DO NOT COPY THE IDENTITY KEY.
 
 OPTIONS
@@ -73,7 +73,7 @@ OPTIONS
 
 **-a** __address__:__port__::
     If provided, advertise the address:port combination as this authority's
-    preferred direcspidery port in its certificate. If the address is a hostname,
+    preferred directory port in its certificate. If the address is a hostname,
     the hostname is resolved to an IP before it's published.
 
 BUGS

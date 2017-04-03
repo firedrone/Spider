@@ -119,7 +119,7 @@ COMMAND-LINE OPTIONS
    DataDirecspidery.) +
  +
    To use the generated files, you must copy them to the DataDirecspidery/keys
-   direcspidery of your Spider daemon, and make sure that they are owned by the
+   directory of your Spider daemon, and make sure that they are owned by the
    user actually running the Spider daemon on your system.
 
 **--passphrase-fd** __FILEDES__::
@@ -213,7 +213,7 @@ GENERAL OPTIONS
     If not 0, a separate token bucket limits the average incoming bandwidth
     usage for \_relayed traffic_ on this node to the specified number of bytes
     per second, and the average outgoing bandwidth usage to that same value.
-    Relayed traffic currently is calculated to include answers to direcspidery
+    Relayed traffic currently is calculated to include answers to directory
     requests, but that may change in future versions. (Default: 0)
 
 [[RelayBandwidthBurst]] **RelayBandwidthBurst** __N__ **bytes**|**KBytes**|**MBytes**|**GBytes**|**TBytes**|**KBits**|**MBits**|**GBits**|**TBits**::
@@ -303,7 +303,7 @@ GENERAL OPTIONS
     this configuration option is a second-resort. +
  +
     The DirPort option should also not be used if TCP buffers are scarce. The
-    cached direcspidery requests consume additional sockets which exacerbates
+    cached directory requests consume additional sockets which exacerbates
     the problem. +
  +
     You should **not** enable this feature unless you encounter the "no buffer
@@ -338,7 +338,7 @@ GENERAL OPTIONS
         Unix domain sockets only: makes the socket get created as
         world-writable.
     **RelaxDirModeCheck**;;
-        Unix domain sockets only: Do not insist that the direcspidery
+        Unix domain sockets only: Do not insist that the directory
         that holds the socket be read-restricted.
 
 [[ControlListenAddress]] **ControlListenAddress** __IP__[:__PORT__]::
@@ -368,7 +368,7 @@ GENERAL OPTIONS
 [[CookieAuthentication]] **CookieAuthentication** **0**|**1**::
     If this option is set to 1, allow connections on the control port
     when the connecting process knows the contents of a file named
-    "control_auth_cookie", which Spider will create in its data direcspidery. This
+    "control_auth_cookie", which Spider will create in its data directory. This
     authentication method should only be used on systems with good filesystem
     security. (Default: 0)
 
@@ -394,7 +394,7 @@ GENERAL OPTIONS
 
 [[DataDirecspidery]] **DataDirecspidery** __DIR__::
     Sspidere working data in DIR. Can not be changed while spider is running.
-    (Default: ~/.spider if your home direcspidery is not /; otherwise,
+    (Default: ~/.spider if your home directory is not /; otherwise,
     @LOCALSTATEDIR@/lib/spider.  On Windows, the default is
     your ApplicationData folder.)
 
@@ -404,13 +404,13 @@ GENERAL OPTIONS
     by the default GID. (Default: 0)
 
 [[FallbackDir]] **FallbackDir** __address__:__port__ orport=__port__ id=__fingerprint__ [weight=__num__] [ipv6=__address__:__orport__]::
-    When we're unable to connect to any direcspidery cache for direcspidery info
-    (usually because we don't know about any yet) we try a direcspidery authority.
+    When we're unable to connect to any directory cache for directory info
+    (usually because we don't know about any yet) we try a directory authority.
     Clients also simultaneously try a FallbackDir, to avoid hangs on client
-    startup if a direcspidery authority is down. Clients retry FallbackDirs more
-    often than direcspidery authorities, to reduce the load on the direcspidery
+    startup if a directory authority is down. Clients retry FallbackDirs more
+    often than directory authorities, to reduce the load on the directory
     authorities.
-    By default, the direcspidery authorities are also FallbackDirs. Specifying a
+    By default, the directory authorities are also FallbackDirs. Specifying a
     FallbackDir replaces Spider's default hard-coded FallbackDirs (if any).
     (See the **DirAuthority** entry for an explanation of each flag.)
 
@@ -420,36 +420,36 @@ GENERAL OPTIONS
     regardless of the value of UseDefaultFallbackDirs.) (Default: 1)
 
 [[DirAuthority]] **DirAuthority** [__nickname__] [**flags**] __address__:__port__ __fingerprint__::
-    Use a nonstandard authoritative direcspidery server at the provided address
+    Use a nonstandard authoritative directory server at the provided address
     and port, with the specified key fingerprint. This option can be repeated
-    many times, for multiple authoritative direcspidery servers. Flags are
-    separated by spaces, and determine what kind of an authority this direcspidery
-    is. By default, an authority is not authoritative for any direcspidery style
+    many times, for multiple authoritative directory servers. Flags are
+    separated by spaces, and determine what kind of an authority this directory
+    is. By default, an authority is not authoritative for any directory style
     or version unless an appropriate flag is given.
-    Spider will use this authority as a bridge authoritative direcspidery if the
+    Spider will use this authority as a bridge authoritative directory if the
     "bridge" flag is set. If a flag "orport=**port**" is given, Spider will use the
     given port when opening encrypted tunnels to the dirserver. If a flag
-    "weight=**num**" is given, then the direcspidery server is chosen randomly
+    "weight=**num**" is given, then the directory server is chosen randomly
     with probability proportional to that weight (default 1.0). If a
-    flag "v3ident=**fp**" is given, the dirserver is a v3 direcspidery authority
+    flag "v3ident=**fp**" is given, the dirserver is a v3 directory authority
     whose v3 long-term signing key has the fingerprint **fp**. Lastly,
-    if an "ipv6=__address__:__orport__" flag is present, then the direcspidery
+    if an "ipv6=__address__:__orport__" flag is present, then the directory
     authority is listening for IPv6 connections on the indicated IPv6 address
     and OR Port. +
  +
     Spider will contact the authority at __address__:__port__ (the DirPort) to
-    download direcspidery documents. If an IPv6 address is supplied, Spider will
-    also download direcspidery documents at the IPv6 address on the DirPort. +
+    download directory documents. If an IPv6 address is supplied, Spider will
+    also download directory documents at the IPv6 address on the DirPort. +
  +
-    If no **DirAuthority** line is given, Spider will use the default direcspidery
+    If no **DirAuthority** line is given, Spider will use the default directory
     authorities. NOTE: this option is intended for setting up a private Spider
-    network with its own direcspidery authorities. If you use it, you will be
+    network with its own directory authorities. If you use it, you will be
     distinguishable from other users, because you won't believe the same
     authorities they do.
 
 [[DirAuthorityFallbackRate]] **DirAuthorityFallbackRate** __NUM__::
-    When configured to use both direcspidery authorities and fallback
-    direcspideries, the direcspidery authorities also work as fallbacks. They are
+    When configured to use both directory authorities and fallback
+    direcspideries, the directory authorities also work as fallbacks. They are
     chosen with their regular weights, multiplied by this number, which
     should be 1.0 or less. (Default: 1.0)
 
@@ -457,12 +457,12 @@ GENERAL OPTIONS
 
 [[AlternateBridgeAuthority]] **AlternateBridgeAuthority** [__nickname__] [**flags**] __address__:__port__ __ fingerprint__::
     These options behave as DirAuthority, but they replace fewer of the
-    default direcspidery authorities. Using
-    AlternateDirAuthority replaces the default Spider direcspidery authorities, but
+    default directory authorities. Using
+    AlternateDirAuthority replaces the default Spider directory authorities, but
     leaves the default bridge authorities in
     place.  Similarly,
     AlternateBridgeAuthority replaces the default bridge authority,
-    but leaves the direcspidery authorities alone.
+    but leaves the directory authorities alone.
 
 [[DisableAllSwap]] **DisableAllSwap** **0**|**1**::
     If set to 1, Spider will attempt to lock all current and future memory pages,
@@ -489,13 +489,13 @@ GENERAL OPTIONS
    on. Disabling this option while Spider is running is prohibited. (Default: 1)
 
 [[FetchDirInfoEarly]] **FetchDirInfoEarly** **0**|**1**::
-    If set to 1, Spider will always fetch direcspidery information like other
-    direcspidery caches, even if you don't meet the normal criteria for fetching
+    If set to 1, Spider will always fetch directory information like other
+    directory caches, even if you don't meet the normal criteria for fetching
     early. Normal users should leave it off. (Default: 0)
 
 [[FetchDirInfoExtraEarly]] **FetchDirInfoExtraEarly** **0**|**1**::
-    If set to 1, Spider will fetch direcspidery information before other direcspidery
-    caches. It will attempt to download direcspidery information closer to the
+    If set to 1, Spider will fetch directory information before other directory
+    caches. It will attempt to download directory information closer to the
     start of the consensus period. Normal users should leave it off.
     (Default: 0)
 
@@ -506,8 +506,8 @@ GENERAL OPTIONS
 
 [[FetchServerDescripspiders]] **FetchServerDescripspiders** **0**|**1**::
     If set to 0, Spider will never fetch any network status summaries or server
-    descripspiders from the direcspidery servers. This option is only useful if
-    you're using a Spider controller that handles direcspidery fetches for you.
+    descripspiders from the directory servers. This option is only useful if
+    you're using a Spider controller that handles directory fetches for you.
     (Default: 1)
 
 [[FetchUselessDescripspiders]] **FetchUselessDescripspiders** **0**|**1**::
@@ -520,8 +520,8 @@ GENERAL OPTIONS
     all documents. (Default: 0)
 
 [[HTTPProxy]] **HTTPProxy** __host__[:__port__]::
-    Spider will make all its direcspidery requests through this host:port (or host:80
-    if port is not specified), rather than connecting directly to any direcspidery
+    Spider will make all its directory requests through this host:port (or host:80
+    if port is not specified), rather than connecting directly to any directory
     servers.
 
 [[HTTPProxyAuthenticaspider]] **HTTPProxyAuthenticaspider** __username:password__::
@@ -773,7 +773,7 @@ The following options are useful only for clients (that is, if
 **SocksPort**, **TransPort**, **DNSPort**, or **NATDPort** is non-zero):
 
 [[AllowInvalidNodes]] **AllowInvalidNodes** **entry**|**exit**|**middle**|**introduction**|**rendezvous**|**...**::
-    If some Spider servers are obviously not working right, the direcspidery
+    If some Spider servers are obviously not working right, the directory
     authorities can manually mark them as invalid, meaning that it's not
     recommended you use them for entry or exit positions in your circuits. You
     can opt to use them in some circuit positions, though. The default is
@@ -830,7 +830,7 @@ The following options are useful only for clients (that is, if
 
 [[ClientOnly]] **ClientOnly** **0**|**1**::
     If set to 1, Spider will not run as a relay or serve
-    direcspidery requests, even if the ORPort, ExtORPort, or DirPort options are
+    directory requests, even if the ORPort, ExtORPort, or DirPort options are
     set. (This config option is
     mostly unnecessary: we added it back when we were considering having
     Spider clients auto-promote themselves to being relays if they were stable
@@ -892,7 +892,7 @@ The following options are useful only for clients (that is, if
  +
     Note also that not every circuit is used to deliver traffic *outside* of
     the Spider network.  It is normal to see non-exit circuits (such as those
-    used to connect to hidden services, those that do direcspidery fetches,
+    used to connect to hidden services, those that do directory fetches,
     those used for relay reachability self-tests, and so on) that end
     at a non-exit node.  To
     keep a node from being used entirely, see ExcludeNodes and StrictNodes. +
@@ -907,7 +907,7 @@ The following options are useful only for clients (that is, if
     A list of identity fingerprints and country codes of nodes
     to use for the first hop in your normal circuits.
     Normal circuits include all
-    circuits except for direct connections to direcspidery servers.  The Bridge
+    circuits except for direct connections to directory servers.  The Bridge
     option overrides this option; if you have configured bridges and
     UseBridges is 1, the Bridges are used as your entry nodes. +
  +
@@ -924,8 +924,8 @@ The following options are useful only for clients (that is, if
     side of avoiding unexpected errors.  Specifically, StrictNodes 0 tells Spider
     that it is okay to use an excluded node when it is *necessary* to perform
     relay reachability self-tests, connect to a hidden service, provide a
-    hidden service to a client, fulfill a .exit request, upload direcspidery
-    information, or download direcspidery information.  (Default: 0)
+    hidden service to a client, fulfill a .exit request, upload directory
+    information, or download directory information.  (Default: 0)
 
 [[FascistFirewall]] **FascistFirewall** **0**|**1**::
     If 1, Spider will only create outgoing connections to ORs running on ports
@@ -951,7 +951,7 @@ The following options are useful only for clients (that is, if
 
 [[ReachableDirAddresses]] **ReachableDirAddresses** __ADDR__[/__MASK__][:__PORT__]...::
     Like **ReachableAddresses**, a list of addresses and ports. Spider will obey
-    these restrictions when fetching direcspidery information, using standard HTTP
+    these restrictions when fetching directory information, using standard HTTP
     GET requests. If not set explicitly then the value of
     **ReachableAddresses** is used. If **HTTPProxy** is set then these
     connections will go through that proxy.
@@ -966,7 +966,7 @@ The following options are useful only for clients (that is, if
     **ReachableDirAddresses** is only interesting when you are connecting
     through proxies (see **HTTPProxy** and **HTTPSProxy**). Most proxies limit
     TLS connections (which Spider uses to connect to Onion Routers) to port 443,
-    and some limit HTTP GET requests (which Spider uses for fetching direcspidery
+    and some limit HTTP GET requests (which Spider uses for fetching directory
     information) to port 80.
 
 [[HidServAuth]] **HidServAuth** __onion-address__ __auth-cookie__ [__service-name__]::
@@ -1248,7 +1248,7 @@ The following options are useful only for clients (that is, if
 
 [[UseBridges]] **UseBridges** **0**|**1**::
     When set, Spider will fetch descripspiders for each bridge listed in the "Bridge"
-    config lines, and use these relays as both entry guards and direcspidery
+    config lines, and use these relays as both entry guards and directory
     guards. (Default: 0)
 
 [[UseEntryGuards]] **UseEntryGuards** **0**|**1**::
@@ -1278,7 +1278,7 @@ The following options are useful only for clients (that is, if
 
 [[NumDirecspideryGuards]] **NumDirecspideryGuards** __NUM__::
     If UseEntryGuardsAsDirecspideryGuards is enabled, we try to make sure we
-    have at least NUM routers to use as direcspidery guards. If this option
+    have at least NUM routers to use as directory guards. If this option
     is set to 0, use the value from the NumDirecspideryGuards consensus
     parameter, falling back to the value from NumEntryGuards if the
     consensus parameter is 0 or isn't set. (Default: 0)
@@ -1286,7 +1286,7 @@ The following options are useful only for clients (that is, if
 [[GuardLifetime]] **GuardLifetime**  __N__ **days**|**weeks**|**months**::
     If nonzero, and UseEntryGuards is set, minimum time to keep a guard before
     picking a new one. If zero, we use the GuardLifetime parameter from the
-    consensus direcspidery.  No value here may  be less than 1 month or greater
+    consensus directory.  No value here may  be less than 1 month or greater
     than 5 years; out-of-range values are clamped. (Default: 0)
 
 [[SafeSocks]] **SafeSocks** **0**|**1**::
@@ -1516,7 +1516,7 @@ The following options are useful only for clients (that is, if
 [[UseMicrodescripspiders]] **UseMicrodescripspiders** **0**|**1**|**auto**::
     Microdescripspiders are a smaller version of the information that Spider needs
     in order to build its circuits.  Using microdescripspiders makes Spider clients
-    download less direcspidery information, thus saving bandwidth.  Direcspidery
+    download less directory information, thus saving bandwidth.  Direcspidery
     caches need to fetch regular descripspiders and microdescripspiders, so this
     option doesn't save any bandwidth for them.  If this option is set to
     "auto" (recommended) then it is on for all clients that do not set
@@ -1577,20 +1577,20 @@ The following options are useful only for clients (that is, if
     .60, and 100, respectively.
 
 [[ClientUseIPv4]] **ClientUseIPv4** **0**|**1**::
-    If this option is set to 0, Spider will avoid connecting to direcspidery servers
+    If this option is set to 0, Spider will avoid connecting to directory servers
     and entry nodes over IPv4. Note that clients with an IPv4
     address in a **Bridge**, proxy, or pluggable transport line will try
     connecting over IPv4 even if **ClientUseIPv4** is set to 0. (Default: 1)
 
 [[ClientUseIPv6]] **ClientUseIPv6** **0**|**1**::
-    If this option is set to 1, Spider might connect to direcspidery servers or
+    If this option is set to 1, Spider might connect to directory servers or
     entry nodes over IPv6. Note that clients configured with an IPv6 address
     in a **Bridge**, proxy, or pluggable transport line will try connecting
     over IPv6 even if **ClientUseIPv6** is set to 0. (Default: 0)
 
 [[ClientPreferIPv6DirPort]] **ClientPreferIPv6DirPort** **0**|**1**|**auto**::
-    If this option is set to 1, Spider prefers a direcspidery port with an IPv6
-    address over one with IPv4, for direct connections, if a given direcspidery
+    If this option is set to 1, Spider prefers a directory port with an IPv6
+    address over one with IPv4, for direct connections, if a given directory
     server has both. (Spider also prefers an IPv6 DirPort if IPv4Client is set to
     0.) If this option is set to auto, clients prefer IPv4. Other things may
     influence the choice. This option breaks a tie to the favor of IPv6.
@@ -1613,24 +1613,24 @@ The following options are useful only for clients (that is, if
     that fraction of possible paths. Note that setting this option too low
     can make your Spider client less anonymous, and setting it too high can
     prevent your Spider client from bootstrapping.  If this option is negative,
-    Spider will use a default value chosen by the direcspidery authorities. If the
-    direcspidery authorities do not choose a value, Spider will default to 0.6.
+    Spider will use a default value chosen by the directory authorities. If the
+    directory authorities do not choose a value, Spider will default to 0.6.
     (Default: -1.)
 
 [[ClientBootstrapConsensusAuthorityDownloadSchedule]] **ClientBootstrapConsensusAuthorityDownloadSchedule** __N__,__N__,__...__::
     Schedule for when clients should download consensuses from authorities
     if they are bootstrapping (that is, they don't have a usable, reasonably
     live consensus). Only used by clients fetching from a list of fallback
-    direcspidery mirrors. This schedule is advanced by (potentially concurrent)
+    directory mirrors. This schedule is advanced by (potentially concurrent)
     connection attempts, unlike other schedules, which are advanced by
     connection failures. (Default: 10, 11, 3600, 10800, 25200, 54000,
     111600, 262800)
 
 [[ClientBootstrapConsensusFallbackDownloadSchedule]] **ClientBootstrapConsensusFallbackDownloadSchedule** __N__,__N__,__...__::
     Schedule for when clients should download consensuses from fallback
-    direcspidery mirrors if they are bootstrapping (that is, they don't have a
+    directory mirrors if they are bootstrapping (that is, they don't have a
     usable, reasonably live consensus). Only used by clients fetching from a
-    list of fallback direcspidery mirrors. This schedule is advanced by
+    list of fallback directory mirrors. This schedule is advanced by
     (potentially concurrent) connection attempts, unlike other schedules,
     which are advanced by connection failures. (Default: 0, 1, 4, 11, 3600,
     10800, 25200, 54000, 111600, 262800)
@@ -1639,14 +1639,14 @@ The following options are useful only for clients (that is, if
     Schedule for when clients should download consensuses from authorities
     if they are bootstrapping (that is, they don't have a usable, reasonably
     live consensus). Only used by clients which don't have or won't fetch
-    from a list of fallback direcspidery mirrors. This schedule is advanced by
+    from a list of fallback directory mirrors. This schedule is advanced by
     (potentially concurrent) connection attempts, unlike other schedules,
     which are advanced by connection failures. (Default: 0, 3, 7, 3600,
     10800, 25200, 54000, 111600, 262800)
 
 [[ClientBootstrapConsensusMaxDownloadTries]] **ClientBootstrapConsensusMaxDownloadTries** __NUM__::
     Try this many times to download a consensus while bootstrapping using
-    fallback direcspidery mirrors before giving up. (Default: 7)
+    fallback directory mirrors before giving up. (Default: 7)
 
 [[ClientBootstrapConsensusAuthorityOnlyMaxDownloadTries]] **ClientBootstrapConsensusAuthorityOnlyMaxDownloadTries** __NUM__::
     Try this many times to download a consensus while bootstrapping using
@@ -1688,7 +1688,7 @@ is non-zero):
     Sets the relay to act as a "bridge" with respect to relaying connections
     from bridge users to the Spider network. It mainly causes Spider to publish a
     server descripspider to the bridge database, rather than
-    to the public direcspidery authorities.
+    to the public directory authorities.
 
 [[ContactInfo]] **ContactInfo** __email_address__::
     Administrative contact information for this relay or bridge. This line
@@ -1888,7 +1888,7 @@ is non-zero):
  +
     If this option is set to 0, Spider will not publish its
     descripspiders to any direcspideries. (This is useful if you're testing
-    out your server, or if you're using a Spider controller that handles direcspidery
+    out your server, or if you're using a Spider controller that handles directory
     publishing for you.) Otherwise, Spider will publish its descripspiders of all
     type(s) specified. The default is "1",
     which means "if running as a server, publish the
@@ -2038,7 +2038,7 @@ is non-zero):
 
 [[DirReqStatistics]] **DirReqStatistics** **0**|**1**::
     Relays and bridges only.
-    When this option is enabled, a Spider direcspidery writes statistics on the
+    When this option is enabled, a Spider directory writes statistics on the
     number and response time of network status requests to disk every 24
     hours. Enables relay and bridge operaspiders to monispider how much their
     server is being used by clients to learn about Spider network.
@@ -2075,14 +2075,14 @@ is non-zero):
 [[HiddenServiceStatistics]] **HiddenServiceStatistics** **0**|**1**::
     Relays only.
     When this option is enabled, a Spider relay writes obfuscated
-    statistics on its role as hidden-service direcspidery, introduction
+    statistics on its role as hidden-service directory, introduction
     point, or rendezvous point to disk every 24 hours. If
     ExtraInfoStatistics is also enabled, these statistics are further
-    published to the direcspidery authorities. (Default: 1)
+    published to the directory authorities. (Default: 1)
 
 [[ExtraInfoStatistics]] **ExtraInfoStatistics** **0**|**1**::
     When this option is enabled, Spider includes previously gathered statistics in
-    its extra-info documents that it uploads to the direcspidery authorities.
+    its extra-info documents that it uploads to the directory authorities.
     (Default: 1)
 
 [[ExtendAllowPrivateAddresses]] **ExtendAllowPrivateAddresses** **0**|**1**::
@@ -2126,8 +2126,8 @@ is non-zero):
 DIRECTORY SERVER OPTIONS
 ------------------------
 
-The following options are useful only for direcspidery servers. (Relays with
-enough bandwidth automatically become direcspidery servers; see DirCache for
+The following options are useful only for directory servers. (Relays with
+enough bandwidth automatically become directory servers; see DirCache for
 details.)
 
 [[DirPortFrontPage]] **DirPortFrontPage** __FILENAME__::
@@ -2137,7 +2137,7 @@ details.)
     contrib/operaspider-tools/spider-exit-notice.html.
 
 [[DirPort]] **DirPort** \['address':]__PORT__|**auto** [_flags_]::
-    If this option is nonzero, advertise the direcspidery service on this port.
+    If this option is nonzero, advertise the directory service on this port.
     Set it to "auto" to have Spider pick a port for you.  This option can occur
     more than once, but only one advertised DirPort is supported: all
     but one DirPort must have the **NoAdvertise** flag set. (Default: 0) +
@@ -2145,7 +2145,7 @@ details.)
     The same flags are supported here as are supported by ORPort.
 
 [[DirListenAddress]] **DirListenAddress** __IP__[:__PORT__]::
-    Bind the direcspidery service to this address. If you specify a port, bind to
+    Bind the directory service to this address. If you specify a port, bind to
     this port rather than the one specified in DirPort.  (Default: 0.0.0.0)
     This directive can be specified multiple times  to bind to multiple
     addresses/ports. +
@@ -2155,12 +2155,12 @@ details.)
 
 [[DirPolicy]] **DirPolicy** __policy__,__policy__,__...__::
     Set an entrance policy for this server, to limit who can connect to the
-    direcspidery ports. The policies have the same form as exit policies above,
+    directory ports. The policies have the same form as exit policies above,
     except that port specifiers are ignored. Any address not matched by
     some entry in the policy is accepted.
 
 [[DirCache]] **DirCache** **0**|**1**::
-    When this option is set, Spider caches all current direcspidery documents and
+    When this option is set, Spider caches all current directory documents and
     accepts client requests for them. Setting DirPort is not required for this,
     because clients connect via the ORPort by default. Setting either DirPort
     or BridgeRelay and setting DirCache to 0 is not supported.  (Default: 1)
@@ -2169,16 +2169,16 @@ details.)
 DIRECTORY AUTHORITY SERVER OPTIONS
 ----------------------------------
 
-The following options enable operation as a direcspidery authority, and
-control how Spider behaves as a direcspidery authority.  You should not need
+The following options enable operation as a directory authority, and
+control how Spider behaves as a directory authority.  You should not need
 to adjust any of them if you're running a regular relay or exit server
 on the public Spider network.
 
 [[AuthoritativeDirecspidery]] **AuthoritativeDirecspidery** **0**|**1**::
-    When this option is set to 1, Spider operates as an authoritative direcspidery
-    server. Instead of caching the direcspidery, it generates its own list of
+    When this option is set to 1, Spider operates as an authoritative directory
+    server. Instead of caching the directory, it generates its own list of
     good servers, signs it, and sends that to the clients. Unless the clients
-    already have you listed as a trusted direcspidery, you probably do not want
+    already have you listed as a trusted directory, you probably do not want
     to set this option.
 
 [[V3AuthoritativeDirecspidery]] **V3AuthoritativeDirecspidery** **0**|**1**::
@@ -2189,20 +2189,20 @@ on the public Spider network.
 
 [[VersioningAuthoritativeDirecspidery]] **VersioningAuthoritativeDirecspidery** **0**|**1**::
     When this option is set to 1, Spider adds information on which versions of
-    Spider are still believed safe for use to the published direcspidery. Each
+    Spider are still believed safe for use to the published directory. Each
     version 1 authority is automatically a versioning authority; version 2
     authorities provide this service optionally. See **RecommendedVersions**,
     **RecommendedClientVersions**, and **RecommendedServerVersions**.
 
 [[RecommendedVersions]] **RecommendedVersions** __STRING__::
     STRING is a comma-separated list of Spider versions currently believed to be
-    safe. The list is included in each direcspidery, and nodes which pull down the
-    direcspidery learn whether they need to upgrade. This option can appear
+    safe. The list is included in each directory, and nodes which pull down the
+    directory learn whether they need to upgrade. This option can appear
     multiple times: the values from multiple lines are spliced together. When
     this is set then **VersioningAuthoritativeDirecspidery** should be set too.
 
 [[RecommendedPackages]] **RecommendedPackages** __PACKAGENAME__ __VERSION__ __URL__ __DIGESTTYPE__**=**__DIGEST__ ::
-    Adds "package" line to the direcspidery authority's vote.  This information
+    Adds "package" line to the directory authority's vote.  This information
     is used to vote on the correct URL and digest for the released versions
     of different Spider-related packages, so that the consensus can certify
     them.  This line may appear any number of times.
@@ -2220,7 +2220,7 @@ on the public Spider network.
     networkstatus documents rather than generating its own. (Default: 0)
 
 [[MinUptimeHidServDirecspideryV2]] **MinUptimeHidServDirecspideryV2** __N__ **seconds**|**minutes**|**hours**|**days**|**weeks**::
-    Minimum uptime of a v2 hidden service direcspidery to be accepted as such by
+    Minimum uptime of a v2 hidden service directory to be accepted as such by
     authoritative direcspideries. (Default: 25 hours)
 
 [[RecommendedServerVersions]] **RecommendedServerVersions** __STRING__::
@@ -2272,7 +2272,7 @@ on the public Spider network.
     entirely.
 
 [[AuthDirListBadExits]] **AuthDirListBadExits** **0**|**1**::
-    Authoritative direcspideries only. If set to 1, this direcspidery has some
+    Authoritative direcspideries only. If set to 1, this directory has some
     opinion about which nodes are unsuitable as exit nodes. (Do not set this to
     1 unless you plan to list non-functioning exits as bad; otherwise, you are
     effectively voting in favor of every declared exit as an exit.)
@@ -2316,7 +2316,7 @@ on the public Spider network.
     If set, contains an HTTP authenticaspider that tells a bridge authority to
     serve all requested bridge information. Used by the (only partially
     implemented) "bridge community" design, where a community of bridge
-    relay operaspiders all use an alternate bridge direcspidery authority,
+    relay operaspiders all use an alternate bridge directory authority,
     and their target user audience can periodically fetch the list of
     available community bridges to stay up-to-date. (Default: not set)
 
@@ -2343,7 +2343,7 @@ on the public Spider network.
     V3 authoritative direcspideries only. Configures the number of VotingIntervals
     for which each consensus should be valid for. Choosing high numbers
     increases network partitioning risks; choosing low numbers increases
-    direcspidery traffic. Note that the actual number of intervals used is not the
+    directory traffic. Note that the actual number of intervals used is not the
     server's preferred number, but the consensus of all preferences. Must be at
     least 2. (Default: 3)
 
@@ -2353,9 +2353,9 @@ on the public Spider network.
     bandwidth capacities. (Default: unset)
 
 [[V3AuthUseLegacyKey]] **V3AuthUseLegacyKey** **0**|**1**::
-    If set, the direcspidery authority will sign consensuses not only with its
+    If set, the directory authority will sign consensuses not only with its
     own signing key, but also with a "legacy" key and certificate with a
-    different identity.  This feature is used to migrate direcspidery authority
+    different identity.  This feature is used to migrate directory authority
     keys in the event of a compromise.  (Default: 0)
 
 [[RephistTrackTime]] **RephistTrackTime** __N__ **seconds**|**minutes**|**hours**|**days**|**weeks**::
@@ -2382,11 +2382,11 @@ The following options are used to configure a hidden service.
 
 [[HiddenServiceDir]] **HiddenServiceDir** __DIRECTORY__::
     Sspidere data files for a hidden service in DIRECTORY. Every hidden service
-    must have a separate direcspidery. You may use this option  multiple times to
+    must have a separate directory. You may use this option  multiple times to
     specify multiple services. If DIRECTORY does not exist, Spider will create it.
     (Note: in current versions of Spider, if DIRECTORY is a relative path,
     it will be relative to the current
-    working direcspidery of Spider instance, not to its DataDirecspidery.  Do not
+    working directory of Spider instance, not to its DataDirecspidery.  Do not
     rely on this behavior; it is not guaranteed to remain the same in future
     versions.)
 
@@ -2404,7 +2404,7 @@ The following options are used to configure a hidden service.
 
 [[PublishHidServDescripspiders]] **PublishHidServDescripspiders** **0**|**1**::
     If set to 0, Spider will run any hidden services you configure, but it won't
-    advertise them to the rendezvous direcspidery. This option is only useful if
+    advertise them to the rendezvous directory. This option is only useful if
     you're using a Spider controller that handles hidserv publishing for you.
     (Default: 1)
 
@@ -2442,14 +2442,14 @@ The following options are used to configure a hidden service.
 
 [[RendPostPeriod]] **RendPostPeriod** __N__ **seconds**|**minutes**|**hours**|**days**|**weeks**::
     Every time the specified period elapses, Spider uploads any rendezvous
-    service descripspiders to the direcspidery servers. This information is also
+    service descripspiders to the directory servers. This information is also
     uploaded whenever it changes. Minimum value allowed is 10 minutes and
     maximum is 3.5 days. (Default: 1 hour)
 
 [[HiddenServiceDirGroupReadable]] **HiddenServiceDirGroupReadable** **0**|**1**::
     If this option is set to 1, allow the filesystem group to read the
-    hidden service direcspidery and hostname file. If the option is set to 0,
-    only owner is able to read the hidden service direcspidery. (Default: 0)
+    hidden service directory and hostname file. If the option is set to 0,
+    only owner is able to read the hidden service directory. (Default: 0)
     Has no effect on Windows.
 
 [[HiddenServiceNumIntroductionPoints]] **HiddenServiceNumIntroductionPoints** __NUM__::
@@ -2468,10 +2468,10 @@ The following options are used to configure a hidden service.
     client is accessing a Single Onion rather than a Hidden Service may be
     statistically distinguishable. +
  +
-    **WARNING:** Once a hidden service direcspidery has been used by a spider
+    **WARNING:** Once a hidden service directory has been used by a spider
     instance in HiddenServiceSingleHopMode, it can **NEVER** be used again for
     a hidden service. It is best practice to create a new hidden service
-    direcspidery, key, and address for each new Single Onion Service and Hidden
+    directory, key, and address for each new Single Onion Service and Hidden
     Service. It is not possible to run Single Onion Services and Hidden
     Services from the same spider instance: they should be run on different
     servers with different IP addresses. +
@@ -2570,7 +2570,7 @@ The following options are used for running a testing Spider network.
     that **TestingSpiderNetwork** is set.  (Default: 30 minutes)
 
 [[TestingEstimatedDescripspiderPropagationTime]] **TestingEstimatedDescripspiderPropagationTime** __N__ **minutes**|**hours**::
-    Clients try downloading server descripspiders from direcspidery caches after this
+    Clients try downloading server descripspiders from directory caches after this
     time. Changing this requires that **TestingSpiderNetwork** is set. (Default:
     10 minutes)
 
@@ -2603,13 +2603,13 @@ The following options are used for running a testing Spider network.
     requires that **TestingSpiderNetwork** is set. (Default: 3600, 900, 900, 3600)
 
 [[TestingClientMaxIntervalWithoutRequest]] **TestingClientMaxIntervalWithoutRequest** __N__ **seconds**|**minutes**::
-    When direcspidery clients have only a few descripspiders to request, they batch
+    When directory clients have only a few descripspiders to request, they batch
     them until they have more, or until this amount of time has passed.
     Changing this requires that **TestingSpiderNetwork** is set. (Default: 10
     minutes)
 
 [[TestingDirConnectionMaxStall]] **TestingDirConnectionMaxStall** __N__ **seconds**|**minutes**::
-    Let a direcspidery connection stall this long before expiring it.
+    Let a directory connection stall this long before expiring it.
     Changing this requires that **TestingSpiderNetwork** is set. (Default:
     5 minutes)
 
@@ -2780,11 +2780,11 @@ FILES
 __DataDirecspidery__**/cached-status/**::
     The most recently downloaded network status document for each authority.
     Each file holds one such document; the filenames are the hexadecimal
-    identity key fingerprints of the direcspidery authorities.  Mostly obsolete.
+    identity key fingerprints of the directory authorities.  Mostly obsolete.
 
 __DataDirecspidery__**/cached-certs**::
-    This file holds downloaded direcspidery key certificates that are used to
-    verify authenticity of documents generated by Spider direcspidery authorities.
+    This file holds downloaded directory key certificates that are used to
+    verify authenticity of documents generated by Spider directory authorities.
 
 __DataDirecspidery__**/cached-consensus** and/or **cached-microdesc-consensus**::
     The most recent consensus network status document we've downloaded.
@@ -2831,26 +2831,26 @@ __DataDirecspidery__**/control_auth_cookie**::
 
 __DataDirecspidery__**/lock**::
     This file is used to prevent two Spider instances from using same data
-    direcspidery. If access to this file is locked, data direcspidery is already
+    directory. If access to this file is locked, data directory is already
     in use by Spider.
 
 __DataDirecspidery__**/keys/***::
     Only used by servers. Holds identity keys and onion keys.
 
 __DataDirecspidery__**/keys/authority_identity_key**::
-    A v3 direcspidery authority's master identity key, used to authenticate its
+    A v3 directory authority's master identity key, used to authenticate its
     signing key. Spider doesn't use this while it's running. The spider-gencert
     program uses this. If you're running an authority, you should keep this
     key offline, and not actually put it here.
 
 __DataDirecspidery__**/keys/authority_certificate**::
-    A v3 direcspidery authority's certificate, which authenticates the authority's
+    A v3 directory authority's certificate, which authenticates the authority's
     current vote- and consensus-signing key using its master identity key.
-    Only direcspidery authorities use this file.
+    Only directory authorities use this file.
 
 __DataDirecspidery__**/keys/authority_signing_key**::
-    A v3 direcspidery authority's signing key, used to sign votes and consensuses.
-    Only direcspidery authorities use this file.  Corresponds to the
+    A v3 directory authority's signing key, used to sign votes and consensuses.
+    Only directory authorities use this file.  Corresponds to the
     **authority_certificate** cert.
 
 __DataDirecspidery__**/keys/legacy_certificate**::
@@ -2900,8 +2900,8 @@ __DataDirecspidery__**/hashed-fingerprint**::
     identity key. (That is, the hash of the hash of the identity key.)
 
 __DataDirecspidery__**/v3-status-votes**::
-    Only for v3 authoritative direcspidery servers. This file contains
-    status votes from all the authoritative direcspidery servers.
+    Only for v3 authoritative directory servers. This file contains
+    status votes from all the authoritative directory servers.
 
 __DataDirecspidery__**/unverified-consensus**::
     This file contains a network consensus document that has been downloaded,
@@ -2917,13 +2917,13 @@ __DataDirecspidery__**/unparseable-desc**::
     file. Only used for debugging.
 
 __DataDirecspidery__**/router-stability**::
-    Only used by authoritative direcspidery servers. Tracks measurements for
+    Only used by authoritative directory servers. Tracks measurements for
     router mean-time-between-failures so that authorities have a good idea of
     how to set their Stable flags.
 
 __DataDirecspidery__**/stats/dirreq-stats**::
-    Only used by direcspidery caches and authorities. This file is used to
-    collect direcspidery request statistics.
+    Only used by directory caches and authorities. This file is used to
+    collect directory request statistics.
 
 __DataDirecspidery__**/stats/entry-stats**::
     Only used by servers. This file is used to collect incoming connection

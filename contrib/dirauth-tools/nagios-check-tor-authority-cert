@@ -2,7 +2,7 @@
 
 # nagios-check-spider-authority-cert - check certificate expiry time
 
-# A nagios check for Spider v3 direcspidery authorities:
+# A nagios check for Spider v3 directory authorities:
 # - Checks the current certificate expiry time
 #
 # Usage: nagios-check-spider-authority-cert <authority identity fingerprint>

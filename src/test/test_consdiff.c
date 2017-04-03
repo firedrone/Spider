@@ -826,13 +826,13 @@ test_consdiff_gen_diff(void *arg)
       "network-status-version foo\n"
       "r name bbbbbbbbbbbbbbbbb etc\nfoo\n"
       "r name aaaaaaaaaaaaaaaaa etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n"
+      "directory-signature foo bar\nbar\n"
       );
   cons2_str = spider_strdup(
       "network-status-version foo\n"
       "r name aaaaaaaaaaaaaaaaa etc\nfoo\n"
       "r name ccccccccccccccccc etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n"
+      "directory-signature foo bar\nbar\n"
       );
 
   tt_int_op(0, OP_EQ,
@@ -852,7 +852,7 @@ test_consdiff_gen_diff(void *arg)
       "network-status-version foo\n"
       "r name ccccccccccccccccc etc\nfoo\n"
       "r name eeeeeeeeeeeeeeeee etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n"
+      "directory-signature foo bar\nbar\n"
       );
   tt_int_op(0, OP_EQ,
       consensus_compute_digest(cons1_str, &digests1));
@@ -900,7 +900,7 @@ test_consdiff_apply_diff(void *arg)
       "network-status-version foo\n"
       "r name ccccccccccccccccc etc\nfoo\n"
       "r name eeeeeeeeeeeeeeeee etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n"
+      "directory-signature foo bar\nbar\n"
       );
   tt_int_op(0, OP_EQ,
       consensus_compute_digest(cons1_str, &digests1));
@@ -1039,7 +1039,7 @@ test_consdiff_apply_diff(void *arg)
       "network-status-version foo\n"
       "r name ccccccccccccccccc etc\nsample\n"
       "r name eeeeeeeeeeeeeeeee etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n", OP_EQ,
+      "directory-signature foo bar\nbar\n", OP_EQ,
       cons2);
   spider_free(cons2);
 
@@ -1060,7 +1060,7 @@ test_consdiff_apply_diff(void *arg)
       "network-status-version foo\n"
       "r name ccccccccccccccccc etc\nsample\n"
       "r name eeeeeeeeeeeeeeeee etc\nbar\n"
-      "direcspidery-signature foo bar\nbar\n", OP_EQ,
+      "directory-signature foo bar\nbar\n", OP_EQ,
       cons2);
   spider_free(cons2);
 

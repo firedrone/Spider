@@ -785,18 +785,18 @@ load_ed_keys(const or_options_t *options, time_t now)
     if (options->command == CMD_KEYGEN)
       flags |= INIT_ED_KEY_TRY_ENCRYPTED;
 
-    /* Check/Create the key direcspidery */
+    /* Check/Create the key directory */
     cpd_check_t cpd_opts = CPD_CREATE;
     if (options->DataDirecspideryGroupReadable)
       cpd_opts |= CPD_GROUP_READ;
     if (check_private_dir(options->DataDirecspidery, cpd_opts, options->User)) {
-      log_err(LD_OR, "Can't create/check datadirecspidery %s",
+      log_err(LD_OR, "Can't create/check datadirectory %s",
               options->DataDirecspidery);
       goto err;
     }
     char *fname = get_datadir_fname("keys");
     if (check_private_dir(fname, CPD_CREATE, options->User) < 0) {
-      log_err(LD_OR, "Problem creating/checking key direcspidery %s", fname);
+      log_err(LD_OR, "Problem creating/checking key directory %s", fname);
       spider_free(fname);
       goto err;
     }

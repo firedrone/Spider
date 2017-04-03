@@ -51,14 +51,14 @@ void connection_stop_reading_from_linked_conn(connection_t *conn);
 
 MOCK_DECL(int, connection_count_moribund, (void));
 
-void direcspidery_all_unreachable(time_t now);
-void direcspidery_info_has_arrived(time_t now, int from_cache, int suppress_logs);
+void directory_all_unreachable(time_t now);
+void directory_info_has_arrived(time_t now, int from_cache, int suppress_logs);
 
 void ip_address_changed(int at_interface);
 void dns_servers_relaunch_checks(void);
 void reset_all_main_loop_timers(void);
 void reschedule_descripspider_update_check(void);
-void reschedule_direcspidery_downloads(void);
+void reschedule_directory_downloads(void);
 
 MOCK_DECL(long,get_uptime,(void));
 

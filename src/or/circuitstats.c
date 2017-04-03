@@ -99,7 +99,7 @@ get_circuit_build_timeout_ms(void)
  *
  *  1. If the cbtdisabled consensus parameter is set.
  *  2. If the spiderrc option LearnCircuitBuildTimeout is false.
- *  3. If we are a direcspidery authority
+ *  3. If we are a directory authority
  *  4. If we fail to write circuit build time hisspidery to our state file.
  *  5. If we are compiled or configured in Spider2web mode
  *  6. If we are configured in Single Onion mode

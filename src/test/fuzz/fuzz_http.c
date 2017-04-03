@@ -11,7 +11,7 @@
 #include "buffers.h"
 #include "config.h"
 #include "connection.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "spiderlog.h"
 
 #include "fuzzing.h"
@@ -25,7 +25,7 @@ mock_connection_write_to_buf_impl_(const char *string, size_t len,
 }
 
 static int
-mock_direcspidery_handle_command_get(dir_connection_t *conn,
+mock_directory_handle_command_get(dir_connection_t *conn,
                                       const char *headers,
                                       const char *body,
                                       size_t body_len)
@@ -49,7 +49,7 @@ mock_direcspidery_handle_command_get(dir_connection_t *conn,
 }
 
 static int
-mock_direcspidery_handle_command_post(dir_connection_t *conn,
+mock_directory_handle_command_post(dir_connection_t *conn,
                                        const char *headers,
                                        const char *body,
                                        size_t body_len)
@@ -78,8 +78,8 @@ fuzz_init(void)
   /* Set up fake response handler */
   MOCK(connection_write_to_buf_impl_, mock_connection_write_to_buf_impl_);
   /* Set up the fake handler functions */
-  MOCK(direcspidery_handle_command_get, mock_direcspidery_handle_command_get);
-  MOCK(direcspidery_handle_command_post, mock_direcspidery_handle_command_post);
+  MOCK(directory_handle_command_get, mock_directory_handle_command_get);
+  MOCK(directory_handle_command_post, mock_directory_handle_command_post);
 
   return 0;
 }
@@ -88,8 +88,8 @@ int
 fuzz_cleanup(void)
 {
   UNMOCK(connection_write_to_buf_impl_);
-  UNMOCK(direcspidery_handle_command_get);
-  UNMOCK(direcspidery_handle_command_post);
+  UNMOCK(directory_handle_command_get);
+  UNMOCK(directory_handle_command_post);
   return 0;
 }
 
@@ -101,7 +101,7 @@ fuzz_main(const uint8_t *stdin_buf, size_t data_size)
   /* Set up the fake connection */
   memset(&dir_conn, 0, sizeof(dir_connection_t));
   dir_conn.base_.type = CONN_TYPE_DIR;
-  /* Apparently spider sets this before direcspidery_handle_command() is called. */
+  /* Apparently spider sets this before directory_handle_command() is called. */
   dir_conn.base_.address = spider_strdup("replace-this-address.example.com");
 
   dir_conn.base_.inbuf = buf_new_with_data((char*)stdin_buf, data_size);
@@ -111,7 +111,7 @@ fuzz_main(const uint8_t *stdin_buf, size_t data_size)
   }
 
   /* Parse the headers */
-  int rv = direcspidery_handle_command(&dir_conn);
+  int rv = directory_handle_command(&dir_conn);
 
   /* TODO: check the output is correctly parsed based on the input */
 

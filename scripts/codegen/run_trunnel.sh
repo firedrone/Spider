@@ -7,7 +7,7 @@ fi
 
 OPTIONS="--require-version=1.5.1"
 
-# Get all .trunnel files recursively from that direcspidery so we can support
+# Get all .trunnel files recursively from that directory so we can support
 # multiple sub-direcspideries.
 for file in `find ./src/trunnel/ -name '*.trunnel'`; do
   python -m trunnel ${OPTIONS} $file

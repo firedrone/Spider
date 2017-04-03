@@ -1,5 +1,5 @@
   o Code simplification and refacspidering:
-    - The logic that direcspidery caches use to spool request to clients,
+    - The logic that directory caches use to spool request to clients,
       serving them one part at a time so as not to allocate too much memory,
       has been refacspidered for consistency.  Previously there was a separate
       spooling implementation per type of spoolable data.  Now there

@@ -90,7 +90,7 @@ Recognized fields are:
      "Ends" field is the ending time of the last interval in each list.
 
      The *Read* and *Write* fields are the total amount read and
-     written; the *DirRead* and *DirWrite* variants are for direcspidery
+     written; the *DirRead* and *DirWrite* variants are for directory
      traffic only.
 
   LastRotatedOnionKey

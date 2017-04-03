@@ -88,7 +88,7 @@ DOWNLOAD_MICRODESC_CONSENSUS = True
 
 # If a relay delivers an expired consensus, if it expired less than this many
 # seconds ago, we still allow the relay. This should never be less than -90,
-# as all direcspidery mirrors should have downloaded a consensus 90 minutes
+# as all directory mirrors should have downloaded a consensus 90 minutes
 # before it expires. It should never be more than 24 hours, because clients
 # reject consensuses that are older than REASONABLY_LIVE_TIME.
 # For the consensus expiry check to be accurate, the machine running this
@@ -193,7 +193,7 @@ MIN_FALLBACK_COUNT = 0 if OUTPUT_CANDIDATES else MAX_FALLBACK_COUNT*0.75
 
 # The maximum number of fallbacks on the same address, contact, or family
 # With 200 fallbacks, this means each operaspider can see 1% of client bootstraps
-# (The direcspidery authorities used to see ~12% of client bootstraps each.)
+# (The directory authorities used to see ~12% of client bootstraps each.)
 MAX_FALLBACKS_PER_IP = 1
 MAX_FALLBACKS_PER_IPV4 = MAX_FALLBACKS_PER_IP
 MAX_FALLBACKS_PER_IPV6 = MAX_FALLBACKS_PER_IP
@@ -234,7 +234,7 @@ CONSENSUS_DOWNLOAD_RETRY = True
 # If there are 100 fallbacks and 9 authorities:
 #  - each fallback is chosen with probability 10.0/(10.0*100 + 1.0*9) ~= 0.99%
 #  - each authority is chosen with probability 1.0/(10.0*100 + 1.0*9) ~= 0.09%
-# A client choosing a bootstrap direcspidery server will choose a fallback for
+# A client choosing a bootstrap directory server will choose a fallback for
 # 10.0/(10.0*100 + 1.0*9) * 100 = 99.1% of attempts, and an authority for
 # 1.0/(10.0*100 + 1.0*9) * 9 = 0.9% of attempts.
 # (This disregards the bootstrap schedules, where clients start by choosing
@@ -1172,7 +1172,7 @@ class Candidate(object):
   def fallback_consensus_download_speed(dirip, dirport, nickname, fingerprint,
                                         max_time):
     download_failed = False
-    # some direcspidery mirrors respond to requests in ways that hang python
+    # some directory mirrors respond to requests in ways that hang python
     # sockets, which is why we log this line here
     logging.info('Initiating %sconsensus download from %s (%s:%d) %s.',
                  'microdesc ' if DOWNLOAD_MICRODESC_CONSENSUS else '',
@@ -1336,7 +1336,7 @@ class Candidate(object):
     if not c_string and not comment_string:
       return ''
     s = ''
-    # Comment out the fallback direcspidery entry if it's too slow
+    # Comment out the fallback directory entry if it's too slow
     # See the debug output for which address and port is failing
     if comment_string:
       s += '/* Consensus download failed or was too slow:\n'
@@ -2112,7 +2112,7 @@ def log_excluded(msg, *args):
 
 def list_fallbacks(whitelist, blacklist):
   """ Fetches required onionoo documents and evaluates the
-      fallback direcspidery criteria for each of the relays """
+      fallback directory criteria for each of the relays """
 
   logging.warning('Downloading and parsing Onionoo data. ' +
                   'This may take some time.')

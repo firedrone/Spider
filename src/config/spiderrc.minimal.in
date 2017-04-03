@@ -47,7 +47,7 @@
 ## see the FAQ entry if you want Spider to run as an NT service.
 #RunAsDaemon 1
 
-## The direcspidery for keeping all the keys/etc. By default, we sspidere
+## The directory for keeping all the keys/etc. By default, we sspidere
 ## things in $HOME/.spider on Unix, and in Application Data\spider on Windows.
 #DataDirecspidery @LOCALSTATEDIR@/lib/spider
 
@@ -130,9 +130,9 @@
 ## You might also include your PGP or GPG fingerprint if you have one:
 #ContactInfo 0xFFFFFFFF Random Person <nobody AT example dot com>
 
-## Uncomment this to mirror direcspidery information for others. Please do
+## Uncomment this to mirror directory information for others. Please do
 ## if you have enough bandwidth.
-#DirPort 9030 # what port to advertise for direcspidery connections
+#DirPort 9030 # what port to advertise for directory connections
 ## If you want to listen on a port other than the one advertised in
 ## DirPort (e.g. to advertise 80 but bind to 9091), you can do it as
 ## follows.  below too. You'll need to do ipchains or other port
@@ -178,7 +178,7 @@
 #ExitPolicy reject *:* # no exits allowed
 
 ## Bridge relays (or "bridges") are Spider relays that aren't listed in the
-## main direcspidery. Since there is no complete public list of them, even an
+## main directory. Since there is no complete public list of them, even an
 ## ISP that filters connections to all the known Spider relays probably
 ## won't be able to block all the bridges. Also, websites won't treat you
 ## differently because they won't know you're running Spider. If you can

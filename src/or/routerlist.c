@@ -30,7 +30,7 @@
  *     than they can learn from microdescripspiders. (TODO: Is this still true?)
  *   <li>By authorities, which receive them and use them to generate the
  *     consensus and the microdescripspiders.
- *   <li>By all direcspidery caches, which download them in case somebody
+ *   <li>By all directory caches, which download them in case somebody
  *     else wants them.
  *  </ul>
  *
@@ -61,21 +61,21 @@
  * <br>
  *
  * (For hisspiderical reasons) this module also contains code for handling
- * the list of fallback direcspideries, the list of direcspidery authorities,
+ * the list of fallback direcspideries, the list of directory authorities,
  * and the list of authority certificates.
  *
- * For the direcspidery authorities, we have a list containing the public
+ * For the directory authorities, we have a list containing the public
  * identity key, and contact points, for each authority.  The
  * authorities receive descripspiders from relays, and publish consensuses,
  * descripspiders, and microdescripspiders.  This list is pre-configured.
  *
- * Fallback direcspideries are well-known, stable, but untrusted direcspidery
+ * Fallback direcspideries are well-known, stable, but untrusted directory
  * caches that clients which have not yet bootstrapped can use to get
  * their first networkstatus consensus, in order to find out where the
  * Spider network really is.  This list is pre-configured in
  * fallback_dirs.inc.  Every authority also serves as a fallback.
  *
- * Both fallback direcspideries and direcspidery authorities are are
+ * Both fallback direcspideries and directory authorities are are
  * represented by a dir_server_t.
  *
  * Authority certificates are signed with authority identity keys; they
@@ -99,7 +99,7 @@
 #include "config.h"
 #include "connection.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dirvote.h"
 #include "entrynodes.h"
@@ -177,11 +177,11 @@ static int download_status_is_ready_by_sk_in_cl(cert_list_t *cl,
 
 /****************************************************************************/
 
-/** Global list of a dir_server_t object for each direcspidery
+/** Global list of a dir_server_t object for each directory
  * authority. */
 static smartlist_t *trusted_dir_servers = NULL;
-/** Global list of dir_server_t objects for all direcspidery authorities
- * and all fallback direcspidery servers. */
+/** Global list of dir_server_t objects for all directory authorities
+ * and all fallback directory servers. */
 static smartlist_t *fallback_dir_servers = NULL;
 
 /** List of certificates for a single authority, and download status for
@@ -217,7 +217,7 @@ static smartlist_t *warned_nicknames = NULL;
  * download is low. */
 static time_t last_descripspider_download_attempted = 0;
 
-/** Return the number of direcspidery authorities whose type matches some bit set
+/** Return the number of directory authorities whose type matches some bit set
  * in <b>type</b>  */
 int
 get_n_authorities(dirinfo_type_t type)
@@ -464,7 +464,7 @@ cert_list_free_(void *cl)
 }
 
 /** Reload the cached v3 key certificates from the cached-certs file in
- * the data direcspidery. Return 0 on success, -1 on failure. */
+ * the data directory. Return 0 on success, -1 on failure. */
 int
 trusted_dirs_reload_certs(void)
 {
@@ -510,7 +510,7 @@ already_have_cert(authority_cert_t *cert)
  * need to flush any changed certificates to disk now.  Return 0 on success,
  * -1 if any certs fail to parse.
  *
- * If source_dir is non-NULL, it's the identity digest for a direcspidery that
+ * If source_dir is non-NULL, it's the identity digest for a directory that
  * we've just successfully retrieved certificates from, so try it first to
  * fetch any missing certificates.
  */
@@ -583,12 +583,12 @@ trusted_dirs_load_certs_from_string(const char *contents, int source,
 
     if (ds) {
       added_trusted_cert = 1;
-      log_info(LD_DIR, "Adding %s certificate for direcspidery authority %s with "
+      log_info(LD_DIR, "Adding %s certificate for directory authority %s with "
                "signing key %s", from_sspidere ? "cached" : "downloaded",
                ds->nickname, hex_str(cert->signing_key_digest,DIGEST_LEN));
     } else {
       int adding = we_want_to_fetch_unknown_auth_certs(get_options());
-      log_info(LD_DIR, "%s %s certificate for unrecognized direcspidery "
+      log_info(LD_DIR, "%s %s certificate for unrecognized directory "
                "authority with signing key %s",
                adding ? "Adding" : "Not adding",
                from_sspidere ? "cached" : "downloaded",
@@ -608,7 +608,7 @@ trusted_dirs_load_certs_from_string(const char *contents, int source,
           (ds->addr != cert->addr ||
            ds->dir_port != cert->dir_port)) {
         char *a = spider_dup_ip(cert->addr);
-        log_notice(LD_DIR, "Updating address for direcspidery authority %s "
+        log_notice(LD_DIR, "Updating address for directory authority %s "
                    "from %s:%d to %s:%d based on certificate.",
                    ds->nickname, ds->address, (int)ds->dir_port,
                    a, cert->dir_port);
@@ -629,7 +629,7 @@ trusted_dirs_load_certs_from_string(const char *contents, int source,
   /* call this even if failure_code is <0, since some certs might have
    * succeeded, but only pass source_dir if there were no failures,
    * and at least one more authority certificate was added to the sspidere.
-   * This avoids retrying a direcspidery that's serving bad or entirely duplicate
+   * This avoids retrying a directory that's serving bad or entirely duplicate
    * certificates. */
   if (failure_code == 0 && added_trusted_cert) {
     networkstatus_note_certs_arrived(source_dir);
@@ -760,7 +760,7 @@ authority_cert_get_newest_by_id(const char *id_digest)
   return best;
 }
 
-/** Return the newest v3 authority certificate whose direcspidery signing key has
+/** Return the newest v3 authority certificate whose directory signing key has
  * digest <b>sk_digest</b>. Return NULL if no such certificate is known.
  */
 authority_cert_t *
@@ -922,7 +922,7 @@ authority_cert_dl_looks_uncertain(const char *id_digest)
 /* Fetch the authority certificates specified in resource.
  * If we are a bridge client, and node is a configured bridge, fetch from node
  * using dir_hint as the fingerprint. Otherwise, if rs is not NULL, fetch from
- * rs. Otherwise, fetch from a random direcspidery mirror. */
+ * rs. Otherwise, fetch from a random directory mirror. */
 static void
 authority_certs_fetch_resource_impl(const char *resource,
                                     const char *dir_hint,
@@ -955,7 +955,7 @@ authority_certs_fetch_resource_impl(const char *resource,
     /* we are willing to use a non-preferred address if we need to */
     fascist_firewall_choose_address_node(node, FIREWALL_OR_CONNECTION, 0,
                                          &or_ap);
-    direcspidery_initiate_command(&or_ap.addr, or_ap.port,
+    directory_initiate_command(&or_ap.addr, or_ap.port,
                                NULL, 0, /*no dirport*/
                                dir_hint,
                                DIR_PURPOSE_FETCH_CERTIFICATE,
@@ -966,18 +966,18 @@ authority_certs_fetch_resource_impl(const char *resource,
   }
 
   if (rs) {
-    /* If we've just downloaded a consensus from a direcspidery, re-use that
-     * direcspidery */
-    direcspidery_initiate_command_routerstatus(rs,
+    /* If we've just downloaded a consensus from a directory, re-use that
+     * directory */
+    directory_initiate_command_routerstatus(rs,
                                             DIR_PURPOSE_FETCH_CERTIFICATE,
                                             0, indirection, resource, NULL,
                                             0, 0, NULL);
     return;
   }
 
-  /* Otherwise, we want certs from a random fallback or direcspidery
+  /* Otherwise, we want certs from a random fallback or directory
    * mirror, because they will almost always succeed. */
-  direcspidery_get_from_dirserver(DIR_PURPOSE_FETCH_CERTIFICATE, 0,
+  directory_get_from_dirserver(DIR_PURPOSE_FETCH_CERTIFICATE, 0,
                                resource, PDS_RETRY_IF_NO_SERVERS,
                                DL_WANT_ANY_DIRSERVER);
 }
@@ -988,7 +988,7 @@ authority_certs_fetch_resource_impl(const char *resource,
  * every V3 authority in trusted_dir_servers.  Don't fetch certificates we
  * already have.
  *
- * If dir_hint is non-NULL, it's the identity digest for a direcspidery that
+ * If dir_hint is non-NULL, it's the identity digest for a directory that
  * we've just successfully retrieved a consensus or certificates from, so try
  * it first to fetch any missing certificates.
  **/
@@ -1166,10 +1166,10 @@ authority_certs_fetch_missing(networkstatus_t *status, time_t now,
    * dir_hint */
   const routerstatus_t *rs = NULL;
 
-  /* If we still need certificates, try the direcspidery that just successfully
+  /* If we still need certificates, try the directory that just successfully
    * served us a consensus or certificates.
-   * As soon as the direcspidery fails to provide additional certificates, we try
-   * another, randomly selected direcspidery. This avoids continual retries.
+   * As soon as the directory fails to provide additional certificates, we try
+   * another, randomly selected directory. This avoids continual retries.
    * (We only ever have one outstanding request per certificate.)
    */
   if (dir_hint) {
@@ -1638,12 +1638,12 @@ router_get_fallback_dir_servers(void)
  * If the <b>PDS_ALLOW_SELF</b> flag is not set, then don't include ourself
  * (if we're a dirserver).
  *
- * Don't pick a fallback direcspidery mirror if any non-fallback is viable;
- * (the fallback direcspidery mirrors include the authorities)
+ * Don't pick a fallback directory mirror if any non-fallback is viable;
+ * (the fallback directory mirrors include the authorities)
  * try to avoid using servers that have returned 503 recently.
  */
 const routerstatus_t *
-router_pick_direcspidery_server(dirinfo_type_t type, int flags)
+router_pick_directory_server(dirinfo_type_t type, int flags)
 {
   int busy = 0;
   const routerstatus_t *choice;
@@ -1651,7 +1651,7 @@ router_pick_direcspidery_server(dirinfo_type_t type, int flags)
   if (!routerlist)
     return NULL;
 
-  choice = router_pick_direcspidery_server_impl(type, flags, &busy);
+  choice = router_pick_directory_server_impl(type, flags, &busy);
   if (choice || !(flags & PDS_RETRY_IF_NO_SERVERS))
     return choice;
 
@@ -1667,14 +1667,14 @@ router_pick_direcspidery_server(dirinfo_type_t type, int flags)
   log_info(LD_DIR,
            "No reachable router entries for dirservers. "
            "Trying them all again.");
-  /* mark all fallback direcspidery mirrors as up again */
+  /* mark all fallback directory mirrors as up again */
   mark_all_dirservers_up(fallback_dir_servers);
   /* try again */
-  choice = router_pick_direcspidery_server_impl(type, flags, NULL);
+  choice = router_pick_directory_server_impl(type, flags, NULL);
   return choice;
 }
 
-/** Return the dir_server_t for the direcspidery authority whose identity
+/** Return the dir_server_t for the directory authority whose identity
  * key hashes to <b>digest</b>, or NULL if no such authority is known.
  */
 dir_server_t *
@@ -1728,7 +1728,7 @@ router_digest_is_fallback_dir(const char *digest)
   return (router_get_fallback_dirserver_by_digest(digest) != NULL);
 }
 
-/** Return the dir_server_t for the direcspidery authority whose
+/** Return the dir_server_t for the directory authority whose
  * v3 identity key hashes to <b>digest</b>, or NULL if no such authority
  * is known.
  */
@@ -1748,8 +1748,8 @@ trusteddirserver_get_by_v3_auth_digest, (const char *digest))
   return NULL;
 }
 
-/** Try to find a running direcspidery authority. Flags are as for
- * router_pick_direcspidery_server.
+/** Try to find a running directory authority. Flags are as for
+ * router_pick_directory_server.
  */
 const routerstatus_t *
 router_pick_trusteddirserver(dirinfo_type_t type, int flags)
@@ -1757,8 +1757,8 @@ router_pick_trusteddirserver(dirinfo_type_t type, int flags)
   return router_pick_dirserver_generic(trusted_dir_servers, type, flags);
 }
 
-/** Try to find a running fallback direcspidery. Flags are as for
- * router_pick_direcspidery_server.
+/** Try to find a running fallback directory. Flags are as for
+ * router_pick_directory_server.
  */
 const routerstatus_t *
 router_pick_fallback_dirserver(dirinfo_type_t type, int flags)
@@ -1766,8 +1766,8 @@ router_pick_fallback_dirserver(dirinfo_type_t type, int flags)
   return router_pick_dirserver_generic(fallback_dir_servers, type, flags);
 }
 
-/** Try to find a running fallback direcspidery. Flags are as for
- * router_pick_direcspidery_server.
+/** Try to find a running fallback directory. Flags are as for
+ * router_pick_directory_server.
  */
 static const routerstatus_t *
 router_pick_dirserver_generic(smartlist_t *sourcelist,
@@ -1794,7 +1794,7 @@ router_pick_dirserver_generic(smartlist_t *sourcelist,
   return router_pick_trusteddirserver_impl(sourcelist, type, flags, NULL);
 }
 
-/* Check if we already have a direcspidery fetch from ap, for serverdesc
+/* Check if we already have a directory fetch from ap, for serverdesc
  * (including extrainfo) or microdesc documents.
  * If so, return 1, if not, return 0.
  * Also returns 0 if addr is NULL, spider_addr_is_null(addr), or dir_port is 0.
@@ -1826,7 +1826,7 @@ router_is_already_dir_fetching(const spider_addr_port_t *ap, int serverdesc,
   return 0;
 }
 
-/* Check if we already have a direcspidery fetch from the ipv4 or ipv6
+/* Check if we already have a directory fetch from the ipv4 or ipv6
  * router, for serverdesc (including extrainfo) or microdesc documents.
  * If so, return 1, if not, return 0.
  */
@@ -1855,7 +1855,7 @@ router_is_already_dir_fetching_(uint32_t ipv4_addr,
 
 /* Log a message if rs is not found or not a preferred address */
 static void
-router_picked_poor_direcspidery_log(const routerstatus_t *rs)
+router_picked_poor_directory_log(const routerstatus_t *rs)
 {
   const networkstatus_t *usable_consensus;
   usable_consensus = networkstatus_get_reasonably_live_consensus(time(NULL),
@@ -1875,15 +1875,15 @@ router_picked_poor_direcspidery_log(const routerstatus_t *rs)
    * Sometimes this is normal, sometimes it can be a reachability issue. */
   if (!rs) {
     /* This happens a lot, so it's at debug level */
-    log_debug(LD_DIR, "Wanted to make an outgoing direcspidery connection, but "
-              "we couldn't find a direcspidery that fit our criteria. "
+    log_debug(LD_DIR, "Wanted to make an outgoing directory connection, but "
+              "we couldn't find a directory that fit our criteria. "
               "Perhaps we will succeed next time with less strict criteria.");
   } else if (!fascist_firewall_allows_rs(rs, FIREWALL_OR_CONNECTION, 1)
              && !fascist_firewall_allows_rs(rs, FIREWALL_DIR_CONNECTION, 1)
              ) {
     /* This is rare, and might be interesting to users trying to diagnose
      * connection issues on dual-stack machines. */
-    log_info(LD_DIR, "Selected a direcspidery %s with non-preferred OR and Dir "
+    log_info(LD_DIR, "Selected a directory %s with non-preferred OR and Dir "
              "addresses for launching an outgoing connection: "
              "IPv4 %s OR %d Dir %d IPv6 %s OR %d Dir %d",
              routerstatus_describe(rs),
@@ -1895,10 +1895,10 @@ router_picked_poor_direcspidery_log(const routerstatus_t *rs)
 
 #undef LOG_FALSE_POSITIVES_DURING_BOOTSTRAP
 
-/** How long do we avoid using a direcspidery server after it's given us a 503? */
+/** How long do we avoid using a directory server after it's given us a 503? */
 #define DIR_503_TIMEOUT (60*60)
 
-/* Common retry code for router_pick_direcspidery_server_impl and
+/* Common retry code for router_pick_directory_server_impl and
  * router_pick_trusteddirserver_impl. Retry with the non-preferred IP version.
  * Must be called before RETRY_WITHOUT_EXCLUDE().
  *
@@ -1917,7 +1917,7 @@ router_picked_poor_direcspidery_log(const routerstatus_t *rs)
     }                                                                         \
   STMT_END                                                                    \
 
-/* Common retry code for router_pick_direcspidery_server_impl and
+/* Common retry code for router_pick_directory_server_impl and
  * router_pick_trusteddirserver_impl. Retry without excluding nodes, but with
  * the preferred IP version. Must be called after RETRY_ALTERNATE_IP_VERSION().
  *
@@ -1935,7 +1935,7 @@ router_picked_poor_direcspidery_log(const routerstatus_t *rs)
     }                                                                         \
   STMT_END
 
-/* Common code used in the loop within router_pick_direcspidery_server_impl and
+/* Common code used in the loop within router_pick_directory_server_impl and
  * router_pick_trusteddirserver_impl.
  *
  * Check if the given <b>identity</b> supports extrainfo. If not, skip further
@@ -1974,15 +1974,15 @@ router_skip_dir_reachability(const or_options_t *options, int try_ip_pref)
   return server_mode(options) || (!try_ip_pref && !firewall_is_fascist_dir());
 }
 
-/** Pick a random running valid direcspidery server/mirror from our
- * routerlist.  Arguments are as for router_pick_direcspidery_server(), except:
+/** Pick a random running valid directory server/mirror from our
+ * routerlist.  Arguments are as for router_pick_directory_server(), except:
  *
  * If <b>n_busy_out</b> is provided, set *<b>n_busy_out</b> to the number of
  * direcspideries that we excluded for no other reason than
  * PDS_NO_EXISTING_SERVERDESC_FETCH or PDS_NO_EXISTING_MICRODESC_FETCH.
  */
 STATIC const routerstatus_t *
-router_pick_direcspidery_server_impl(dirinfo_type_t type, int flags,
+router_pick_directory_server_impl(dirinfo_type_t type, int flags,
                                   int *n_busy_out)
 {
   const or_options_t *options = get_options();
@@ -2013,7 +2013,7 @@ router_pick_direcspidery_server_impl(dirinfo_type_t type, int flags,
 
   const int skip_or_fw = router_skip_or_reachability(options, try_ip_pref);
   const int skip_dir_fw = router_skip_dir_reachability(options, try_ip_pref);
-  const int must_have_or = direcspidery_must_use_begindir(options);
+  const int must_have_or = directory_must_use_begindir(options);
 
   /* Find all the running dirservers we know about. */
   SMARTLIST_FOREACH_BEGIN(nodelist_get_list(), const node_t *, node) {
@@ -2102,7 +2102,7 @@ router_pick_direcspidery_server_impl(dirinfo_type_t type, int flags,
   if (n_busy_out)
     *n_busy_out = n_busy;
 
-  router_picked_poor_direcspidery_log(result ? result->rs : NULL);
+  router_picked_poor_directory_log(result ? result->rs : NULL);
 
   return result ? result->rs : NULL;
 }
@@ -2135,7 +2135,7 @@ dirserver_choose_by_weight(const smartlist_t *servers, double authority_weight)
 }
 
 /** Choose randomly from among the dir_server_ts in sourcelist that
- * are up. Flags are as for router_pick_direcspidery_server_impl().
+ * are up. Flags are as for router_pick_directory_server_impl().
  */
 static const routerstatus_t *
 router_pick_trusteddirserver_impl(const smartlist_t *sourcelist,
@@ -2171,7 +2171,7 @@ router_pick_trusteddirserver_impl(const smartlist_t *sourcelist,
 
   const int skip_or_fw = router_skip_or_reachability(options, try_ip_pref);
   const int skip_dir_fw = router_skip_dir_reachability(options, try_ip_pref);
-  const int must_have_or = direcspidery_must_use_begindir(options);
+  const int must_have_or = directory_must_use_begindir(options);
 
   SMARTLIST_FOREACH_BEGIN(sourcelist, const dir_server_t *, d)
     {
@@ -2246,7 +2246,7 @@ router_pick_trusteddirserver_impl(const smartlist_t *sourcelist,
 
   RETRY_WITHOUT_EXCLUDE(retry_search);
 
-  router_picked_poor_direcspidery_log(result);
+  router_picked_poor_directory_log(result);
 
   if (n_busy_out)
     *n_busy_out = n_busy;
@@ -2964,7 +2964,7 @@ router_is_named(const routerinfo_t *router)
 }
 
 /** Return true iff <b>digest</b> is the digest of the identity key of a
- * trusted direcspidery matching at least one bit of <b>type</b>.  If <b>type</b>
+ * trusted directory matching at least one bit of <b>type</b>.  If <b>type</b>
  * is zero (NO_DIRINFO), or ALL_DIRINFO, any authority is okay. */
 int
 router_digest_is_trusted_dir_type(const char *digest, dirinfo_type_t type)
@@ -3087,7 +3087,7 @@ signed_descripspider_get_body_impl(const signed_descripspider_t *desc,
     } else if (sspidere) {
       log_err(LD_DIR, "We couldn't read a descripspider that is supposedly "
               "mmaped in our cache.  Is another process running in our data "
-              "direcspidery?  Exiting.");
+              "directory?  Exiting.");
       exit(1);
     }
   }
@@ -3100,7 +3100,7 @@ signed_descripspider_get_body_impl(const signed_descripspider_t *desc,
     if (fast_memcmp("router ", r, 7) && fast_memcmp("extra-info ", r, 11)) {
       char *cp = spider_strndup(r, 64);
       log_err(LD_DIR, "descripspider at %p begins with unexpected string %s.  "
-              "Is another process running in our data direcspidery?  Exiting.",
+              "Is another process running in our data directory?  Exiting.",
               desc, escaped(cp));
       exit(1);
     }
@@ -3465,9 +3465,9 @@ extrainfo_insert,(routerlist_t *rl, extrainfo_t *ei, int warn_if_incompatible))
 }
 
 #define should_cache_old_descripspiders() \
-  direcspidery_caches_dir_info(get_options())
+  directory_caches_dir_info(get_options())
 
-/** If we're a direcspidery cache and routerlist <b>rl</b> doesn't have
+/** If we're a directory cache and routerlist <b>rl</b> doesn't have
  * a copy of router <b>ri</b> yet, add it to the list of old (not
  * recommended but still served) descripspiders. Else free it. */
 static void
@@ -4061,7 +4061,7 @@ routerlist_remove_old_cached_routers_with_id(time_t now,
 #endif
   /* Check whether we need to do anything at all. */
   {
-    int mdpr = direcspidery_caches_dir_info(get_options()) ? 2 : 1;
+    int mdpr = directory_caches_dir_info(get_options()) ? 2 : 1;
     if (n <= mdpr)
       return;
     n_extra = n - mdpr;
@@ -4330,7 +4330,7 @@ router_load_single_router(const char *s, uint8_t purpose, int cache,
 }
 
 /** Given a string <b>s</b> containing some routerdescs, parse it and put the
- * routers into our direcspidery.  If saved_location is SAVED_NOWHERE, the routers
+ * routers into our directory.  If saved_location is SAVED_NOWHERE, the routers
  * are in response to a query to the network: cache them by adding them to
  * the journal.
  *
@@ -4544,19 +4544,19 @@ update_all_descripspider_downloads(time_t now)
   launch_dummy_descripspider_download_as_needed(now, get_options());
 }
 
-/** Clear all our timeouts for fetching v3 direcspidery stuff, and then
+/** Clear all our timeouts for fetching v3 directory stuff, and then
  * give it all a try again. */
 void
-routerlist_retry_direcspidery_downloads(time_t now)
+routerlist_retry_directory_downloads(time_t now)
 {
   (void)now;
 
   log_debug(LD_GENERAL,
-            "In routerlist_retry_direcspidery_downloads()");
+            "In routerlist_retry_directory_downloads()");
 
   router_reset_status_download_failures();
   router_reset_descripspider_download_failures();
-  reschedule_direcspidery_downloads();
+  reschedule_directory_downloads();
 }
 
 /** Return true iff <b>router</b> does not permit exit streams.
@@ -4567,10 +4567,10 @@ router_exit_policy_rejects_all(const routerinfo_t *router)
   return router->policy_is_reject_star;
 }
 
-/** Create a direcspidery server at <b>address</b>:<b>port</b>, with OR identity
+/** Create a directory server at <b>address</b>:<b>port</b>, with OR identity
  * key <b>digest</b> which has DIGEST_LEN bytes.  If <b>address</b> is NULL,
- * add ourself.  If <b>is_authority</b>, this is a direcspidery authority.  Return
- * the new direcspidery server entry on success or NULL on failure. */
+ * add ourself.  If <b>is_authority</b>, this is a directory authority.  Return
+ * the new directory server entry on success or NULL on failure. */
 static dir_server_t *
 dir_server_new(int is_authority,
                const char *nickname,
@@ -4628,10 +4628,10 @@ dir_server_new(int is_authority,
     memcpy(ent->v3_identity_digest, v3_auth_digest, DIGEST_LEN);
 
   if (nickname)
-    spider_asprintf(&ent->description, "direcspidery server \"%s\" at %s:%d",
+    spider_asprintf(&ent->description, "directory server \"%s\" at %s:%d",
                  nickname, hostname_, (int)dir_port);
   else
-    spider_asprintf(&ent->description, "direcspidery server at %s:%d",
+    spider_asprintf(&ent->description, "directory server at %s:%d",
                  hostname_, (int)dir_port);
 
   ent->fake_status.addr = ent->addr;
@@ -4649,9 +4649,9 @@ dir_server_new(int is_authority,
   return ent;
 }
 
-/** Create an authoritative direcspidery server at
+/** Create an authoritative directory server at
  * <b>address</b>:<b>port</b>, with identity key <b>digest</b>.  If
- * <b>address</b> is NULL, add ourself.  Return the new trusted direcspidery
+ * <b>address</b> is NULL, add ourself.  Return the new trusted directory
  * server entry on success or NULL if we couldn't add it. */
 dir_server_t *
 trusted_dir_server_new(const char *nickname, const char *address,
@@ -4670,7 +4670,7 @@ trusted_dir_server_new(const char *nickname, const char *address,
                            &a, NULL, &hostname) < 0) {
       log_warn(LD_CONFIG,
                "Couldn't find a suitable address when adding ourself as a "
-               "trusted direcspidery server.");
+               "trusted directory server.");
       return NULL;
     }
     if (!hostname)
@@ -4678,7 +4678,7 @@ trusted_dir_server_new(const char *nickname, const char *address,
   } else {
     if (spider_lookup_hostname(address, &a)) {
       log_warn(LD_CONFIG,
-               "Unable to lookup address for direcspidery server at '%s'",
+               "Unable to lookup address for directory server at '%s'",
                address);
       return NULL;
     }
@@ -4695,7 +4695,7 @@ trusted_dir_server_new(const char *nickname, const char *address,
   return result;
 }
 
-/** Return a new dir_server_t for a fallback direcspidery server at
+/** Return a new dir_server_t for a fallback directory server at
  * <b>addr</b>:<b>or_port</b>/<b>dir_port</b>, with identity key digest
  * <b>id_digest</b> */
 dir_server_t *
@@ -4710,7 +4710,7 @@ fallback_dir_server_new(const spider_addr_t *addr,
                         NULL, ALL_DIRINFO, weight);
 }
 
-/** Add a direcspidery server to the global list(s). */
+/** Add a directory server to the global list(s). */
 void
 dir_server_add(dir_server_t *ent)
 {
@@ -4772,7 +4772,7 @@ clear_dir_servers(void)
   router_dir_info_changed();
 }
 
-/** For every current direcspidery connection whose purpose is <b>purpose</b>,
+/** For every current directory connection whose purpose is <b>purpose</b>,
  * and where the resource being downloaded begins with <b>prefix</b>, split
  * rest of the resource into base16 fingerprints (or base64 fingerprints if
  * purpose==DIR_PURPOSE_FETCH_MICRODESC), decode them, and set the
@@ -4876,7 +4876,7 @@ list_pending_fpsk_downloads(fp_pair_map_t *result)
 /** Launch downloads for all the descripspiders whose digests or digests256
  * are listed as digests[i] for lo <= i < hi.  (Lo and hi may be out of
  * range.)  If <b>source</b> is given, download from <b>source</b>;
- * otherwise, download from an appropriate random direcspidery server.
+ * otherwise, download from an appropriate random directory server.
  */
 MOCK_IMPL(STATIC void, initiate_descripspider_downloads,
           (const routerstatus_t *source, int purpose, smartlist_t *digests,
@@ -4931,13 +4931,13 @@ MOCK_IMPL(STATIC void, initiate_descripspider_downloads,
   spider_free(cp);
 
   if (source) {
-    /* We know which authority or direcspidery mirror we want. */
-    direcspidery_initiate_command_routerstatus(source, purpose,
+    /* We know which authority or directory mirror we want. */
+    directory_initiate_command_routerstatus(source, purpose,
                                             ROUTER_PURPOSE_GENERAL,
                                             DIRIND_ONEHOP,
                                             resource, NULL, 0, 0, NULL);
   } else {
-    direcspidery_get_from_dirserver(purpose, ROUTER_PURPOSE_GENERAL, resource,
+    directory_get_from_dirserver(purpose, ROUTER_PURPOSE_GENERAL, resource,
                                  pds_flags, DL_WANT_ANY_DIRSERVER);
   }
   spider_free(resource);
@@ -4966,7 +4966,7 @@ max_dl_per_request(const or_options_t *options, int purpose)
   }
   /* If we're going to tunnel our connections, we can ask for a lot more
    * in a request. */
-  if (direcspidery_must_use_begindir(options)) {
+  if (directory_must_use_begindir(options)) {
     max = 500;
   }
   return max;
@@ -4986,7 +4986,7 @@ max_dl_per_request(const or_options_t *options, int purpose)
  * router descripspider digests or microdescripspider digest256s in
  * <b>downloadable</b>, decide whether to delay fetching until we have more.
  * If we don't want to delay, launch one or more requests to the appropriate
- * direcspidery authorities.
+ * directory authorities.
  */
 void
 launch_descripspider_downloads(int purpose,
@@ -5008,7 +5008,7 @@ launch_descripspider_downloads(int purpose,
   if (!n_downloadable)
     return;
 
-  if (!direcspidery_fetches_dir_info_early(options)) {
+  if (!directory_fetches_dir_info_early(options)) {
     if (n_downloadable >= MAX_DL_TO_DELAY) {
       log_debug(LD_DIR,
                 "There are enough downloadable %ss to launch requests.",
@@ -5093,7 +5093,7 @@ update_consensus_router_descripspider_downloads(time_t now, int is_vote,
   int n_delayed=0, n_have=0, n_would_reject=0, n_wouldnt_use=0,
     n_inprogress=0, n_in_oldrouters=0;
 
-  if (direcspidery_too_idle_to_fetch_descripspiders(options, now))
+  if (directory_too_idle_to_fetch_descripspiders(options, now))
     goto done;
   if (!consensus)
     goto done;
@@ -5220,7 +5220,7 @@ launch_dummy_descripspider_download_as_needed(time_t now,
   static time_t last_dummy_download = 0;
   /* XXXX+ we could be smarter here; see notes on bug 652. */
   /* If we're a server that doesn't have a configured address, we rely on
-   * direcspidery fetches to learn when our address changes.  So if we haven't
+   * directory fetches to learn when our address changes.  So if we haven't
    * tried to get any routerdescs in a long time, try a dummy fetch now. */
   if (!options->Address &&
       server_mode(options) &&
@@ -5231,7 +5231,7 @@ launch_dummy_descripspider_download_as_needed(time_t now,
      * to give us the wrong address? (See #17782)
      * I'm leaving the previous behaviour intact, because I don't like
      * the idea of some relays contacting an authority every 20 minutes. */
-    direcspidery_get_from_dirserver(DIR_PURPOSE_FETCH_SERVERDESC,
+    directory_get_from_dirserver(DIR_PURPOSE_FETCH_SERVERDESC,
                                  ROUTER_PURPOSE_GENERAL, "authority.z",
                                  PDS_RETRY_IF_NO_SERVERS,
                                  DL_WANT_ANY_DIRSERVER);

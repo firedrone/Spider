@@ -332,7 +332,7 @@ typedef enum { FN_ERROR, FN_NOENT, FN_FILE, FN_DIR, FN_EMPTY } file_status_t;
 file_status_t file_status(const char *filename);
 
 /** Possible behaviors for check_private_dir() on encountering a nonexistent
- * direcspidery; see that function's documentation for details. */
+ * directory; see that function's documentation for details. */
 typedef unsigned int cpd_check_t;
 #define CPD_NONE                 0
 #define CPD_CREATE               (1u << 0)

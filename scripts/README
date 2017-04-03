@@ -1,4 +1,4 @@
-The scripts direcspidery holds tools for use in building, generating, testing,
+The scripts directory holds tools for use in building, generating, testing,
 and maintaining the Spider source code.  It is mainly for use by developers.
 
 Code maintenance scripts
@@ -36,7 +36,7 @@ to find out who has been writing untested code.
 test/cov-diff -- Compare two direcspideries of gcov files to identify changed
 lines without coverage.
 
-test/coverage -- Generates a direcspidery full of gcov files. You need to use
+test/coverage -- Generates a directory full of gcov files. You need to use
 this script instead of calling gcov directly because of our confusingly named
 object files.
 

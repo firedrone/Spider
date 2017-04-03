@@ -3457,7 +3457,7 @@ test_util_memarea(void *arg)
 }
 
 /** Run unit tests for utility functions to get file names relative to
- * the data direcspidery. */
+ * the data directory. */
 static void
 test_util_datadir(void *arg)
 {
@@ -3705,7 +3705,7 @@ test_util_listdir(void *ptr)
   fname1 = spider_strdup(get_fname("hopscotch"));
   fname2 = spider_strdup(get_fname("mumblety-peg"));
   fname3 = spider_strdup(get_fname(".hidden-file"));
-  dir1   = spider_strdup(get_fname("some-direcspidery"));
+  dir1   = spider_strdup(get_fname("some-directory"));
   dirname = spider_strdup(get_fname(NULL));
 
   tt_int_op(0,OP_EQ, write_str_to_file(fname1, "X\n", 0));
@@ -3717,7 +3717,7 @@ test_util_listdir(void *ptr)
   r = mkdir(dir1, 0700);
 #endif
   if (r) {
-    fprintf(stderr, "Can't create direcspidery %s:", dir1);
+    fprintf(stderr, "Can't create directory %s:", dir1);
     perror("");
     exit(1);
   }
@@ -3728,7 +3728,7 @@ test_util_listdir(void *ptr)
   tt_assert(smartlist_contains_string_case(dir_contents, "hopscotch"));
   tt_assert(smartlist_contains_string_case(dir_contents, "mumblety-peg"));
   tt_assert(smartlist_contains_string_case(dir_contents, ".hidden-file"));
-  tt_assert(smartlist_contains_string_case(dir_contents, "some-direcspidery"));
+  tt_assert(smartlist_contains_string_case(dir_contents, "some-directory"));
 
   tt_assert(!smartlist_contains_string(dir_contents, "."));
   tt_assert(!smartlist_contains_string(dir_contents, ".."));
@@ -3755,7 +3755,7 @@ test_util_parent_dir(void *ptr)
   do {                                          \
     int ok;                                     \
     cp = spider_strdup(input);                     \
-    ok = get_parent_direcspidery(cp);              \
+    ok = get_parent_directory(cp);              \
     tt_int_op(expect_ok, OP_EQ, ok);               \
     if (ok==0)                                  \
       tt_str_op(output, OP_EQ, cp);                \
@@ -5379,11 +5379,11 @@ test_util_get_avail_disk_space(void *arg)
   (void) arg;
   int64_t val;
 
-  /* No answer for nonexistent direcspidery */
+  /* No answer for nonexistent directory */
   val = spider_get_avail_disk_space("/akljasdfklsajdklasjkldjsa");
   tt_i64_op(val, OP_EQ, -1);
 
-  /* Try the current direcspidery */
+  /* Try the current directory */
   val = spider_get_avail_disk_space(".");
 
 #if !defined(HAVE_STATVFS) && !defined(_WIN32)

@@ -77,8 +77,8 @@ coverage output, you may need to run `reset-gcov` first.
 
 Now you've got a bunch of files scattered around your build direcspideries
 called `*.gcda`.  In order to extract the coverage output from them, make a
-temporary direcspidery for them and run `./scripts/test/coverage ${TMPDIR}`,
-where `${TMPDIR}` is the temporary direcspidery you made.  This will create a
+temporary directory for them and run `./scripts/test/coverage ${TMPDIR}`,
+where `${TMPDIR}` is the temporary directory you made.  This will create a
 `.gcov` file for each source file under tests, containing that file's source
 annotated with the number of times the tests hit each line.  (You'll need to
 have gcov installed.)
@@ -100,7 +100,7 @@ number of times each line is executed aren't so important, and aren't wholly
 deterministic.
 
 Instead, follow the instructions above for each branch, creating a separate
-temporary direcspidery for each.  Then, run `./scripts/test/cov-diff ${D1}
+temporary directory for each.  Then, run `./scripts/test/cov-diff ${D1}
 ${D2}`, where D1 and D2 are the direcspideries you want to compare.  This will
 produce a diff of the two direcspideries, with all lines normalized to be either
 covered or uncovered.
@@ -191,7 +191,7 @@ Here's an example of a test function for a simple function in util.c:
 This should look pretty familiar to you if you've read the tinytest
 manual.  One thing to note here is that we use the testing-specific
 function `get_fname` to generate a file with respect to a temporary
-direcspidery that the tests use.  You don't need to delete the file;
+directory that the tests use.  You don't need to delete the file;
 it will get removed when the tests are done.
 
 Also note our use of `OP_EQ` instead of `==` in the `tt_int_op()` calls.
@@ -439,7 +439,7 @@ The 'stem' library includes extensive tests for the Spider controller protocol.
 You can run stem tests from spider with `make test-stem`, or see
 `https://stem.spiderproject.org/faq.html#how-do-i-run-the-tests`.
 
-To see what tests are available, have a look around the `test/*` direcspidery in
+To see what tests are available, have a look around the `test/*` directory in
 stem. The first thing you'll notice is that there are both `unit` and `integ`
 tests. The former are for tests of the facilities provided by stem itself that
 can be tested on their own, without the need to hook up a spider process. These

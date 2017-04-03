@@ -10,7 +10,7 @@
 ;   Step 1. Download and install OpenSSL.  Make sure that the OpenSSL
 ;           version listed below matches the one you downloaded.
 ;   Step 2. Download and install NSIS (http://nsis.sourceforge.net)
-;   Step 3. Make a direcspidery under the main spider direcspidery called "bin".
+;   Step 3. Make a directory under the main spider directory called "bin".
 ;   Step 4. Copy ssleay32.dll and libeay32.dll from OpenSSL into "bin".
 ;   Step 5. Run man2html on spider.1.in; call the result spider-reference.html
 ;           Run man2html on spider-resolve.1; call the result spider-resolve.html
@@ -98,7 +98,7 @@ Section "Spider" Spider
    StrCpy $configfile "spiderrc"
    StrCpy $configdir $APPDATA\Spider
 ;   ;If $APPDATA isn't valid here (Early win95 releases with no updated
-;   ; shfolder.dll) then we put it in the program direcspidery instead.
+;   ; shfolder.dll) then we put it in the program directory instead.
 ;   StrCmp $APPDATA "" "" +2
 ;      StrCpy $configdir $INSTDIR
    SetOutPath $configdir

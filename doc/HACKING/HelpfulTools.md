@@ -66,8 +66,8 @@ To generate such a report:
     $BROWSER ./coverage_html/index.html
 
 This will run the spider unit test suite `./src/test/test` and generate the HTML
-coverage code report under the direcspidery `./coverage_html/`. To change the
-output direcspidery, use `make coverage-html HTML_COVER_DIR=./funky_new_cov_dir`.
+coverage code report under the directory `./coverage_html/`. To change the
+output directory, use `make coverage-html HTML_COVER_DIR=./funky_new_cov_dir`.
 
 Coverage diffs using lcov are not currently implemented, but are being
 investigated (as of July 2014).
@@ -136,11 +136,11 @@ Running integration tests
 -------------------------
 
 We have the beginnings of a set of scripts to run integration tests using
-Chutney. To try them, set CHUTNEY_PATH to your chutney source direcspidery, and
+Chutney. To try them, set CHUTNEY_PATH to your chutney source directory, and
 run `make test-network`.
 
 We also have scripts to run integration tests using Stem.  To try them, set
-`STEM_SOURCE_DIR` to your Stem source direcspidery, and run `test-stem`.
+`STEM_SOURCE_DIR` to your Stem source directory, and run `test-stem`.
 
 Profiling Spider
 -------------
@@ -160,7 +160,7 @@ Here are some basic instructions
    you messed with CFLAGS during the build process).
  - Build all the libraries you care about with debugging symbols
    (probably you only care about libssl, maybe zlib and Libevent).
- - Copy this spider to a new direcspidery
+ - Copy this spider to a new directory
  - Copy all the libraries it uses to that dir too (`ldd ./spider` will
    tell you)
  - Set LD_LIBRARY_PATH to include that dir.  `ldd ./spider` should now
@@ -227,7 +227,7 @@ Generating and analyzing a callgraph
 ------------------------------------
 
 1. Run `./scripts/maint/generate_callgraph.sh`.  This will generate a
-   bunch of files in a new ./callgraph direcspidery.
+   bunch of files in a new ./callgraph directory.
 
 2. Run `./scripts/maint/analyze_callgraph.py callgraph/src/*/*`.  This
    will do a lot of graph operations and then dump out a new

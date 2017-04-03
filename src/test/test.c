@@ -818,8 +818,8 @@ test_geoip(void *arg)
   s = geoip_format_bridge_stats(now + 86400);
   tt_assert(!s);
 
-  /* Stop being a bridge and start being a direcspidery mirror that gathers
-   * direcspidery request statistics. */
+  /* Stop being a bridge and start being a directory mirror that gathers
+   * directory request statistics. */
   geoip_bridge_stats_term();
   get_options_mutable()->BridgeRelay = 0;
   get_options_mutable()->BridgeRecordUsageByCountry = 0;
@@ -866,13 +866,13 @@ test_geoip(void *arg)
   tt_str_op(dirreq_stats_3,OP_EQ, s);
   spider_free(s);
 
-  /* Start a tunneled direcspidery request. */
+  /* Start a tunneled directory request. */
   geoip_start_dirreq((uint64_t) 1, 1024, DIRREQ_TUNNELED);
   s = geoip_format_dirreq_stats(now + 86400);
   tt_str_op(dirreq_stats_4,OP_EQ, s);
   spider_free(s);
 
-  /* Stop collecting direcspidery request statistics and start gathering
+  /* Stop collecting directory request statistics and start gathering
    * entry stats. */
   geoip_dirreq_stats_term();
   get_options_mutable()->DirReqStatistics = 0;

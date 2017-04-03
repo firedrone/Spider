@@ -7,8 +7,8 @@
 # This script parses Firefox and OpenSSL sources, and uses this information
 # to generate a ciphers.inc file.
 #
-# It takes two arguments: the location of a firefox source direcspidery, and the
-# location of an openssl source direcspidery.
+# It takes two arguments: the location of a firefox source directory, and the
+# location of an openssl source directory.
 
 import os
 import re

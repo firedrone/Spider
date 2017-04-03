@@ -13,7 +13,7 @@
 #include "config.h"
 #include "connection.h"
 #include "container.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirvote.h"
 #include "entrynodes.h"
 #include "microdesc.h"
@@ -67,10 +67,10 @@ test_routerlist_initiate_descripspider_downloads(void *arg)
     smartlist_add(digests, (char*)prose);
   }
 
-  MOCK(direcspidery_get_from_dirserver, mock_get_from_dirserver);
+  MOCK(directory_get_from_dirserver, mock_get_from_dirserver);
   initiate_descripspider_downloads(NULL, DIR_PURPOSE_FETCH_MICRODESC,
                                 digests, 3, 7, 0);
-  UNMOCK(direcspidery_get_from_dirserver);
+  UNMOCK(directory_get_from_dirserver);
 
   tt_str_op(output, OP_EQ, "d/"
             "dW5odXJyaWVkIGFuZCB3aXNlLCB3ZSBwZXJjZWl2ZS4-"
@@ -205,7 +205,7 @@ mock_usable_consensus_flavor(void)
 }
 
 static void
-test_router_pick_direcspidery_server_impl(void *arg)
+test_router_pick_directory_server_impl(void *arg)
 {
   (void)arg;
 
@@ -246,7 +246,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
   UNMOCK(get_my_v3_authority_cert);
 
   /* No consensus available, fail early */
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, (const int) 0, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, (const int) 0, NULL);
   tt_assert(rs == NULL);
 
   construct_consensus(&consensus_text_md);
@@ -284,7 +284,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
   nodelist_set_consensus(con_md);
   nodelist_assert_ok();
 
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   /* We should not fail now we have a consensus and routerstatus_list
    * and nodelist are populated. */
   tt_assert(rs != NULL);
@@ -305,7 +305,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
 
   node_router1->is_running = 0;
   node_router3->is_running = 0;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router2_id, DIGEST_LEN));
   rs = NULL;
@@ -318,7 +318,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
   tmp_dirport3 = node_router3->rs->dir_port;
   node_router1->rs->dir_port = 0;
   node_router3->rs->dir_port = 0;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router2_id, DIGEST_LEN));
   rs = NULL;
@@ -329,7 +329,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
 
   node_router1->is_valid = 0;
   node_router3->is_valid = 0;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router2_id, DIGEST_LEN));
   rs = NULL;
@@ -340,7 +340,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
 
   node_router2->rs->last_dir_503_at = now;
   node_router3->rs->last_dir_503_at = now;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router1_id, DIGEST_LEN));
   node_router2->rs->last_dir_503_at = 0;
@@ -357,13 +357,13 @@ test_router_pick_direcspidery_server_impl(void *arg)
   node_router1->rs->or_port = 444;
   node_router2->rs->or_port = 443;
   node_router3->rs->or_port = 442;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router3_id, DIGEST_LEN));
   node_router1->rs->or_port = 442;
   node_router2->rs->or_port = 443;
   node_router3->rs->or_port = 444;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router1_id, DIGEST_LEN));
 
@@ -372,7 +372,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
   node_router2->rs->or_port = 443;
   node_router3->rs->or_port = 442;
   node_router3->rs->last_dir_503_at = now;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router1_id, DIGEST_LEN));
   node_router3->rs->last_dir_503_at = 0;
@@ -390,7 +390,7 @@ test_router_pick_direcspidery_server_impl(void *arg)
   node_router2->rs->dir_port = 80;
   node_router3->rs->dir_port = 81;
   node_router1->rs->last_dir_503_at = now;
-  rs = router_pick_direcspidery_server_impl(V3_DIRINFO, flags, NULL);
+  rs = router_pick_directory_server_impl(V3_DIRINFO, flags, NULL);
   tt_assert(rs != NULL);
   tt_assert(spider_memeq(rs->identity_digest, router1_id, DIGEST_LEN));
   node_router1->rs->last_dir_503_at = 0;
@@ -493,7 +493,7 @@ struct testcase_t routerlist_tests[] = {
   NODE(initiate_descripspider_downloads, 0),
   NODE(launch_descripspider_downloads, 0),
   NODE(router_is_already_dir_fetching, TT_FORK),
-  ROUTER(pick_direcspidery_server_impl, TT_FORK),
+  ROUTER(pick_directory_server_impl, TT_FORK),
   END_OF_TESTCASES
 };
 

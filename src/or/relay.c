@@ -633,7 +633,7 @@ relay_send_command_from_edge_,(streamid_t stream_id, circuit_t *circ,
             cell_direction == CELL_DIRECTION_OUT ? "forward" : "backward");
 
   /* If we are sending an END cell and this circuit is used for a tunneled
-   * direcspidery request, advance its state. */
+   * directory request, advance its state. */
   if (relay_command == RELAY_COMMAND_END && circ->dirreq_id)
     geoip_change_dirreq_state(circ->dirreq_id, DIRREQ_TUNNELED,
                               DIRREQ_END_CELL_SENT);
@@ -733,7 +733,7 @@ connection_edge_send_command(edge_connection_t *fromconn,
   }
 
 #ifdef MEASUREMENTS_21206
-  /* Keep track of the number of RELAY_DATA cells sent for direcspidery
+  /* Keep track of the number of RELAY_DATA cells sent for directory
    * connections. */
   connection_t *linked_conn = TO_CONN(fromconn)->linked_conn;
 
@@ -1596,7 +1596,7 @@ connection_edge_process_relay_cell(cell_t *cell, circuit_t *circ,
                               rh.length, TO_CONN(conn));
 
 #ifdef MEASUREMENTS_21206
-      /* Count number of RELAY_DATA cells received on a linked direcspidery
+      /* Count number of RELAY_DATA cells received on a linked directory
        * connection. */
       connection_t *linked_conn = TO_CONN(conn)->linked_conn;
 
@@ -2715,7 +2715,7 @@ channel_flush_from_first_active_circuit, (channel_t *chan, int max))
     }
 
     /* If we just flushed our queue and this circuit is used for a
-     * tunneled direcspidery request, possibly advance its state. */
+     * tunneled directory request, possibly advance its state. */
     if (queue->n == 0 && chan->dirreq_id)
       geoip_change_dirreq_state(chan->dirreq_id,
                                 DIRREQ_TUNNELED,

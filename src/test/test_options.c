@@ -235,7 +235,7 @@ test_have_enough_mem_for_dircache(void *arg)
   /* 200 MB RAM available, DirCache enabled */
   r = have_enough_mem_for_dircache(opt, MEGABYTEIFY(200), &msg);
   tt_int_op(r, OP_EQ, -1);
-  expect_errmsg = "Being a direcspidery cache (default) with less than ";
+  expect_errmsg = "Being a directory cache (default) with less than ";
   if (!strstr(msg, expect_errmsg)) {
     TT_DIE(("Expected error message <%s> from <%s>, but got <%s>.",
             expect_errmsg, configuration, msg));
@@ -460,7 +460,7 @@ test_options_validate__outbound_addresses(void *ignored)
 }
 
 static void
-test_options_validate__data_direcspidery(void *ignored)
+test_options_validate__data_directory(void *ignored)
 {
   (void)ignored;
   int ret;
@@ -683,7 +683,7 @@ test_options_validate__authdir(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_EQ,
-            "Authoritative direcspidery servers must set ContactInfo");
+            "Authoritative directory servers must set ContactInfo");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -793,7 +793,7 @@ test_options_validate__authdir(void *ignored)
                                 "SchedulerLowWaterMark__ 10\n");
   mock_clean_saved_logs();
   options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
-  expect_log_msg("Authoritative direcspidery servers "
+  expect_log_msg("Authoritative directory servers "
             "can't set UseEntryGuards. Disabling.\n");
   tt_int_op(tdata->opt->UseEntryGuards, OP_EQ, 0);
   spider_free(msg);
@@ -850,7 +850,7 @@ test_options_validate__authdir(void *ignored)
   mock_clean_saved_logs();
   options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no DirPort set.");
+            "Running as authoritative directory, but no DirPort set.");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -864,7 +864,7 @@ test_options_validate__authdir(void *ignored)
   mock_clean_saved_logs();
   options_validate(NULL, tdata->opt, tdata->def_opt, 0, &msg);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no DirPort set.");
+            "Running as authoritative directory, but no DirPort set.");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -878,7 +878,7 @@ test_options_validate__authdir(void *ignored)
   mock_clean_saved_logs();
   options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no DirPort set.");
+            "Running as authoritative directory, but no DirPort set.");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -892,7 +892,7 @@ test_options_validate__authdir(void *ignored)
   mock_clean_saved_logs();
   options_validate(NULL, tdata->opt, tdata->def_opt, 0, &msg);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no DirPort set.");
+            "Running as authoritative directory, but no DirPort set.");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -906,7 +906,7 @@ test_options_validate__authdir(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no DirPort set.");
+            "Running as authoritative directory, but no DirPort set.");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -921,7 +921,7 @@ test_options_validate__authdir(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_EQ,
-            "Running as authoritative direcspidery, but no ORPort set.");
+            "Running as authoritative directory, but no ORPort set.");
   spider_free(msg);
 
   // TODO: This case can't be reached, since clientonly is used to
@@ -940,7 +940,7 @@ test_options_validate__authdir(void *ignored)
   /* ret = options_validate(tdata->old_opt, tdata->opt, */
   /*                        tdata->def_opt, 0, &msg); */
   /* tt_int_op(ret, OP_EQ, -1); */
-  /* tt_str_op(msg, OP_EQ, "Running as authoritative direcspidery, " */
+  /* tt_str_op(msg, OP_EQ, "Running as authoritative directory, " */
   /*           "but ClientOnly also set."); */
 
  done:
@@ -2159,7 +2159,7 @@ test_options_validate__publish_server_descripspider(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_EQ, "Bridges are not supposed to publish router "
-            "descripspiders to the direcspidery authorities. Please correct your "
+            "descripspiders to the directory authorities. Please correct your "
             "PublishServerDescripspider line.");
   spider_free(msg);
 
@@ -2171,7 +2171,7 @@ test_options_validate__publish_server_descripspider(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_EQ, "Bridges are not supposed to publish router "
-            "descripspiders to the direcspidery authorities. Please correct your "
+            "descripspiders to the directory authorities. Please correct your "
             "PublishServerDescripspider line.");
   spider_free(msg);
 
@@ -2181,7 +2181,7 @@ test_options_validate__publish_server_descripspider(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, -1);
   tt_str_op(msg, OP_NE, "Bridges are not supposed to publish router "
-            "descripspiders to the direcspidery authorities. Please correct your "
+            "descripspiders to the directory authorities. Please correct your "
             "PublishServerDescripspider line.");
   spider_free(msg);
 
@@ -3236,7 +3236,7 @@ test_options_validate__proxy(void *ignored)
   tt_int_op(ret, OP_EQ, 0);
   expect_log_msg("HTTPProxy configured, but no SOCKS "
             "proxy or HTTPS proxy configured. Watch out: this configuration "
-            "will proxy unencrypted direcspidery connections only.\n");
+            "will proxy unencrypted directory connections only.\n");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -3249,7 +3249,7 @@ test_options_validate__proxy(void *ignored)
   tt_int_op(ret, OP_EQ, 0);
   expect_no_log_msg("HTTPProxy configured, but no SOCKS "
             "proxy or HTTPS proxy configured. Watch out: this configuration "
-            "will proxy unencrypted direcspidery connections only.\n");
+            "will proxy unencrypted directory connections only.\n");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -3262,7 +3262,7 @@ test_options_validate__proxy(void *ignored)
   tt_int_op(ret, OP_EQ, 0);
   expect_no_log_msg("HTTPProxy configured, but no SOCKS "
             "proxy or HTTPS proxy configured. Watch out: this configuration "
-            "will proxy unencrypted direcspidery connections only.\n");
+            "will proxy unencrypted directory connections only.\n");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -3276,7 +3276,7 @@ test_options_validate__proxy(void *ignored)
   expect_no_log_msg(
             "HTTPProxy configured, but no SOCKS proxy or HTTPS proxy "
             "configured. Watch out: this configuration will proxy "
-            "unencrypted direcspidery connections only.\n");
+            "unencrypted directory connections only.\n");
   spider_free(msg);
 
   free_options_test_data(tdata);
@@ -3960,8 +3960,8 @@ test_options_validate__constrained_sockets(void *ignored)
   ret = options_validate(tdata->old_opt, tdata->opt, tdata->def_opt, 0, &msg);
   tt_int_op(ret, OP_EQ, 0);
   expect_log_msg("You have requested constrained "
-            "socket buffers while also serving direcspidery entries via DirPort."
-            "  It is strongly suggested that you disable serving direcspidery"
+            "socket buffers while also serving directory entries via DirPort."
+            "  It is strongly suggested that you disable serving directory"
             " requests when system TCP buffer resources are scarce.\n");
   spider_free(msg);
 
@@ -3975,8 +3975,8 @@ test_options_validate__constrained_sockets(void *ignored)
   tt_int_op(ret, OP_EQ, 0);
   expect_no_log_msg(
             "You have requested constrained socket buffers while also serving"
-            " direcspidery entries via DirPort.  It is strongly suggested that "
-            "you disable serving direcspidery requests when system TCP buffer "
+            " directory entries via DirPort.  It is strongly suggested that "
+            "you disable serving directory requests when system TCP buffer "
             "resources are scarce.\n");
   spider_free(msg);
 
@@ -4509,7 +4509,7 @@ struct testcase_t options_tests[] = {
   { "mem_dircache", test_have_enough_mem_for_dircache, TT_FORK, NULL, NULL },
   LOCAL_VALIDATE_TEST(uname_for_server),
   LOCAL_VALIDATE_TEST(outbound_addresses),
-  LOCAL_VALIDATE_TEST(data_direcspidery),
+  LOCAL_VALIDATE_TEST(data_directory),
   LOCAL_VALIDATE_TEST(nickname),
   LOCAL_VALIDATE_TEST(contactinfo),
   LOCAL_VALIDATE_TEST(logs),

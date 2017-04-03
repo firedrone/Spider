@@ -17,7 +17,7 @@
  * The module implements the abstract type, connection_t.  The subtypes are:
  *  <ul>
  *   <li>listener_connection_t, implemented here in connection.c
- *   <li>dir_connection_t, implemented in direcspidery.c
+ *   <li>dir_connection_t, implemented in directory.c
  *   <li>or_connection_t, implemented in connection_or.c
  *   <li>edge_connection_t, implemented in connection_edge.c, along with
  *      its subtype(s):
@@ -75,7 +75,7 @@
 #include "connection_edge.h"
 #include "connection_or.h"
 #include "control.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "dirserv.h"
 #include "dns.h"
 #include "dnsserv.h"
@@ -490,7 +490,7 @@ conn_listener_type_supports_af_unix(int type)
 }
 
 /** Deallocate memory used by <b>conn</b>. Deallocate its buffers if
- * necessary, close its socket if necessary, and mark the direcspidery as dirty
+ * necessary, close its socket if necessary, and mark the directory as dirty
  * if <b>conn</b> is an OR or OP connection.
  */
 STATIC void
@@ -1006,7 +1006,7 @@ check_location_for_unix_socket(const or_options_t *options, const char *path,
 
   p = spider_strdup(path);
   cpd_check_t flags = CPD_CHECK_MODE_ONLY;
-  if (get_parent_direcspidery(p)<0 || p[0] != '/') {
+  if (get_parent_directory(p)<0 || p[0] != '/') {
     log_warn(LD_GENERAL, "Bad unix socket address '%s'.  Spider does not support "
              "relative paths for unix sockets.", path);
     goto done;
@@ -1030,7 +1030,7 @@ check_location_for_unix_socket(const or_options_t *options, const char *path,
     char *escpath, *escdir;
     escpath = esc_for_log(path);
     escdir = esc_for_log(p);
-    log_warn(LD_GENERAL, "Before Spider can create a %s in %s, the direcspidery "
+    log_warn(LD_GENERAL, "Before Spider can create a %s in %s, the directory "
              "%s needs to exist, and to be accessible only by the user%s "
              "account that is running Spider.  (On some Unix systems, anybody "
              "who can list a socket can connect to it, so Spider is being "
@@ -2796,7 +2796,7 @@ static int write_buckets_empty_last_second = 0;
 
 /** Return 1 if <b>conn</b> should use tokens from the "relayed"
  * bandwidth rates, else 0. Currently, only OR conns with bandwidth
- * class 1, and direcspidery conns that are serving data out, count.
+ * class 1, and directory conns that are serving data out, count.
  */
 static int
 connection_counts_as_relayed_traffic(connection_t *conn, time_t now)
@@ -2907,7 +2907,7 @@ connection_bucket_write_limit(connection_t *conn, time_t now)
 }
 
 /** Return 1 if the global write buckets are low enough that we
- * shouldn't send <b>attempt</b> bytes of low-priority direcspidery stuff
+ * shouldn't send <b>attempt</b> bytes of low-priority directory stuff
  * out to <b>conn</b>. Else return 0.
 
  * Priority was 1 for v1 requests (direcspideries and running-routers),
@@ -2922,7 +2922,7 @@ connection_bucket_write_limit(connection_t *conn, time_t now)
  * - total bytes queued on outbufs. High is bad. But I'm wary of
  *   using this, since a few slow-flushing queues will pump up the
  *   number without meaning what we meant to mean. What we really
- *   mean is "total direcspidery bytes added to outbufs recently", but
+ *   mean is "total directory bytes added to outbufs recently", but
  *   that's harder to quantify and harder to keep track of.
  */
 int
@@ -2963,7 +2963,7 @@ static void
 record_num_bytes_transferred_impl(connection_t *conn,
                              time_t now, size_t num_read, size_t num_written)
 {
-  /* Count bytes of answering direct and tunneled direcspidery requests */
+  /* Count bytes of answering direct and tunneled directory requests */
   if (conn->type == CONN_TYPE_DIR && conn->purpose == DIR_PURPOSE_SERVER) {
     if (num_read > 0)
       rep_hist_note_dir_bytes_read(num_read, now);
@@ -4034,7 +4034,7 @@ connection_flush(connection_t *conn)
 /** Append <b>len</b> bytes of <b>string</b> onto <b>conn</b>'s
  * outbuf, and ask it to start writing.
  *
- * If <b>zlib</b> is nonzero, this is a direcspidery connection that should get
+ * If <b>zlib</b> is nonzero, this is a directory connection that should get
  * its contents compressed or decompressed as they're written.  If zlib is
  * negative, this is the last data to be compressed, and the connection's zlib
  * state should be flushed.
@@ -4207,7 +4207,7 @@ connection_get_by_type_state_rendquery(int type, int state,
     return dir_conns;                                           \
   STMT_END
 
-/** Return a list of direcspidery connections that are fetching the item
+/** Return a list of directory connections that are fetching the item
  * described by <b>purpose</b>/<b>resource</b>. If there are none,
  * return an empty list. This list must be freed using smartlist_free,
  * but the pointers in it must not be freed.
@@ -4225,7 +4225,7 @@ connection_dir_list_by_purpose_and_resource(
                                          dirconn->requested_resource));
 }
 
-/** Return a list of direcspidery connections that are fetching the item
+/** Return a list of directory connections that are fetching the item
  * described by <b>purpose</b>/<b>resource</b>/<b>state</b>. If there are
  * none, return an empty list. This list must be freed using smartlist_free,
  * but the pointers in it must not be freed.
@@ -4660,7 +4660,7 @@ pick_oos_victims, (int n))
    * how much 'damage' by some metric we'd be doing by dropping them.
    *
    * If we move on from orconns, we should probably think about incoming
-   * direcspidery connections next, or exit connections.  Things we should
+   * directory connections next, or exit connections.  Things we should
    * probably never kill are controller connections and listeners.
    *
    * This function will count how many connections of different types

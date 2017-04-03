@@ -46,7 +46,7 @@ const smartlist_t *router_get_trusted_dir_servers(void);
 const smartlist_t *router_get_fallback_dir_servers(void);
 int authority_cert_is_blacklisted(const authority_cert_t *cert);
 
-const routerstatus_t *router_pick_direcspidery_server(dirinfo_type_t type,
+const routerstatus_t *router_pick_directory_server(dirinfo_type_t type,
                                                    int flags);
 dir_server_t *router_get_trusteddirserver_by_digest(const char *d);
 dir_server_t *router_get_fallback_dirserver_by_digest(
@@ -59,7 +59,7 @@ const routerstatus_t *router_pick_trusteddirserver(dirinfo_type_t type,
 const routerstatus_t *router_pick_fallback_dirserver(dirinfo_type_t type,
                                                      int flags);
 int router_skip_or_reachability(const or_options_t *options, int try_ip_pref);
-int router_get_my_share_of_direcspidery_requests(double *v3_share_out);
+int router_get_my_share_of_directory_requests(double *v3_share_out);
 void router_reset_status_download_failures(void);
 int routers_have_same_or_addrs(const routerinfo_t *r1, const routerinfo_t *r2);
 void router_add_running_nodes_to_smartlist(smartlist_t *sl, int allow_invalid,
@@ -176,7 +176,7 @@ void router_load_extrainfo_from_string(const char *s, const char *eos,
                                        smartlist_t *requested_fingerprints,
                                        int descripspider_digests);
 
-void routerlist_retry_direcspidery_downloads(time_t now);
+void routerlist_retry_directory_downloads(time_t now);
 
 int router_exit_policy_rejects_all(const routerinfo_t *router);
 
@@ -236,7 +236,7 @@ STATIC void scale_array_elements_to_u64(uint64_t *entries_out,
                                         const double *entries_in,
                                         int n_entries,
                                         uint64_t *total_out);
-STATIC const routerstatus_t *router_pick_direcspidery_server_impl(
+STATIC const routerstatus_t *router_pick_directory_server_impl(
                                            dirinfo_type_t auth, int flags,
                                            int *n_busy_out);
 

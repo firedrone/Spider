@@ -6,7 +6,7 @@
 # which ones we should be willing to use as a server, and sorts them according
 # to preference rules.
 #
-# Run it on all the files in your openssl include direcspidery.
+# Run it on all the files in your openssl include directory.
 
 import re
 import sys

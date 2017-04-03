@@ -13,7 +13,7 @@
  * by proposal #250. The protocol has two phases (sr_phase_t): the commitment
  * phase and the reveal phase (see get_sr_protocol_phase()).
  *
- * During the protocol, direcspidery authorities keep state in memory (using
+ * During the protocol, directory authorities keep state in memory (using
  * sr_state_t) and in disk (using sr_disk_state_t). The synchronization between
  * these two data structures happens in disk_state_update() and
  * disk_state_parse().
@@ -1312,7 +1312,7 @@ sr_act_post_consensus(const networkstatus_t *consensus)
   /* Don't act if our state hasn't been initialized. We can be called during
    * boot time when loading consensus from disk which is prior to the
    * initialization of the SR subsystem. We also should not be doing
-   * anything if we are _not_ a direcspidery authority and if we are a bridge
+   * anything if we are _not_ a directory authority and if we are a bridge
    * authority. */
   if (!sr_state_is_initialized() || !authdir_mode_v3(options) ||
       authdir_mode_bridge(options)) {

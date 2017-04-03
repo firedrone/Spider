@@ -1,4 +1,4 @@
-This direcspidery contains code for use with, and code made by, the
+This directory contains code for use with, and code made by, the
 automatic code generation tool "Trunnel".
 
 Trunnel generates binary parsers and formatters for simple data

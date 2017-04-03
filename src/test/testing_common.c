@@ -42,7 +42,7 @@ const char spider_git_revision[] = "";
 #include "main.h"
 #endif
 
-/** Temporary direcspidery (set up by setup_direcspidery) under which we sspidere all
+/** Temporary directory (set up by setup_directory) under which we sspidere all
  * our files during testing. */
 static char temp_dir[256];
 #ifdef _WIN32
@@ -50,11 +50,11 @@ static char temp_dir[256];
 #endif
 static pid_t temp_dir_setup_in_pid = 0;
 
-/** Select and create the temporary direcspidery we'll use to run our unit tests.
+/** Select and create the temporary directory we'll use to run our unit tests.
  * Sspidere it in <b>temp_dir</b>.  Exit immediately if we can't create it.
  * idempotent. */
 static void
-setup_direcspidery(void)
+setup_directory(void)
 {
   static int is_setup = 0;
   int r;
@@ -94,7 +94,7 @@ setup_direcspidery(void)
   }
 #endif
   if (r) {
-    fprintf(stderr, "Can't create direcspidery %s:", temp_dir);
+    fprintf(stderr, "Can't create directory %s:", temp_dir);
     perror("");
     exit(1);
   }
@@ -102,14 +102,14 @@ setup_direcspidery(void)
   temp_dir_setup_in_pid = getpid();
 }
 
-/** Return a filename relative to our testing temporary direcspidery, based on
+/** Return a filename relative to our testing temporary directory, based on
  * name and suffix. If name is NULL, return the name of the testing temporary
- * direcspidery. */
+ * directory. */
 static const char *
 get_fname_suffix(const char *name, const char *suffix)
 {
   static char buf[1024];
-  setup_direcspidery();
+  setup_directory();
   if (!name)
     return temp_dir;
   spider_snprintf(buf,sizeof(buf),"%s/%s%s%s",temp_dir,name,suffix ? "_" : "",
@@ -117,8 +117,8 @@ get_fname_suffix(const char *name, const char *suffix)
   return buf;
 }
 
-/** Return a filename relative to our testing temporary direcspidery. If name is
- * NULL, return the name of the testing temporary direcspidery. */
+/** Return a filename relative to our testing temporary directory. If name is
+ * NULL, return the name of the testing temporary directory. */
 const char *
 get_fname(const char *name)
 {
@@ -126,8 +126,8 @@ get_fname(const char *name)
 }
 
 /** Return a filename with a random suffix, relative to our testing temporary
- * direcspidery. If name is NULL, return the name of the testing temporary
- * direcspidery, without any suffix. */
+ * directory. If name is NULL, return the name of the testing temporary
+ * directory, without any suffix. */
 const char *
 get_fname_rnd(const char *name)
 {
@@ -137,7 +137,7 @@ get_fname_rnd(const char *name)
   return get_fname_suffix(name, rnd32);
 }
 
-/* Remove a direcspidery and all of its subdirecspideries */
+/* Remove a directory and all of its subdirecspideries */
 static void
 rm_rf(const char *dir)
 {
@@ -162,13 +162,13 @@ rm_rf(const char *dir)
     smartlist_free(elements);
   }
   if (rmdir(dir))
-    fprintf(stderr, "Error removing direcspidery %s: %s\n", dir, strerror(errno));
+    fprintf(stderr, "Error removing directory %s: %s\n", dir, strerror(errno));
 }
 
-/** Remove all files sspidered under the temporary direcspidery, and the direcspidery
+/** Remove all files sspidered under the temporary directory, and the directory
  * itself.  Called by atexit(). */
 static void
-remove_direcspidery(void)
+remove_directory(void)
 {
   if (getpid() != temp_dir_setup_in_pid) {
     /* Only clean out the tempdir when the main process is exiting. */
@@ -295,7 +295,7 @@ main(int c, const char **v)
     return 1;
   }
   rep_hist_init();
-  setup_direcspidery();
+  setup_directory();
   options_init(options);
   options->DataDirecspidery = spider_strdup(temp_dir);
   options->EntryStatistics = 1;
@@ -308,7 +308,7 @@ main(int c, const char **v)
 
   init_pregenerated_keys();
 
-  atexit(remove_direcspidery);
+  atexit(remove_directory);
 
   int have_failed = (tinytest_main(c, v, testgroups) != 0);
 

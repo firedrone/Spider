@@ -396,7 +396,7 @@ generate_signing_key(void)
   return 0;
 }
 
-/** Encode <b>key</b> in the format used in direcspidery documents; return
+/** Encode <b>key</b> in the format used in directory documents; return
  * a newly allocated string holding the result or NULL on failure. */
 static char *
 key_to_string(EVP_PKEY *key)

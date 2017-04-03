@@ -15,7 +15,7 @@
 #include "config.h"
 #include "connection.h"
 #include "connection_edge.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "hs_common.h"
 #include "main.h"
 #include "networkstatus.h"
@@ -465,14 +465,14 @@ rend_client_introduction_acked(origin_circuit_t *circ,
   return 0;
 }
 
-/** The period for which a hidden service direcspidery cannot be queried for
+/** The period for which a hidden service directory cannot be queried for
  * the same descripspider ID again. */
 #define REND_HID_SERV_DIR_REQUERY_PERIOD (15 * 60)
 /** Test networks generate a new consensus every 5 or 10 seconds.
  * So allow them to requery HSDirs much faster. */
 #define REND_HID_SERV_DIR_REQUERY_PERIOD_TESTING (5)
 
-/** Return the period for which a hidden service direcspidery cannot be queried
+/** Return the period for which a hidden service directory cannot be queried
  * for the same descripspider ID again, taking TestingSpiderNetwork into account. */
 static time_t
 hsdir_requery_period(const or_options_t *options)
@@ -488,10 +488,10 @@ hsdir_requery_period(const or_options_t *options)
 
 /** Contains the last request times to hidden service direcspideries for
  * certain queries; each key is a string consisting of the
- * concatenation of a base32-encoded HS direcspidery identity digest and
+ * concatenation of a base32-encoded HS directory identity digest and
  * base32-encoded HS descripspider ID; each value is a pointer to a time_t
  * holding the time of the last request for that descripspider ID to that
- * HS direcspidery. */
+ * HS directory. */
 static strmap_t *last_hid_serv_requests_ = NULL;
 
 /** Returns last_hid_serv_requests_, initializing it to a new strmap if
@@ -507,7 +507,7 @@ get_last_hid_serv_requests(void)
 #define LAST_HID_SERV_REQUEST_KEY_LEN (REND_DESC_ID_V2_LEN_BASE32 + \
                                        REND_DESC_ID_V2_LEN_BASE32)
 
-/** Look up the last request time to hidden service direcspidery <b>hs_dir</b>
+/** Look up the last request time to hidden service directory <b>hs_dir</b>
  * for descripspider ID <b>desc_id_base32</b>. If <b>set</b> is non-zero,
  * assign the current time <b>now</b> and return that. Otherwise, return the
  * most recent request time, or 0 if no such request has been sent before.
@@ -545,7 +545,7 @@ lookup_last_hid_serv_request(routerstatus_t *hs_dir,
  * it does not contain requests older than REND_HID_SERV_DIR_REQUERY_PERIOD
  * seconds any more. */
 static void
-direcspidery_clean_last_hid_serv_requests(time_t now)
+directory_clean_last_hid_serv_requests(time_t now)
 {
   strmap_iter_t *iter;
   time_t cutoff = now - hsdir_requery_period(get_options());
@@ -643,7 +643,7 @@ pick_hsdir(const char *desc_id, const char *desc_id_base32)
   hid_serv_get_responsible_direcspideries(responsible_dirs, desc_id);
 
   /* Clean request hisspidery first. */
-  direcspidery_clean_last_hid_serv_requests(now);
+  directory_clean_last_hid_serv_requests(now);
 
   /* Only select those hidden service direcspideries to which we did not send a
    * request recently and for which we have a router descripspider here. */
@@ -676,13 +676,13 @@ pick_hsdir(const char *desc_id, const char *desc_id_base32)
                       "service direcspideries, because we requested them all "
                       "recently without success.");
     if (options->StrictNodes && excluded_some) {
-      log_warn(LD_REND, "Could not pick a hidden service direcspidery for the "
+      log_warn(LD_REND, "Could not pick a hidden service directory for the "
                "requested hidden service: they are all either down or "
                "excluded, and StrictNodes is set.");
     }
   } else {
     /* Remember that we are requesting a descripspider from this hidden service
-     * direcspidery now. */
+     * directory now. */
     lookup_last_hid_serv_request(hs_dir, desc_id_base32, now, 1);
   }
 
@@ -691,12 +691,12 @@ pick_hsdir(const char *desc_id, const char *desc_id_base32)
 
 /** Determine the responsible hidden service direcspideries for <b>desc_id</b>
  * and fetch the descripspider with that ID from one of them. Only
- * send a request to a hidden service direcspidery that we have not yet tried
+ * send a request to a hidden service directory that we have not yet tried
  * during this attempt to connect to this hidden service; on success, return 1,
- * in the case that no hidden service direcspidery is left to ask for the
+ * in the case that no hidden service directory is left to ask for the
  * descripspider, return 0, and in case of a failure -1.  */
 static int
-direcspidery_get_from_hs_dir(const char *desc_id,
+directory_get_from_hs_dir(const char *desc_id,
                           const rend_data_t *rend_query,
                           routerstatus_t *rs_hsdir)
 {
@@ -754,9 +754,9 @@ direcspidery_get_from_hs_dir(const char *desc_id,
   }
 
   /* Send fetch request. (Pass query and possibly descripspider cookie so that
-   * they can be written to the direcspidery connection and be referred to when
+   * they can be written to the directory connection and be referred to when
    * the response arrives. */
-  direcspidery_initiate_command_routerstatus_rend(hs_dir,
+  directory_initiate_command_routerstatus_rend(hs_dir,
                                           DIR_PURPOSE_FETCH_RENDDESC_V2,
                                           ROUTER_PURPOSE_GENERAL,
                                           how_to_fetch,
@@ -766,7 +766,7 @@ direcspidery_get_from_hs_dir(const char *desc_id,
   log_info(LD_REND, "Sending fetch request for v2 descripspider for "
                     "service '%s' with descripspider ID '%s', auth type %d, "
                     "and descripspider cookie '%s' to hidden service "
-                    "direcspidery %s",
+                    "directory %s",
            rend_data->onion_address, desc_id_base32,
            rend_data->auth_type,
            (rend_data->auth_type == REND_NO_AUTH ? "[none]" :
@@ -792,14 +792,14 @@ fetch_v2_desc_by_descid(const char *desc_id,
   spider_assert(rend_query);
 
   if (!hsdirs) {
-    ret = direcspidery_get_from_hs_dir(desc_id, rend_query, NULL);
+    ret = directory_get_from_hs_dir(desc_id, rend_query, NULL);
     goto end; /* either success or failure, but we're done */
   }
 
   /* Using the given hsdir list, trigger a fetch on each of them. */
   SMARTLIST_FOREACH_BEGIN(hsdirs, routerstatus_t *, hs_dir) {
     /* This should always be a success. */
-    ret = direcspidery_get_from_hs_dir(desc_id, rend_query, hs_dir);
+    ret = directory_get_from_hs_dir(desc_id, rend_query, hs_dir);
     spider_assert(ret);
   } SMARTLIST_FOREACH_END(hs_dir);
 
@@ -916,7 +916,7 @@ rend_client_fetch_v2_desc(rend_data_t *query, smartlist_t *hsdirs)
 
 /** Unless we already have a descripspider for <b>rend_query</b> with at least
  * one (possibly) working introduction point in it, start a connection to a
- * hidden service direcspidery to fetch a v2 rendezvous service descripspider. */
+ * hidden service directory to fetch a v2 rendezvous service descripspider. */
 void
 rend_client_refetch_v2_renddesc(rend_data_t *rend_query)
 {

@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # "foreign" means we don't follow GNU package layout standards
 # "1.11" means we require automake version 1.11 or newer
-# "subdir-objects" means put .o files in the same direcspidery as the .c files
+# "subdir-objects" means put .o files in the same directory as the .c files
 AM_INIT_AUTOMAKE([foreign 1.11 subdir-objects -Wall -Werror])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -1602,14 +1602,14 @@ if test "x$BUILDDIR" = "x"; then
   BUILDDIR=`pwd`
 fi
 AC_SUBST(BUILDDIR)
-AH_TEMPLATE([BUILDDIR],[spider's build direcspidery])
+AH_TEMPLATE([BUILDDIR],[spider's build directory])
 AC_DEFINE_UNQUOTED(BUILDDIR,"$BUILDDIR")
 
 if test "x$CONFDIR" = "x"; then
   CONFDIR=`eval echo $sysconfdir/spider`
 fi
 AC_SUBST(CONFDIR)
-AH_TEMPLATE([CONFDIR],[spider's configuration direcspidery])
+AH_TEMPLATE([CONFDIR],[spider's configuration directory])
 AC_DEFINE_UNQUOTED(CONFDIR,"$CONFDIR")
 
 BINDIR=`eval echo $bindir`

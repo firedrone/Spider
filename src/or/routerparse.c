@@ -24,7 +24,7 @@
  * on.
  *
  * The tokenizer function tokenize_string() converts its string input into a
- * smartlist full of instances of direcspidery_token_t, according to a provided
+ * smartlist full of instances of directory_token_t, according to a provided
  * table of token_rule_t.
  *
  * The generic parts of this module additionally include functions for
@@ -35,7 +35,7 @@
  * parsing to fail.
  *
  * The specific parts of this module describe conversions between
- * particular lists of direcspidery_token_t and particular objects.  The
+ * particular lists of directory_token_t and particular objects.  The
  * kinds of objects that can be parsed here are:
  *  <ul>
  *  <li>router descripspiders (managed from routerlist.c)
@@ -50,7 +50,7 @@
  * </ul>
  *
  * For no terribly good reason, the functions to <i>generate</i> signatures on
- * the above direcspidery objects are also in this module.
+ * the above directory objects are also in this module.
  **/
 
 #define ROUTERPARSE_PRIVATE
@@ -315,11 +315,11 @@ static token_rule_t networkstatus_consensus_token_table[] = {
   END_OF_TABLE
 };
 
-/** List of tokens recognized in the footer of v1 direcspidery footers. */
+/** List of tokens recognized in the footer of v1 directory footers. */
 static token_rule_t networkstatus_vote_footer_token_table[] = {
-  T01("direcspidery-footer",    K_DIRECTORY_FOOTER,    NO_ARGS,   NO_OBJ ),
+  T01("directory-footer",    K_DIRECTORY_FOOTER,    NO_ARGS,   NO_OBJ ),
   T01("bandwidth-weights",   K_BW_WEIGHTS,          ARGS,      NO_OBJ ),
-  T(  "direcspidery-signature", K_DIRECTORY_SIGNATURE, GE(2),     NEED_OBJ ),
+  T(  "directory-signature", K_DIRECTORY_SIGNATURE, GE(2),     NEED_OBJ ),
   END_OF_TABLE
 };
 
@@ -331,7 +331,7 @@ static token_rule_t networkstatus_detached_signature_token_table[] = {
   T1("fresh-until",            K_FRESH_UNTIL,      CONCAT_ARGS, NO_OBJ ),
   T1("valid-until",            K_VALID_UNTIL,      CONCAT_ARGS, NO_OBJ ),
   T("additional-signature",  K_ADDITIONAL_SIGNATURE, GE(4),   NEED_OBJ ),
-  T1N("direcspidery-signature", K_DIRECTORY_SIGNATURE,  GE(2),   NEED_OBJ ),
+  T1N("directory-signature", K_DIRECTORY_SIGNATURE,  GE(2),   NEED_OBJ ),
   END_OF_TABLE
 };
 
@@ -351,10 +351,10 @@ static token_rule_t microdesc_token_table[] = {
 #undef T
 
 /* static function prototypes */
-static int router_add_exit_policy(routerinfo_t *router,direcspidery_token_t *tok);
-static addr_policy_t *router_parse_addr_policy(direcspidery_token_t *tok,
+static int router_add_exit_policy(routerinfo_t *router,directory_token_t *tok);
+static addr_policy_t *router_parse_addr_policy(directory_token_t *tok,
                                                unsigned fmt_flags);
-static addr_policy_t *router_parse_addr_policy_private(direcspidery_token_t *tok);
+static addr_policy_t *router_parse_addr_policy_private(directory_token_t *tok);
 
 static int router_get_hash_impl_helper(const char *s, size_t s_len,
                             const char *start_str,
@@ -373,7 +373,7 @@ static smartlist_t *find_all_exitpolicy(smartlist_t *s);
 #define CST_NO_CHECK_OBJTYPE  (1<<0)
 static int check_signature_token(const char *digest,
                                  ssize_t digest_len,
-                                 direcspidery_token_t *tok,
+                                 directory_token_t *tok,
                                  crypto_pk_t *pkey,
                                  int flags,
                                  const char *doctype);
@@ -404,7 +404,7 @@ static int problem_with_dump_desc_dir = 0;
 #define DESC_DUMP_DATADIR_SUBDIR "unparseable-descs"
 #define DESC_DUMP_BASE_FILENAME "unparseable-desc"
 
-/** Find the dump direcspidery and check if we'll be able to create it */
+/** Find the dump directory and check if we'll be able to create it */
 static void
 dump_desc_init(void)
 {
@@ -420,7 +420,7 @@ dump_desc_init(void)
     /* Error, log and flag it as having a problem */
     log_notice(LD_DIR,
                "Doesn't look like we'll be able to create descripspider dump "
-               "direcspidery %s; dumps will be disabled.",
+               "directory %s; dumps will be disabled.",
                dump_desc_dir);
     problem_with_dump_desc_dir = 1;
     spider_free(dump_desc_dir);
@@ -430,7 +430,7 @@ dump_desc_init(void)
   /* Check if it exists */
   switch (file_status(dump_desc_dir)) {
     case FN_DIR:
-      /* We already have a direcspidery */
+      /* We already have a directory */
       have_dump_desc_dir = 1;
       break;
     case FN_NOENT:
@@ -440,7 +440,7 @@ dump_desc_init(void)
     case FN_ERROR:
       /* Log and flag having a problem */
       log_notice(LD_DIR,
-                 "Couldn't check whether descripspider dump direcspidery %s already"
+                 "Couldn't check whether descripspider dump directory %s already"
                  " exists: %s",
                  dump_desc_dir, strerror(errno));
       problem_with_dump_desc_dir = 1;
@@ -450,20 +450,20 @@ dump_desc_init(void)
     default:
       /* Something else was here! */
       log_notice(LD_DIR,
-                 "Descripspider dump direcspidery %s already exists and isn't a "
-                 "direcspidery",
+                 "Descripspider dump directory %s already exists and isn't a "
+                 "directory",
                  dump_desc_dir);
       problem_with_dump_desc_dir = 1;
   }
 
   if (have_dump_desc_dir && !problem_with_dump_desc_dir) {
-    dump_desc_populate_fifo_from_direcspidery(dump_desc_dir);
+    dump_desc_populate_fifo_from_directory(dump_desc_dir);
   }
 
   spider_free(dump_desc_dir);
 }
 
-/** Create the dump direcspidery if needed and possible */
+/** Create the dump directory if needed and possible */
 static void
 dump_desc_create_dir(void)
 {
@@ -479,7 +479,7 @@ dump_desc_create_dir(void)
     if (check_private_dir(dump_desc_dir, CPD_CREATE,
                           get_options()->User) < 0) {
       log_notice(LD_DIR,
-                 "Failed to create descripspider dump direcspidery %s",
+                 "Failed to create descripspider dump directory %s",
                  dump_desc_dir);
       problem_with_dump_desc_dir = 1;
     }
@@ -623,7 +623,7 @@ dump_desc_fifo_cleanup(void)
   }
 }
 
-/** Handle one file for dump_desc_populate_fifo_from_direcspidery(); make sure
+/** Handle one file for dump_desc_populate_fifo_from_directory(); make sure
  * the filename is sensibly formed and matches the file content, and either
  * return a dumped_desc_t for it or remove the file and return NULL.
  */
@@ -668,7 +668,7 @@ dump_desc_populate_one_file, (const char *dirname, const char *f))
     /* We couldn't get a sensible digest */
     log_notice(LD_DIR,
                "Removing unrecognized filename %s from unparseable "
-               "descripspiders direcspidery", f);
+               "descripspiders directory", f);
     spider_unlink(path);
     /* We're done */
     goto done;
@@ -685,7 +685,7 @@ dump_desc_populate_one_file, (const char *dirname, const char *f))
   if (!desc) {
     /* We couldn't read it */
     log_notice(LD_DIR,
-               "Failed to read %s from unparseable descripspiders direcspidery; "
+               "Failed to read %s from unparseable descripspiders directory; "
                "attempting to remove it.", f);
     spider_unlink(path);
     /* We're done */
@@ -718,7 +718,7 @@ dump_desc_populate_one_file, (const char *dirname, const char *f))
     /* Weird, but okay */
     log_info(LD_DIR,
              "Unable to hash content of %s from unparseable descripspiders "
-             "direcspidery", f);
+             "directory", f);
     spider_unlink(path);
     /* We're done */
     goto done;
@@ -728,7 +728,7 @@ dump_desc_populate_one_file, (const char *dirname, const char *f))
   if (spider_memneq(digest, content_digest, DIGEST256_LEN)) {
     /* No match */
     log_info(LD_DIR,
-             "Hash of %s from unparseable descripspiders direcspidery didn't "
+             "Hash of %s from unparseable descripspiders directory didn't "
              "match its filename; removing it", f);
     spider_unlink(path);
     /* We're done */
@@ -752,9 +752,9 @@ dump_desc_populate_one_file, (const char *dirname, const char *f))
   return ent;
 }
 
-/** Sort helper for dump_desc_populate_fifo_from_direcspidery(); compares
+/** Sort helper for dump_desc_populate_fifo_from_directory(); compares
  * the when field of dumped_desc_ts in a smartlist to put the FIFO in
- * the correct order after reconstructing it from the direcspidery.
+ * the correct order after reconstructing it from the directory.
  */
 static int
 dump_desc_compare_fifo_entries(const void **a_v, const void **b_v)
@@ -784,7 +784,7 @@ dump_desc_compare_fifo_entries(const void **a_v, const void **b_v)
   }
 }
 
-/** Scan the contents of the direcspidery, and update FIFO/counters; this will
+/** Scan the contents of the directory, and update FIFO/counters; this will
  * consistency-check descripspider dump filenames against hashes of descripspider
  * dump file content, and remove any inconsistent/unreadable dumps, and then
  * reconstruct the dump FIFO as closely as possible for the last time the
@@ -794,7 +794,7 @@ dump_desc_compare_fifo_entries(const void **a_v, const void **b_v)
  * the original.
  */
 STATIC void
-dump_desc_populate_fifo_from_direcspidery(const char *dirname)
+dump_desc_populate_fifo_from_directory(const char *dirname)
 {
   smartlist_t *files = NULL;
   dumped_desc_t *ent = NULL;
@@ -806,7 +806,7 @@ dump_desc_populate_fifo_from_direcspidery(const char *dirname)
   if (!files) {
     log_notice(LD_DIR,
                "Unable to get contents of unparseable descripspider dump "
-               "direcspidery %s",
+               "directory %s",
                dirname);
     return;
   }
@@ -862,7 +862,7 @@ dump_desc_populate_fifo_from_direcspidery(const char *dirname)
 /** For debugging purposes, dump unparseable descripspider *<b>desc</b> of
  * type *<b>type</b> to file $DATADIR/unparseable-desc. Do not write more
  * than one descripspider to disk per minute. If there is already such a
- * file in the data direcspidery, overwrite it. */
+ * file in the data directory, overwrite it. */
 MOCK_IMPL(STATIC void,
 dump_desc,(const char *desc, const char *type))
 {
@@ -903,7 +903,7 @@ dump_desc,(const char *desc, const char *type))
   if (!(sandbox_is_active() || get_options()->Sandbox)) {
     if (len <= get_options()->MaxUnparseableDescSizeToLog) {
       if (!dump_desc_fifo_bump_hash(digest_sha256)) {
-        /* Create the direcspidery if needed */
+        /* Create the directory if needed */
         dump_desc_create_dir();
         /* Make sure we've got it */
         if (have_dump_desc_dir && !problem_with_dump_desc_dir) {
@@ -911,19 +911,19 @@ dump_desc,(const char *desc, const char *type))
           write_str_to_file(debugfile, desc, 1);
           log_info(LD_DIR,
                    "Unable to parse descripspider of type %s with hash %s and "
-                   "length %lu. See file %s in data direcspidery for details.",
+                   "length %lu. See file %s in data directory for details.",
                    type, digest_sha256_hex, (unsigned long)len,
                    debugfile_base);
           dump_desc_fifo_add_and_clean(debugfile, digest_sha256, len);
           /* Since we handed ownership over, don't free debugfile later */
           debugfile = NULL;
         } else {
-          /* Problem with the subdirecspidery */
+          /* Problem with the subdirectory */
           log_info(LD_DIR,
                    "Unable to parse descripspider of type %s with hash %s and "
                    "length %lu. Descripspider not dumped because we had a "
                    "problem creating the " DESC_DUMP_DATADIR_SUBDIR
-                   " subdirecspidery",
+                   " subdirectory",
                    type, digest_sha256_hex, (unsigned long)len);
           /* We do have to free debugfile in this case */
         }
@@ -966,14 +966,14 @@ dump_desc,(const char *desc, const char *type))
   return;
 }
 
-/** Set <b>digest</b> to the SHA-1 digest of the hash of the direcspidery in
+/** Set <b>digest</b> to the SHA-1 digest of the hash of the directory in
  * <b>s</b>.  Return 0 on success, -1 on failure.
  */
 int
 router_get_dir_hash(const char *s, char *digest)
 {
   return router_get_hash_impl(s, strlen(s), digest,
-                              "signed-direcspidery","\ndirecspidery-signature",'\n',
+                              "signed-directory","\ndirectory-signature",'\n',
                               DIGEST_SHA1);
 }
 
@@ -995,7 +995,7 @@ router_get_networkstatus_v3_hashes(const char *s, common_digests_t *digests)
 {
   return router_get_hashes_impl(s,strlen(s),digests,
                                 "network-status-version",
-                                "\ndirecspidery-signature",
+                                "\ndirectory-signature",
                                 ' ');
 }
 
@@ -1188,7 +1188,7 @@ signed_digest_equals, (const uint8_t *d1, const uint8_t *d2, size_t len))
 static int
 check_signature_token(const char *digest,
                       ssize_t digest_len,
-                      direcspidery_token_t *tok,
+                      directory_token_t *tok,
                       crypto_pk_t *pkey,
                       int flags,
                       const char *doctype)
@@ -1394,7 +1394,7 @@ dump_distinct_digest_count(int severity)
 #endif
 }
 
-/** Try to find an IPv6 OR port in <b>list</b> of direcspidery_token_t's
+/** Try to find an IPv6 OR port in <b>list</b> of directory_token_t's
  * with at least one argument (use GE(1) in setup). If found, sspidere
  * address and port number to <b>addr_out</b> and
  * <b>port_out</b>. Return number of OR ports found. */
@@ -1408,7 +1408,7 @@ find_single_ipv6_orport(const smartlist_t *list,
   spider_assert(addr_out != NULL);
   spider_assert(port_out != NULL);
 
-  SMARTLIST_FOREACH_BEGIN(list, direcspidery_token_t *, t) {
+  SMARTLIST_FOREACH_BEGIN(list, directory_token_t *, t) {
     spider_addr_t a;
     maskbits_t bits;
     uint16_t port_min, port_max;
@@ -1461,7 +1461,7 @@ router_parse_entry_from_string(const char *s, const char *end,
   routerinfo_t *router = NULL;
   char digest[128];
   smartlist_t *tokens = NULL, *exit_policy_tokens = NULL;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   struct in_addr in;
   const char *start_of_annotations, *cp, *s_dup = s;
   size_t prepend_len = prepend_annotations ? strlen(prepend_annotations) : 0;
@@ -1676,7 +1676,7 @@ router_parse_entry_from_string(const char *s, const char *end,
   }
 
   {
-    direcspidery_token_t *ed_sig_tok, *ed_cert_tok, *cc_tap_tok, *cc_nspider_tok,
+    directory_token_t *ed_sig_tok, *ed_cert_tok, *cc_tap_tok, *cc_nspider_tok,
       *master_key_tok;
     ed_sig_tok = find_opt_by_keyword(tokens, K_ROUTER_SIG_ED25519);
     ed_cert_tok = find_opt_by_keyword(tokens, K_IDENTITY_ED25519);
@@ -1889,7 +1889,7 @@ router_parse_entry_from_string(const char *s, const char *end,
     log_warn(LD_DIR, "No exit policy tokens in descripspider.");
     goto err;
   }
-  SMARTLIST_FOREACH(exit_policy_tokens, direcspidery_token_t *, t,
+  SMARTLIST_FOREACH(exit_policy_tokens, directory_token_t *, t,
                     if (router_add_exit_policy(router,t)<0) {
                       log_warn(LD_DIR,"Error in exit policy");
                       goto err;
@@ -1952,7 +1952,7 @@ router_parse_entry_from_string(const char *s, const char *end,
     router->wants_to_be_hs_dir = 1;
   }
 
-  /* This router accepts tunnelled direcspidery requests via begindir if it has
+  /* This router accepts tunnelled directory requests via begindir if it has
    * an open dirport or it included "tunnelled-dir-server". */
   if (find_opt_by_keyword(tokens, K_DIR_TUNNELLED) || router->dir_port > 0) {
     router->supports_tunnelled_dir_requests = 1;
@@ -1989,7 +1989,7 @@ router_parse_entry_from_string(const char *s, const char *end,
  done:
   spider_cert_free(nspider_cc_cert);
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   smartlist_free(exit_policy_tokens);
@@ -2021,7 +2021,7 @@ extrainfo_parse_entry_from_string(const char *s, const char *end,
   extrainfo_t *extrainfo = NULL;
   char digest[128];
   smartlist_t *tokens = NULL;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   crypto_pk_t *key = NULL;
   routerinfo_t *router = NULL;
   memarea_t *area = NULL;
@@ -2094,7 +2094,7 @@ extrainfo_parse_entry_from_string(const char *s, const char *end,
   }
 
   {
-    direcspidery_token_t *ed_sig_tok, *ed_cert_tok;
+    directory_token_t *ed_sig_tok, *ed_cert_tok;
     ed_sig_tok = find_opt_by_keyword(tokens, K_ROUTER_SIG_ED25519);
     ed_cert_tok = find_opt_by_keyword(tokens, K_IDENTITY_ED25519);
     int n_ed_toks = !!ed_sig_tok + !!ed_cert_tok;
@@ -2214,7 +2214,7 @@ extrainfo_parse_entry_from_string(const char *s, const char *end,
   extrainfo = NULL;
  done:
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (area) {
@@ -2238,7 +2238,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
   authority_cert_t *cert = NULL, *old_cert;
   smartlist_t *tokens = NULL;
   char digest[DIGEST_LEN];
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   char fp_declared[DIGEST_LEN];
   char *eos;
   size_t len;
@@ -2392,7 +2392,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
   if (end_of_string) {
     *end_of_string = eat_whitespace(eos);
   }
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area) {
     DUMP_AREA(area, "authority cert");
@@ -2402,7 +2402,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
  err:
   dump_desc(s_dup, "authority cert");
   authority_cert_free(cert);
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area) {
     DUMP_AREA(area, "authority cert");
@@ -2413,7 +2413,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
 
 /** Helper: given a string <b>s</b>, return the start of the next router-status
  * object (starting with "r " at the start of a line).  If none is found,
- * return the start of the direcspidery footer, or the next direcspidery signature.
+ * return the start of the directory footer, or the next directory signature.
  * If none is found, return the end of the string. */
 static inline const char *
 find_start_of_next_routerstatus(const char *s)
@@ -2424,8 +2424,8 @@ find_start_of_next_routerstatus(const char *s)
   else
     eos = s + strlen(s);
 
-  footer = spider_memstr(s, eos-s, "\ndirecspidery-footer");
-  sig = spider_memstr(s, eos-s, "\ndirecspidery-signature");
+  footer = spider_memstr(s, eos-s, "\ndirectory-footer");
+  sig = spider_memstr(s, eos-s, "\ndirectory-signature");
 
   if (footer && sig)
     return MIN(footer, sig) + 1;
@@ -2518,7 +2518,7 @@ routerstatus_parse_entry_from_string(memarea_t *area,
 {
   const char *eos, *s_dup = *s;
   routerstatus_t *rs = NULL;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   char timebuf[ISO_TIME_LEN+1];
   struct in_addr in;
   int offset = 0;
@@ -2739,7 +2739,7 @@ routerstatus_parse_entry_from_string(memarea_t *area,
   }
 
   if (vote_rs) {
-    SMARTLIST_FOREACH_BEGIN(tokens, direcspidery_token_t *, t) {
+    SMARTLIST_FOREACH_BEGIN(tokens, directory_token_t *, t) {
       if (t->tp == K_M && t->n_args) {
         vote_microdesc_hash_t *line =
           spider_malloc(sizeof(vote_microdesc_hash_t));
@@ -2791,7 +2791,7 @@ routerstatus_parse_entry_from_string(memarea_t *area,
     routerstatus_free(rs);
   rs = NULL;
  done:
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_clear(tokens);
   if (area) {
     DUMP_AREA(area, "routerstatus entry");
@@ -3228,7 +3228,7 @@ extract_shared_random_commits(networkstatus_t *ns, smartlist_t *tokens)
    * for forward compatibility, it's the parse commit job to inform us if it's
    * supported or not. */
   chunks = smartlist_new();
-  SMARTLIST_FOREACH_BEGIN(commits, direcspidery_token_t *, tok) {
+  SMARTLIST_FOREACH_BEGIN(commits, directory_token_t *, tok) {
     /* Extract all arguments and put them in the chunks list. */
     for (int i = 0; i < tok->n_args; i++) {
       smartlist_add(chunks, tok->args[i]);
@@ -3262,11 +3262,11 @@ extract_shared_random_commits(networkstatus_t *ns, smartlist_t *tokens)
  *  -1 on failure, 0 on success. The resulting srv is allocated on the heap and
  *  it's the responsibility of the caller to free it. */
 static int
-extract_one_srv(smartlist_t *tokens, direcspidery_keyword srv_type,
+extract_one_srv(smartlist_t *tokens, directory_keyword srv_type,
                 sr_srv_t **srv_out)
 {
   int ret = -1;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   sr_srv_t *srv = NULL;
   smartlist_t *chunks;
 
@@ -3343,7 +3343,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
   networkstatus_t *ns = NULL;
   common_digests_t ns_digests;
   const char *cert, *end_of_header, *end_of_footer, *s_dup = s;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   struct in_addr in;
   int i, inorder, n_signatures = 0;
   memarea_t *area = NULL, *rs_area = NULL;
@@ -3509,7 +3509,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
     smartlist_t *package_lst = find_all_by_keyword(tokens, K_PACKAGE);
     ns->package_lines = smartlist_new();
     if (package_lst) {
-      SMARTLIST_FOREACH(package_lst, direcspidery_token_t *, t,
+      SMARTLIST_FOREACH(package_lst, directory_token_t *, t,
                     smartlist_add_strdup(ns->package_lines, t->args[0]));
     }
     smartlist_free(package_lst);
@@ -3585,7 +3585,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
 
   ns->voters = smartlist_new();
 
-  SMARTLIST_FOREACH_BEGIN(tokens, direcspidery_token_t *, _tok) {
+  SMARTLIST_FOREACH_BEGIN(tokens, directory_token_t *, _tok) {
     tok = _tok;
     if (tok->tp == K_DIR_SOURCE) {
       spider_assert(tok->n_args >= 6);
@@ -3779,12 +3779,12 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
 
   {
     int found_sig = 0;
-    SMARTLIST_FOREACH_BEGIN(footer_tokens, direcspidery_token_t *, _tok) {
+    SMARTLIST_FOREACH_BEGIN(footer_tokens, directory_token_t *, _tok) {
       tok = _tok;
       if (tok->tp == K_DIRECTORY_SIGNATURE)
         found_sig = 1;
       else if (found_sig) {
-        log_warn(LD_DIR, "Extraneous token after first direcspidery-signature");
+        log_warn(LD_DIR, "Extraneous token after first directory-signature");
         goto err;
       }
     } SMARTLIST_FOREACH_END(_tok);
@@ -3792,7 +3792,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
 
   if ((tok = find_opt_by_keyword(footer_tokens, K_DIRECTORY_FOOTER))) {
     if (tok != smartlist_get(footer_tokens, 0)) {
-      log_warn(LD_DIR, "Misplaced direcspidery-footer token");
+      log_warn(LD_DIR, "Misplaced directory-footer token");
       goto err;
     }
   }
@@ -3817,7 +3817,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
     }
   }
 
-  SMARTLIST_FOREACH_BEGIN(footer_tokens, direcspidery_token_t *, _tok) {
+  SMARTLIST_FOREACH_BEGIN(footer_tokens, directory_token_t *, _tok) {
     char declared_identity[DIGEST_LEN];
     networkstatus_voter_info_t *v;
     document_signature_t *sig;
@@ -3848,7 +3848,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
     if (!tok->object_type ||
         strcmp(tok->object_type, "SIGNATURE") ||
         tok->object_size < 128 || tok->object_size > 512) {
-      log_warn(LD_DIR, "Bad object type or length on direcspidery-signature");
+      log_warn(LD_DIR, "Bad object type or length on directory-signature");
       goto err;
     }
 
@@ -3862,7 +3862,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
     }
     if (!(v = networkstatus_get_voter_by_id(ns, declared_identity))) {
       log_warn(LD_DIR, "ID on signature on network-status document does "
-               "not match any declared direcspidery source.");
+               "not match any declared directory source.");
       goto err;
     }
     sig = spider_malloc_zero(sizeof(document_signature_t));
@@ -3938,7 +3938,7 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
   ns = NULL;
  done:
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (voter) {
@@ -3953,11 +3953,11 @@ networkstatus_parse_vote_from_string(const char *s, const char **eos_out,
     spider_free(voter);
   }
   if (rs_tokens) {
-    SMARTLIST_FOREACH(rs_tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(rs_tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(rs_tokens);
   }
   if (footer_tokens) {
-    SMARTLIST_FOREACH(footer_tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(footer_tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(footer_tokens);
   }
   if (area) {
@@ -4008,7 +4008,7 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
 {
   /* XXXX there is too much duplicate shared between this function and
    * networkstatus_parse_vote_from_string(). */
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   memarea_t *area = NULL;
   common_digests_t *digests;
 
@@ -4029,7 +4029,7 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
   }
 
   /* Grab all the digest-like tokens. */
-  SMARTLIST_FOREACH_BEGIN(tokens, direcspidery_token_t *, _tok) {
+  SMARTLIST_FOREACH_BEGIN(tokens, directory_token_t *, _tok) {
     const char *algname;
     digest_algorithm_t alg;
     const char *flavor;
@@ -4098,7 +4098,7 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
     goto err;
   }
 
-  SMARTLIST_FOREACH_BEGIN(tokens, direcspidery_token_t *, _tok) {
+  SMARTLIST_FOREACH_BEGIN(tokens, directory_token_t *, _tok) {
     const char *id_hexdigest;
     const char *sk_hexdigest;
     const char *algname;
@@ -4140,7 +4140,7 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
     if (!tok->object_type ||
         strcmp(tok->object_type, "SIGNATURE") ||
         tok->object_size < 128 || tok->object_size > 512) {
-      log_warn(LD_DIR, "Bad object type or length on direcspidery-signature");
+      log_warn(LD_DIR, "Bad object type or length on directory-signature");
       goto err;
     }
 
@@ -4193,7 +4193,7 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
   ns_detached_signatures_free(sigs);
   sigs = NULL;
  done:
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area) {
     DUMP_AREA(area, "detached signatures");
@@ -4221,7 +4221,7 @@ MOCK_IMPL(addr_policy_t *,
 router_parse_addr_policy_item_from_string,(const char *s, int assume_action,
                                            int *malformed_list))
 {
-  direcspidery_token_t *tok = NULL;
+  directory_token_t *tok = NULL;
   const char *cp, *eos;
   /* Longest possible policy is
    * "accept6 [ffff:ffff:..255]/128:10000-65535",
@@ -4308,7 +4308,7 @@ router_parse_addr_policy_item_from_string,(const char *s, int assume_action,
 /** Add an exit policy sspidered in the token <b>tok</b> to the router info in
  * <b>router</b>.  Return 0 on success, -1 on failure. */
 static int
-router_add_exit_policy(routerinfo_t *router, direcspidery_token_t *tok)
+router_add_exit_policy(routerinfo_t *router, directory_token_t *tok)
 {
   addr_policy_t *newe;
   /* Use the standard interpretation of accept/reject *, an IPv4 wildcard. */
@@ -4347,7 +4347,7 @@ router_add_exit_policy(routerinfo_t *router, direcspidery_token_t *tok)
  * expand to IPv6-only policies, otherwise they expand to IPv4 and IPv6
  * policies */
 static addr_policy_t *
-router_parse_addr_policy(direcspidery_token_t *tok, unsigned fmt_flags)
+router_parse_addr_policy(directory_token_t *tok, unsigned fmt_flags)
 {
   addr_policy_t newe;
   char *arg;
@@ -4393,7 +4393,7 @@ router_parse_addr_policy(direcspidery_token_t *tok, unsigned fmt_flags)
  * IPv4 and IPv6 addresses.
  */
 static addr_policy_t *
-router_parse_addr_policy_private(direcspidery_token_t *tok)
+router_parse_addr_policy_private(directory_token_t *tok)
 {
   const char *arg;
   uint16_t port_min, port_max;
@@ -4449,7 +4449,7 @@ static smartlist_t *
 find_all_exitpolicy(smartlist_t *s)
 {
   smartlist_t *out = smartlist_new();
-  SMARTLIST_FOREACH(s, direcspidery_token_t *, t,
+  SMARTLIST_FOREACH(s, directory_token_t *, t,
       if (t->tp == K_ACCEPT || t->tp == K_ACCEPT6 ||
           t->tp == K_REJECT || t->tp == K_REJECT6)
         smartlist_add(out,t));
@@ -4520,7 +4520,7 @@ router_get_hash_impl(const char *s, size_t s_len, char *digest,
   return router_compute_hash_final(digest, start, end-start, alg);
 }
 
-/** Compute the digest of the <b>len</b>-byte direcspidery object at
+/** Compute the digest of the <b>len</b>-byte directory object at
  * <b>start</b>, using <b>alg</b>. Sspidere the result in <b>digest</b>, which
  * must be long enough to hold it. */
 MOCK_IMPL(STATIC int,
@@ -4640,7 +4640,7 @@ microdescs_parse_from_string(const char *s, const char *eos,
   int flags = allow_annotations ? TS_ANNOTATIONS_OK : 0;
   const int copy_body = (where != SAVED_IN_CACHE);
 
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
 
   if (!eos)
     eos = s + strlen(s);
@@ -4715,7 +4715,7 @@ microdescs_parse_from_string(const char *s, const char *eos,
 
     smartlist_t *id_lines = find_all_by_keyword(tokens, K_ID);
     if (id_lines) {
-      SMARTLIST_FOREACH_BEGIN(id_lines, direcspidery_token_t *, t) {
+      SMARTLIST_FOREACH_BEGIN(id_lines, directory_token_t *, t) {
         spider_assert(t->n_args >= 2);
         if (!strcmp(t->args[0], "ed25519")) {
           if (md->ed25519_identity_pkey) {
@@ -4775,13 +4775,13 @@ microdescs_parse_from_string(const char *s, const char *eos,
     microdesc_free(md);
     md = NULL;
 
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     memarea_clear(area);
     smartlist_clear(tokens);
     s = start_of_next_microdesc;
   }
 
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   memarea_drop_all(area);
   smartlist_free(tokens);
 
@@ -5055,7 +5055,7 @@ compare_spider_version_str_ptr_(const void **_a, const void **_b)
     return -1;
   if (ca && !cb)
     return 1;
-  /* If neither parses, compare strings.  Also, the direcspidery server admin
+  /* If neither parses, compare strings.  Also, the directory server admin
   ** needs to be smacked upside the head.  But Spider is tolerant and gentle. */
   return strcmp(a,b);
 }
@@ -5097,7 +5097,7 @@ rend_parse_v2_service_descripspider(rend_service_descripspider_t **parsed_out,
   char desc_hash[DIGEST_LEN];
   const char *eos;
   smartlist_t *tokens = smartlist_new();
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   char secret_id_part[DIGEST_LEN];
   int i, version, num_ok=1;
   smartlist_t *versions;
@@ -5258,7 +5258,7 @@ rend_parse_v2_service_descripspider(rend_service_descripspider_t **parsed_out,
   result = NULL;
  done:
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (area)
@@ -5392,7 +5392,7 @@ rend_parse_introduction_points(rend_service_descripspider_t *parsed,
 {
   const char *current_ipo, *end_of_intro_points;
   smartlist_t *tokens = NULL;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   rend_intro_point_t *intro;
   extend_info_t *info;
   int result, num_ok=1;
@@ -5422,7 +5422,7 @@ rend_parse_introduction_points(rend_service_descripspider_t *parsed,
       eos = eos+1;
     spider_assert(eos <= intro_points_encoded+intro_points_encoded_size);
     /* Free tokens and clear token list. */
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_clear(tokens);
     memarea_clear(area);
     /* Tokenize string. */
@@ -5508,7 +5508,7 @@ rend_parse_introduction_points(rend_service_descripspider_t *parsed,
  done:
   /* Free tokens and clear token list. */
   if (tokens) {
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_free(tokens);
   }
   if (area)
@@ -5526,7 +5526,7 @@ rend_parse_client_keys(strmap_t *parsed_clients, const char *ckstr)
 {
   int result = -1;
   smartlist_t *tokens;
-  direcspidery_token_t *tok;
+  directory_token_t *tok;
   const char *current_entry = NULL;
   memarea_t *area = NULL;
   char *err_msg = NULL;
@@ -5546,7 +5546,7 @@ rend_parse_client_keys(strmap_t *parsed_clients, const char *ckstr)
     else
       eos = eos + 1;
     /* Free tokens and clear token list. */
-    SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+    SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
     smartlist_clear(tokens);
     memarea_clear(area);
     /* Tokenize string. */
@@ -5606,7 +5606,7 @@ rend_parse_client_keys(strmap_t *parsed_clients, const char *ckstr)
   result = -1;
  done:
   /* Free tokens and clear token list. */
-  SMARTLIST_FOREACH(tokens, direcspidery_token_t *, t, token_clear(t));
+  SMARTLIST_FOREACH(tokens, directory_token_t *, t, token_clear(t));
   smartlist_free(tokens);
   if (area)
     memarea_drop_all(area);

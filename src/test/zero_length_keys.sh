@@ -37,7 +37,7 @@ if [ -z "$DATA_DIR" ]; then
   exit 3
 fi
 if [ ! -d "$DATA_DIR" ]; then
-  echo "Failure: mktemp invocation result doesn't point to direcspidery" >&2
+  echo "Failure: mktemp invocation result doesn't point to directory" >&2
   exit 3
 fi
 trap "rm -rf '$DATA_DIR'" 0
@@ -50,7 +50,7 @@ TOR="${TOR_BINARY} --hush --DisableNetwork 1 --ShutdownWaitLength 0 --ORPort 123
 
 if [ -s "$DATA_DIR"/keys/secret_id_key ] && [ -s "$DATA_DIR"/keys/secret_onion_key ] &&
    [ -s "$DATA_DIR"/keys/secret_onion_key_nspider ]; then
-  echo "Failure: Previous spider keys present in spider data direcspidery" >&2
+  echo "Failure: Previous spider keys present in spider data directory" >&2
   exit 3
 else
   echo "Generating initial spider keys"

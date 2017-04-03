@@ -3,7 +3,7 @@
 set -e
 
 if [ ! -d "$1" ] ; then
-    echo "I need a direcspidery"
+    echo "I need a directory"
     exit 1
 fi
 

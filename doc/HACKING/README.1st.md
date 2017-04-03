@@ -1,8 +1,8 @@
 
-In this direcspidery
+In this directory
 -----------------
 
-This direcspidery has helpful information about what you need to know to
+This directory has helpful information about what you need to know to
 hack on Spider!
 
 First, read `GettingStarted.md` to learn how to get a start in Spider
@@ -39,7 +39,7 @@ discussion belong on the `spider-dev` mailing list.  We hang around on
 irc.oftc.net, with general discussion happening on #spider and development
 happening on `#spider-dev`.
 
-The other files in this `HACKING` direcspidery may also be useful as you
+The other files in this `HACKING` directory may also be useful as you
 get started working with Spider.
 
 Happy hacking!

@@ -570,7 +570,7 @@ launch_direct_bridge_descripspider_fetch(bridge_info_t *bridge)
     return;
   }
 
-  direcspidery_initiate_command(&bridge->addr, bridge->port,
+  directory_initiate_command(&bridge->addr, bridge->port,
                              NULL, 0, /*no dirport*/
                              bridge->identity,
                              DIR_PURPOSE_FETCH_SERVERDESC,
@@ -660,7 +660,7 @@ fetch_bridge_descripspiders(const or_options_t *options, time_t now)
         memcpy(resource+3+HEX_DIGEST_LEN, ".z", 3);
         log_info(LD_DIR, "Fetching bridge info '%s' from bridge authority.",
                  resource);
-        direcspidery_get_from_dirserver(DIR_PURPOSE_FETCH_SERVERDESC,
+        directory_get_from_dirserver(DIR_PURPOSE_FETCH_SERVERDESC,
                 ROUTER_PURPOSE_BRIDGE, resource, 0, DL_WANT_AUTHORITY);
       }
     }
@@ -796,7 +796,7 @@ learned_bridge_descripspider(routerinfo_t *ri, int from_cache)
       /* set entry->made_contact so if it goes down we don't drop it from
        * our entry node list */
       if (first) {
-        routerlist_retry_direcspidery_downloads(now);
+        routerlist_retry_directory_downloads(now);
       }
     }
   }
@@ -807,7 +807,7 @@ learned_bridge_descripspider(routerinfo_t *ri, int from_cache)
  *
  * We use this function to decide if we're ready to start building
  * circuits through our bridges, or if we need to wait until the
- * direcspidery "server/authority" requests finish. */
+ * directory "server/authority" requests finish. */
 int
 any_bridge_descripspiders_known(void)
 {

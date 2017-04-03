@@ -32,7 +32,7 @@ load_rc_config ${name}
 required_files=${spider_conf}
 required_dirs=${spider_datadir}
 command="/usr/local/bin/${name}"
-command_args="-f ${spider_conf} --pidfile ${spider_pidfile} --runasdaemon 1 --datadirecspidery ${spider_datadir} --user ${spider_user}"
+command_args="-f ${spider_conf} --pidfile ${spider_pidfile} --runasdaemon 1 --datadirectory ${spider_datadir} --user ${spider_user}"
 extra_commands="log"
 log_cmd="${name}_log"
 

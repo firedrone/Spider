@@ -30,7 +30,7 @@ import optparse
 # We use an obvious dynamic programming algorithm to sorta approximate this.
 # It's not coded right or optimally, but it's fast enough for changelogs
 #
-# (Code found in an old direcspidery of mine, lightly cleaned. -NM)
+# (Code found in an old directory of mine, lightly cleaned. -NM)
 
 NO_HYPHENATE=set("""
 pf-divert
@@ -205,7 +205,7 @@ def head_score(s):
         score = -300
     elif lw.startswith("deprecated version"):
         score = -200
-    elif lw.startswith("direcspidery auth"):
+    elif lw.startswith("directory auth"):
         score = -150
     elif (('new' in lw and 'requirement' in lw) or
           ('new' in lw and 'dependenc' in lw) or

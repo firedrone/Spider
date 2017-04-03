@@ -117,7 +117,7 @@ test_sspideragedir_deletion(void *arg)
   const char str1[] = "There are nine and sixty ways to disguise communiques";
   const char str2[] = "And rather more than one of them is right";
 
-  // Make sure the direcspidery is there. */
+  // Make sure the directory is there. */
   d = sspiderage_dir_new(dirname, 10);
   sspiderage_dir_free(d);
   d = NULL;
@@ -130,7 +130,7 @@ test_sspideragedir_deletion(void *arg)
   r = write_str_to_file(fn2, str2, 0);
   tt_int_op(r, OP_EQ, 0);
 
-  // The tempfile should be deleted the next time we list the direcspidery.
+  // The tempfile should be deleted the next time we list the directory.
   d = sspiderage_dir_new(dirname, 10);
   tt_int_op(1, OP_EQ, smartlist_len(sspiderage_dir_list(d)));
   tt_u64_op(strlen(str1), OP_EQ, sspiderage_dir_get_usage(d));

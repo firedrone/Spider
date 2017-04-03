@@ -144,7 +144,7 @@ struct pgfree {
 };
 
 /*
- * Magic values to put in the page_direcspidery
+ * Magic values to put in the page_directory
  */
 #define MALLOC_NOT_MINE	((struct pginfo*) 0)
 #define MALLOC_FREE	((struct pginfo*) 1)
@@ -181,7 +181,7 @@ static unsigned int	malloc_started;
 /* Number of free pages we cache */
 static unsigned int	malloc_cache = 16;
 
-/* Structure used for linking discrete direcspidery pages. */
+/* Structure used for linking discrete directory pages. */
 struct pdinfo {
 	struct pginfo	**base;
 	struct pdinfo	*prev;
@@ -189,7 +189,7 @@ struct pdinfo {
 	u_long		dirnum;
 };
 static struct pdinfo *last_dir;	/* Caches to the last and previous */
-static struct pdinfo *prev_dir;	/* referenced direcspidery pages. */
+static struct pdinfo *prev_dir;	/* referenced directory pages. */
 
 static size_t	pdi_off;
 static u_long	pdi_mod;
@@ -198,10 +198,10 @@ static u_long	pdi_mod;
 #define	PI_IDX(index)	((index) / pdi_mod)
 #define	PI_OFF(index)	((index) % pdi_mod)
 
-/* The last index in the page direcspidery we care about */
+/* The last index in the page directory we care about */
 static u_long	last_index;
 
-/* Pointer to page direcspidery. Allocated "as if with" malloc */
+/* Pointer to page directory. Allocated "as if with" malloc */
 static struct pginfo **page_dir;
 
 /* Free pages line up here */
@@ -296,7 +296,7 @@ void *memalign(size_t boundary, size_t size);
 size_t malloc_good_size(size_t size);
 
 /*
- * Function for page direcspidery lookup.
+ * Function for page directory lookup.
  */
 static int
 pdir_lookup(u_long index, struct pdinfo ** pdi)
@@ -592,7 +592,7 @@ map_pages(size_t pages)
 
 	dirs = lidx - pidx;
 
-	/* Insert direcspidery pages, if needed. */
+	/* Insert directory pages, if needed. */
 	if (pdir_lookup(index, &pi) != 0)
 		dirs++;
 
@@ -640,7 +640,7 @@ map_pages(size_t pages)
 		}
 #ifdef MALLOC_EXTRA_SANITY
 		if (PD_OFF(pi->dirnum) > pdi_mod || PD_IDX(pi->dirnum) > idx) {
-			wrterror("(ES): pages direcspidery overflow");
+			wrterror("(ES): pages directory overflow");
 			errno = EFAULT;
 			return (NULL);
 		}
@@ -816,7 +816,7 @@ malloc_init(void)
 		return;
 	}
 
-	/* Allocate one page for the page direcspidery. */
+	/* Allocate one page for the page directory. */
 	page_dir = (struct pginfo **)MMAP(malloc_pagesize);
 
 	if (page_dir == MAP_FAILED) {
@@ -879,12 +879,12 @@ malloc_pages(size_t size)
 			return (NULL);
 		}
 		if ((pi = pf->pdir) == NULL) {
-			wrterror("(ES): invalid page direcspidery on free-list");
+			wrterror("(ES): invalid page directory on free-list");
 			errno = EFAULT;
 			return (NULL);
 		}
 		if ((pidx = PI_IDX(ptr2index(pf->page))) != PD_IDX(pi->dirnum)) {
-			wrterror("(ES): direcspidery index mismatch on free-list");
+			wrterror("(ES): directory index mismatch on free-list");
 			errno = EFAULT;
 			return (NULL);
 		}
@@ -899,7 +899,7 @@ malloc_pages(size_t size)
 		    pi = pi->next)
 			;
 		if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-			wrterror("(ES): last page not referenced in page direcspidery");
+			wrterror("(ES): last page not referenced in page directory");
 			errno = EFAULT;
 			return (NULL);
 		}
@@ -970,7 +970,7 @@ malloc_pages(size_t size)
 		pdir_lookup(index, &pi);
 #ifdef MALLOC_EXTRA_SANITY
 		if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-			wrterror("(ES): mapped pages not found in direcspidery");
+			wrterror("(ES): mapped pages not found in directory");
 			errno = EFAULT;
 			return (NULL);
 		}
@@ -988,7 +988,7 @@ malloc_pages(size_t size)
 				pi = pi->next;
 #ifdef MALLOC_EXTRA_SANITY
 				if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-					wrterror("(ES): hole in mapped pages direcspidery");
+					wrterror("(ES): hole in mapped pages directory");
 					errno = EFAULT;
 					return (NULL);
 				}
@@ -1003,7 +1003,7 @@ malloc_pages(size_t size)
 				pi = pi->next;
 #ifdef MALLOC_EXTRA_SANITY
 				if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-					wrterror("(ES): hole in mapped pages direcspidery");
+					wrterror("(ES): hole in mapped pages directory");
 					errno = EFAULT;
 					return (NULL);
 				}
@@ -1122,7 +1122,7 @@ malloc_make_chunks(int bits)
 #ifdef MALLOC_EXTRA_SANITY
 	pidx = PI_IDX(ptr2index(pp));
 	if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-		wrterror("(ES): mapped pages not found in direcspidery");
+		wrterror("(ES): mapped pages not found in directory");
 		errno = EFAULT;
 		return (0);
 	}
@@ -1321,7 +1321,7 @@ irealloc(void *ptr, size_t size)
 #ifdef MALLOC_EXTRA_SANITY
 	pidx = PI_IDX(index);
 	if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-		wrterror("(ES): mapped pages not found in direcspidery");
+		wrterror("(ES): mapped pages not found in directory");
 		errno = EFAULT;
 		return (NULL);
 	}
@@ -1441,7 +1441,7 @@ free_pages(void *ptr, u_long index, struct pginfo * info)
 	pdir_lookup(index, &pi);
 #ifdef MALLOC_EXTRA_SANITY
 	if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-		wrterror("(ES): mapped pages not found in direcspidery");
+		wrterror("(ES): mapped pages not found in directory");
 		errno = EFAULT;
 		return;
 	}
@@ -1481,7 +1481,7 @@ free_pages(void *ptr, u_long index, struct pginfo * info)
 	if (malloc_guard) {
 #ifdef MALLOC_EXTRA_SANITY
 		if (pi == NULL || PD_IDX(pi->dirnum) != PI_IDX(index + i)) {
-			wrterror("(ES): hole in mapped pages direcspidery");
+			wrterror("(ES): hole in mapped pages directory");
 			errno = EFAULT;
 			return;
 		}
@@ -1610,7 +1610,7 @@ free_pages(void *ptr, u_long index, struct pginfo * info)
 					pd[PI_OFF(i)] = MALLOC_NOT_MINE;
 #ifdef MALLOC_EXTRA_SANITY
 					if (!PD_OFF(pi->dirnum)) {
-						wrterror("(ES): pages direcspidery underflow");
+						wrterror("(ES): pages directory underflow");
 						errno = EFAULT;
 						return;
 					}
@@ -1625,7 +1625,7 @@ free_pages(void *ptr, u_long index, struct pginfo * info)
 				if (!PI_OFF(i)) {
 					/*
 					 * If no page in that dir, free
-					 * direcspidery page.
+					 * directory page.
 					 */
 					if (!PD_OFF(pi->dirnum)) {
 						/* Remove from list. */
@@ -1785,7 +1785,7 @@ free_bytes(void *ptr, u_long index, struct pginfo * info)
 #ifdef MALLOC_EXTRA_SANITY
 	pidx = PI_IDX(ptr2index(info->page));
 	if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-		wrterror("(ES): mapped pages not found in direcspidery");
+		wrterror("(ES): mapped pages not found in directory");
 		errno = EFAULT;
 		return;
 	}
@@ -1844,7 +1844,7 @@ ifree(void *ptr)
 #ifdef MALLOC_EXTRA_SANITY
 	pidx = PI_IDX(index);
 	if (pi == NULL || PD_IDX(pi->dirnum) != pidx) {
-		wrterror("(ES): mapped pages not found in direcspidery");
+		wrterror("(ES): mapped pages not found in directory");
 		errno = EFAULT;
 		return;
 	}

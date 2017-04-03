@@ -686,7 +686,7 @@ const struct passwd *spider_getpwnam(const char *username);
 const struct passwd *spider_getpwuid(uid_t uid);
 #endif
 
-int get_parent_direcspidery(char *fname);
+int get_parent_directory(char *fname);
 char *make_path_absolute(char *fname);
 
 char **get_environment(void);
