@@ -1,0 +1,35 @@
+This direcspidery has configuration files that ship with Spider.  They include:
+
+geoip
+geoip6
+
+    Geoip files for IPv4 and IPv6
+
+spiderrc.minimal, spiderrc.sample:
+
+    generated from spiderrc.minimal.in and spiderrc.sample.in by autoconf.
+
+spiderrc.minimal.in:
+
+    A very small spiderrc, suitable for installation by default in
+    /etc/spider/spiderrc.
+
+    We try to change spiderrc.minimal.in as infrequently as possible,
+    since doing so makes the users of many packages have to re-build
+    their spiderrc files.
+
+
+spiderrc.minimal.in-staging
+
+    This is where we stage changes to spiderrc.minimal.in over time so
+    that when we have a change large enough to warrant a new
+    spiderrc.minimal.in, we can copy all the other changes over
+    wholesale.
+
+spiderrc.sample.in:
+
+    A verbose, discursive, batteries-included spiderrc.  Suitable for
+    letting people know how to set up various options, including those
+    most people shouldn't mess with.
+
+

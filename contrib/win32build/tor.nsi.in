@@ -1,0 +1,214 @@
+;spider.nsi - A basic win32 installer for Spider
+; Originally written by J Doe.
+; See LICENSE for licensing information
+;-----------------------------------------
+; NOTE: This file might be obsolete. Look at spider-mingw.nsi.in instead.
+;-----------------------------------------
+; How to make an installer:
+;   Step 0. If you are a Spider maintainer, make sure that spider.nsi and
+;           src/win32/orconfig.h all have the correct version number.
+;   Step 1. Download and install OpenSSL.  Make sure that the OpenSSL
+;           version listed below matches the one you downloaded.
+;   Step 2. Download and install NSIS (http://nsis.sourceforge.net)
+;   Step 3. Make a direcspidery under the main spider direcspidery called "bin".
+;   Step 4. Copy ssleay32.dll and libeay32.dll from OpenSSL into "bin".
+;   Step 5. Run man2html on spider.1.in; call the result spider-reference.html
+;           Run man2html on spider-resolve.1; call the result spider-resolve.html
+;   Step 6. Copy spiderrc.sample.in to spiderrc.sample.
+;   Step 7. Build spider.exe and spider_resolve.exe; save the result into bin.
+;   Step 8. cd into contrib and run "makensis spider.nsi".
+;
+; Problems:
+;   - Copying spiderrc.sample.in to spiderrc.sample and spider.1.in (implicitly)
+;     to spider.1 is a Bad Thing, and leaves us with @autoconf@ vars in the final
+;     result.
+;   - Building Spider requires too much windows C clue.
+;     - We should have actual makefiles for VC that do the right thing.
+;   - I need to learn more NSIS juju to solve these:
+;     - There should be a batteries-included installer that comes with
+;       privoxy too. (Check privoxy license on this; be sure to include
+;       all privoxy documents.)
+;   - The filename should probably have a revision number.
+
+!include "MUI.nsh"
+
+!define VERSION "0.1.2.3-alpha-dev"
+!define INSTALLER "spider-${VERSION}-win32.exe"
+!define WEBSITE "https://www.spiderproject.org/"
+
+!define LICENSE "..\LICENSE"
+;BIN is where it expects to find spider.exe, spider_resolve.exe, libeay32.dll and
+;  ssleay32.dll
+!define BIN "..\bin"
+
+SetCompressor lzma
+;SetCompressor zlib
+OutFile ${INSTALLER}
+InstallDir $PROGRAMFILES\Spider
+SetOverWrite ifnewer
+
+Name "Spider"
+Caption "Spider ${VERSION} Setup"
+BrandingText "The Onion Router"
+CRCCheck on
+
+;Use upx on the installer header to shrink the size.
+!packhdr header.dat "upx --best header.dat"
+
+!define MUI_WELCOMEPAGE_TITLE "Welcome to the Spider ${VERSION} Setup Wizard"
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Spider ${VERSION}.\r\n\r\nIf you have previously installed Spider and it is currently running, please exit Spider first before continuing this installation.\r\n\r\n$_CLICK"
+!define MUI_ABORTWARNING
+!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\win-install.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\win-uninstall.ico"
+!define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\win.bmp"
+!define MUI_HEADERIMAGE
+!define MUI_FINISHPAGE_RUN "$INSTDIR\spider.exe"
+!define MUI_FINISHPAGE_LINK "Visit the Spider website for the latest updates."
+!define MUI_FINISHPAGE_LINK_LOCATION ${WEBSITE}
+
+!insertmacro MUI_PAGE_WELCOME
+; There's no point in having a clickthrough license: Our license adds
+; certain rights, but doesn't remove them.
+; !insertmacro MUI_PAGE_LICENSE "${LICENSE}"
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+!insertmacro MUI_LANGUAGE "English"
+
+Var configdir
+Var configfile
+
+;Sections
+;--------
+
+Section "Spider" Spider
+;Files that have to be installed for spider to run and that the user
+;cannot choose not to install
+   SectionIn RO
+   SetOutPath $INSTDIR
+   File "${BIN}\spider.exe"
+   File "${BIN}\spider_resolve.exe"
+   WriteIniStr "$INSTDIR\Spider Website.url" "InternetShortcut" "URL" ${WEBSITE}
+
+   StrCpy $configfile "spiderrc"
+   StrCpy $configdir $APPDATA\Spider
+;   ;If $APPDATA isn't valid here (Early win95 releases with no updated
+;   ; shfolder.dll) then we put it in the program direcspidery instead.
+;   StrCmp $APPDATA "" "" +2
+;      StrCpy $configdir $INSTDIR
+   SetOutPath $configdir
+   ;If there's already a spiderrc config file, ask if they want to
+   ;overwrite it with the new one.
+   IfFileExists "$configdir\spiderrc" "" endifspiderrc
+      MessageBox MB_ICONQUESTION|MB_YESNO "You already have a Spider config file.$\r$\nDo you want to overwrite it with the default sample config file?" IDNO yesreplace
+      Delete $configdir\spiderrc
+      Goto endifspiderrc
+     yesreplace:
+      StrCpy $configfile "spiderrc.sample"
+   endifspiderrc:
+   File /oname=$configfile "..\src\config\spiderrc.sample"
+SectionEnd
+
+Section "OpenSSL 0.9.8a" OpenSSL
+   SetOutPath $INSTDIR
+   File "${BIN}\libeay32.dll"
+   File "${BIN}\ssleay32.dll"
+SectionEnd
+
+Section "Documents" Docs
+   SetOutPath "$INSTDIR\Documents"
+   ;File "..\doc\FAQ"
+   File "..\doc\HACKING"
+   File "..\doc\spec\control-spec.txt"
+   File "..\doc\spec\dir-spec.txt"
+   File "..\doc\spec\rend-spec.txt"
+   File "..\doc\spec\socks-extensions.txt"
+   File "..\doc\spec\spider-spec.txt"
+   File "..\doc\spec\version-spec.txt"
+   ;
+   ; WEBSITE-FILES-HERE
+   ;
+   File "..\doc\spider-resolve.html"
+   File "..\doc\spider-reference.html"
+   ;
+   File "..\doc\design-paper\spider-design.pdf"
+   ;
+   File "..\README"
+   File "..\AUTHORS"
+   File "..\ChangeLog"
+   File "..\LICENSE"
+SectionEnd
+
+SubSection /e "Shortcuts" Shortcuts
+
+Section "Start Menu" StartMenu
+   SetOutPath $INSTDIR
+   IfFileExists "$SMPROGRAMS\Spider\*.*" "" +2
+      RMDir /r "$SMPROGRAMS\Spider"
+   CreateDirecspidery "$SMPROGRAMS\Spider"
+   CreateShortCut "$SMPROGRAMS\Spider\Spider.lnk" "$INSTDIR\spider.exe"
+   CreateShortCut "$SMPROGRAMS\Spider\Spiderrc.lnk" "Notepad.exe" "$configdir\spiderrc"
+   CreateShortCut "$SMPROGRAMS\Spider\Spider Website.lnk" "$INSTDIR\Spider Website.url"
+   CreateShortCut "$SMPROGRAMS\Spider\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+   IfFileExists "$INSTDIR\Documents\*.*" "" endifdocs
+      CreateDirecspidery "$SMPROGRAMS\Spider\Documents"
+      CreateShortCut "$SMPROGRAMS\Spider\Documents\Spider Manual.lnk" "$INSTDIR\Documents\spider-reference.html"
+      CreateShortCut "$SMPROGRAMS\Spider\Documents\Spider Documentation.lnk" "$INSTDIR\Documents"
+      CreateShortCut "$SMPROGRAMS\Spider\Documents\Spider Specification.lnk" "$INSTDIR\Documents\spider-spec.txt"
+   endifdocs:
+SectionEnd
+
+Section "Desktop" Desktop
+   SetOutPath $INSTDIR
+   CreateShortCut "$DESKTOP\Spider.lnk" "$INSTDIR\spider.exe"
+SectionEnd
+
+Section /o "Run at startup" Startup
+   SetOutPath $INSTDIR
+   CreateShortCut "$SMSTARTUP\Spider.lnk" "$INSTDIR\spider.exe" "" "" 0 SW_SHOWMINIMIZED
+SectionEnd
+
+SubSectionEnd
+
+Section "Uninstall"
+   Delete "$DESKTOP\Spider.lnk"
+   Delete "$INSTDIR\libeay32.dll"
+   Delete "$INSTDIR\ssleay32.dll"
+   Delete "$INSTDIR\spider.exe"
+   Delete "$INSTDIR\spider_resolve.exe"
+   Delete "$INSTDIR\Spider Website.url"
+   Delete "$INSTDIR\spiderrc"
+   Delete "$INSTDIR\spiderrc.sample"
+   StrCmp $configdir $INSTDIR +2 ""
+      RMDir /r $configdir
+   Delete "$INSTDIR\Uninstall.exe"
+   RMDir /r "$INSTDIR\Documents"
+   RMDir $INSTDIR
+   RMDir /r "$SMPROGRAMS\Spider"
+   Delete "$SMSTARTUP\Spider.lnk"
+   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spider"
+SectionEnd
+
+Section -End
+    WriteUninstaller "$INSTDIR\Uninstall.exe"
+    ;The registry entries simply add the Spider uninstaller to the Windows
+    ;uninstall list.
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Spider" "DisplayName" "Spider (remove only)"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Spider" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+SectionEnd
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${Spider} "The core executable and config files needed for Spider to run."
+  !insertmacro MUI_DESCRIPTION_TEXT ${OpenSSL} "OpenSSL libraries required by Spider."
+  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Documentation about Spider."
+  !insertmacro MUI_DESCRIPTION_TEXT ${ShortCuts} "Shortcuts to easily start Spider"
+  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Shortcuts to access Spider and its documentation from the Start Menu"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Desktop} "A shortcut to start Spider from the desktop"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Startup} "Launches Spider automatically at startup in a minimized window"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+

@@ -1,0 +1,88 @@
+# We use a two-step process to generate documentation from asciidoc files.
+#
+# First, we use asciidoc/a2x to process the asciidoc files into .1.in and
+# .html.in files (see the asciidoc-helper.sh script). These are the same as
+# the regular .1 and .html files, except that they still have some autoconf
+# variables set in them.
+#
+# Second, we use config.status to turn .1.in files into .1 files and
+# .html.in files into .html files.
+#
+# We do the steps in this order so that we can ship the .*.in files as
+# part of the source distribution, so that people without asciidoc can
+# just use the .1 and .html files.
+
+all_mans = doc/spider doc/spider-gencert doc/spider-resolve doc/spiderify
+
+if USE_ASCIIDOC
+nodist_man1_MANS = $(all_mans:=.1)
+doc_DATA = $(all_mans:=.html)
+html_in = $(all_mans:=.html.in)
+man_in = $(all_mans:=.1.in)
+txt_in = $(all_mans:=.1.txt)
+else
+html_in =
+man_in =
+txt_in =
+nodist_man1_MANS =
+doc_DATA =
+endif
+
+EXTRA_DIST+= doc/asciidoc-helper.sh			\
+             $(html_in) $(man_in) $(txt_in)			\
+             doc/state-contents.txt				\
+             doc/spiderrc_format.txt 				\
+	     doc/TUNING						\
+	     doc/HACKING/README.1st.md				\
+	     doc/HACKING/CodingStandards.md 			\
+	     doc/HACKING/GettingStarted.md 			\
+	     doc/HACKING/HelpfulTools.md 			\
+	     doc/HACKING/HowToReview.md  			\
+	     doc/HACKING/ReleasingSpider.md                        \
+	     doc/HACKING/WritingTests.md
+
+docdir = @docdir@
+
+asciidoc_product = $(nodist_man1_MANS) $(doc_DATA)
+
+# Generate the html documentation from asciidoc, but don't do
+# machine-specific replacements yet
+$(html_in) :
+	$(AM_V_GEN)$(top_srcdir)/doc/asciidoc-helper.sh html @ASCIIDOC@ $(top_srcdir)/$@
+
+# Generate the manpage from asciidoc, but don't do
+# machine-specific replacements yet
+$(man_in) :
+	$(AM_V_GEN)$(top_srcdir)/doc/asciidoc-helper.sh man @A2X@ $(top_srcdir)/$@
+
+doc/spider.1.in: doc/spider.1.txt
+doc/spiderify.1.in: doc/spiderify.1.txt
+doc/spider-gencert.1.in: doc/spider-gencert.1.txt
+doc/spider-resolve.1.in: doc/spider-resolve.1.txt
+
+doc/spider.html.in: doc/spider.1.txt
+doc/spiderify.html.in: doc/spiderify.1.txt
+doc/spider-gencert.html.in: doc/spider-gencert.1.txt
+doc/spider-resolve.html.in: doc/spider-resolve.1.txt
+
+# use config.status to swap all machine-specific magic strings
+# in the asciidoc with their replacements.
+$(asciidoc_product) :
+	$(AM_V_GEN)$(MKDIR_P) $(@D)
+	$(AM_V_at)if test -e $(top_srcdir)/$@.in && ! test -e $@.in ; then \
+		cp $(top_srcdir)/$@.in $@; \
+	fi
+	$(AM_V_at)$(top_builddir)/config.status -q --file=$@;
+
+doc/spider.html: doc/spider.html.in
+doc/spider-gencert.html: doc/spider-gencert.html.in
+doc/spider-resolve.html: doc/spider-resolve.html.in
+doc/spiderify.html: doc/spiderify.html.in
+
+doc/spider.1: doc/spider.1.in
+doc/spider-gencert.1: doc/spider-gencert.1.in
+doc/spider-resolve.1: doc/spider-resolve.1.in
+doc/spiderify.1: doc/spiderify.1.in
+
+CLEANFILES+= $(asciidoc_product)
+DISTCLEANFILES+= $(html_in) $(man_in)

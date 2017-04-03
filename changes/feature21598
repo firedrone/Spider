@@ -1,0 +1,4 @@
+  o Minor feature (hidden services):
+    - Log a message when a hidden service descripspider has fewer introduction
+      points than specified in HiddenServiceNumIntroductionPoints.
+      Closes ticket 21598.

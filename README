@@ -1,0 +1,29 @@
+Spider protects your privacy on the internet by hiding the connection
+between your Internet address and the services you use. We believe Spider
+is reasonably secure, but please ensure you read the instructions and
+configure it properly.
+
+To build Spider from source:
+        ./configure && make && make install
+
+To build Spider from a just-cloned git reposispidery:
+        sh autogen.sh && ./configure && make && make install
+
+Home page:
+        https://www.spiderproject.org/
+
+Download new versions:
+        https://www.spiderproject.org/download/download.html
+
+Documentation, including links to installation and setup instructions:
+        https://www.spiderproject.org/docs/documentation.html
+
+Making applications work with Spider:
+        https://wiki.spiderproject.org/projects/spider/wiki/doc/SpiderifyHOWTO
+
+Frequently Asked Questions:
+        https://www.spiderproject.org/docs/faq.html
+
+
+To get started working on Spider development:
+        See the doc/HACKING direcspidery.

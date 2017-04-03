@@ -1,0 +1,19 @@
+all: spider-resolve.exe spider-gencert.exe
+
+CFLAGS = /I ..\win32 /I ..\..\..\build-alpha\include /I ..\common /I ..\or
+
+LIBS = ..\..\..\build-alpha\lib\libevent.lib \
+ ..\..\..\build-alpha\lib\libcrypto.lib \
+ ..\..\..\build-alpha\lib\libssl.lib \
+ ..\..\..\build-alpha\lib\libz.lib \
+ ws2_32.lib advapi32.lib shell32.lib \
+ crypt32.lib gdi32.lib user32.lib
+
+spider-gencert.exe: spider-gencert.obj
+	$(CC) $(CFLAGS) $(LIBS) ..\common\*.lib spider-gencert.obj
+
+spider-resolve.exe: spider-resolve.obj
+	$(CC) $(CFLAGS) $(LIBS) ..\common\*.lib spider-resolve.obj
+
+clean:
+	del *.obj *.lib *.exe

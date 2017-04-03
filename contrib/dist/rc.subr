@@ -1,0 +1,43 @@
+#!/bin/sh
+# $FreeBSD: ports/security/spider-devel/files/spider.in,v 1.1 2006/02/17 22:21:25 mnag Exp $
+#
+# (rc.subr written by Peter Thoenen for Net/FreeBSD)
+#
+# REQUIRE: NETWORKING SERVERS USR
+# BEFORE: LOGIN
+#
+# Add the following lines to /etc/rc.conf to enable spider
+#
+# spider_enable (bool):    Set to "NO" by default
+#                       Set it to "YES" to enable spider
+# spider_conf (str):       Points to your spider conf file
+#                       Default: /usr/local/etc/spider/spiderrc
+# spider_user (str):       Spider Daemon user. Default _spider
+#
+
+. /etc/rc.subr
+
+name="spider"
+rcvar=${name}_enable
+
+load_rc_config ${name}
+
+: ${spider_enable="NO"}
+: ${spider_conf="/usr/local/etc/spider/spiderrc"}
+: ${spider_user="_spider"}
+: ${spider_pidfile="/var/run/spider/spider.pid"}
+: ${spider_logfile="/var/log/spider"}
+: ${spider_datadir="/var/run/spider"}
+
+required_files=${spider_conf}
+required_dirs=${spider_datadir}
+command="/usr/local/bin/${name}"
+command_args="-f ${spider_conf} --pidfile ${spider_pidfile} --runasdaemon 1 --datadirecspidery ${spider_datadir} --user ${spider_user}"
+extra_commands="log"
+log_cmd="${name}_log"
+
+spider_log() {
+        cat ${spider_logfile}
+}
+
+run_rc_command "$1"
