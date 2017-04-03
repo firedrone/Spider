@@ -1848,7 +1848,7 @@ getinfo_helper_listeners(control_connection_t *control_conn,
 
   res = smartlist_new();
   SMARTLIST_FOREACH_BEGIN(get_connection_array(), connection_t *, conn) {
-    struct sockaddr_sspiderage ss;
+    struct sockaddr_storage ss;
     socklen_t ss_len = sizeof(ss);
 
     if (conn->type != type || conn->marked_for_close || !SOCKET_OK(conn->s))

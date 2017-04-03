@@ -4,7 +4,7 @@
 #include "container.h"
 #include "compat.h"
 #include "sandbox.h"
-#include "sspideragedir.h"
+#include "storagedir.h"
 #include "spiderlog.h"
 #include "util.h"
 
@@ -24,7 +24,7 @@
  * files. Filenames are decimal integers. Files can be cleaned as needed
  * to limit total disk usage. */
 struct sspiderage_dir_t {
-  /** Direcspidery holding the files for this sspideragedir. */
+  /** Direcspidery holding the files for this storagedir. */
   char *direcspidery;
   /** Either NULL, or a direcspidery listing of the direcspidery (as a smartlist
    * of strings */

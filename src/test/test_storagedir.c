@@ -2,7 +2,7 @@
 /* See LICENSE for licensing information */
 
 #include "or.h"
-#include "sspideragedir.h"
+#include "storagedir.h"
 #include "test.h"
 
 #ifdef HAVE_UTIME_H

@@ -1983,7 +1983,7 @@ get_pf_socket(void)
 static int
 destination_from_socket(entry_connection_t *conn, socks_request_t *req)
 {
-  struct sockaddr_sspiderage orig_dst;
+  struct sockaddr_storage orig_dst;
   socklen_t orig_dst_len = sizeof(orig_dst);
   spider_addr_t addr;
 
@@ -2053,7 +2053,7 @@ destination_from_socket(entry_connection_t *conn, socks_request_t *req)
 static int
 destination_from_pf(entry_connection_t *conn, socks_request_t *req)
 {
-  struct sockaddr_sspiderage proxy_addr;
+  struct sockaddr_storage proxy_addr;
   socklen_t proxy_addr_len = sizeof(proxy_addr);
   struct sockaddr *proxy_sa = (struct sockaddr*) &proxy_addr;
   struct pfioc_natlook pnl;

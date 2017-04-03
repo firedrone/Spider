@@ -192,7 +192,7 @@ test_addr_ip6_helpers(void *arg)
   uint16_t port1, port2;
   maskbits_t mask;
   const char *p1;
-  struct sockaddr_sspiderage sa_sspiderage;
+  struct sockaddr_storage sa_sspiderage;
   struct sockaddr_in *sin;
   struct sockaddr_in6 *sin6;
 
@@ -953,7 +953,7 @@ test_addr_sockaddr_to_str(void *arg)
   char *v = NULL;
   struct sockaddr_in sin;
   struct sockaddr_in6 sin6;
-  struct sockaddr_sspiderage ss;
+  struct sockaddr_storage ss;
 #ifdef HAVE_SYS_UN_H
   struct sockaddr_un s_un;
 #endif

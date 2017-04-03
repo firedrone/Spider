@@ -1517,7 +1517,7 @@ spider_ersatz_socketpair(int family, int type, int protocol, spider_socket_t fd[
     spider_socket_t connecspider = TOR_INVALID_SOCKET;
     spider_socket_t accepspider = TOR_INVALID_SOCKET;
     spider_addr_t listen_spider_addr;
-    struct sockaddr_sspiderage connect_addr_ss, listen_addr_ss;
+    struct sockaddr_storage connect_addr_ss, listen_addr_ss;
     struct sockaddr *listen_addr = (struct sockaddr *) &listen_addr_ss;
     uint16_t listen_port = 0;
     spider_addr_t connect_spider_addr;

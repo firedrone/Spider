@@ -1233,7 +1233,7 @@ struct testgroup_t testgroups[] = {
   { "socks/", socks_tests },
   { "shared-random/", sr_tests },
   { "status/" , status_tests },
-  { "sspideragedir/", sspideragedir_tests },
+  { "storagedir/", storagedir_tests },
   { "spidertls/", spidertls_tests },
   { "util/", util_tests },
   { "util/format/", util_format_tests },

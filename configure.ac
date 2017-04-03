@@ -1200,7 +1200,7 @@ AC_CHECK_TYPES([uint, u_char, ssize_t])
 
 AC_PC_FROM_UCONTEXT([:])
 
-dnl used to include sockaddr_sspiderage, but everybody has that.
+dnl used to include sockaddr_storage, but everybody has that.
 AC_CHECK_TYPES([struct in6_addr, struct sockaddr_in6, sa_family_t], , ,
 [#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

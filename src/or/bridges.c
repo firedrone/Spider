@@ -16,7 +16,7 @@
 #include "circuitbuild.h"
 #include "config.h"
 #include "connection.h"
-#include "direcspidery.h"
+#include "directory.h"
 #include "entrynodes.h"
 #include "nodelist.h"
 #include "policies.h"

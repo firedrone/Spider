@@ -626,7 +626,7 @@ test_address_udp_socket_trick_whitebox(void *arg)
   MOCK(spider_getsockname,fake_getsockname);
   MOCK(spider_close_socket,fake_close_socket);
 
-  mock_addr = spider_malloc_zero(sizeof(struct sockaddr_sspiderage));
+  mock_addr = spider_malloc_zero(sizeof(struct sockaddr_storage));
   sockaddr_in_from_string("23.32.246.118",(struct sockaddr_in *)mock_addr);
 
   hack_retval =
@@ -637,7 +637,7 @@ test_address_udp_socket_trick_whitebox(void *arg)
   tt_assert(spider_addr_eq_ipv4h(addr_from_hack, 0x1720f676));
 
   /* Now, lets do an IPv6 case. */
-  memset(mock_addr,0,sizeof(struct sockaddr_sspiderage));
+  memset(mock_addr,0,sizeof(struct sockaddr_storage));
 
   mock_addr6 = (struct sockaddr_in6 *)mock_addr;
   mock_addr6->sin6_family = AF_INET6;

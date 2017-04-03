@@ -1242,7 +1242,7 @@ connection_listener_new(const struct sockaddr *listensockaddr,
       gotPort = usePort;
     } else {
       spider_addr_t addr2;
-      struct sockaddr_sspiderage ss;
+      struct sockaddr_storage ss;
       socklen_t ss_len=sizeof(ss);
       if (getsockname(s, (struct sockaddr*)&ss, &ss_len)<0) {
         log_warn(LD_NET, "getsockname() couldn't learn address for %s: %s",
@@ -1502,7 +1502,7 @@ connection_handle_listener_read(connection_t *conn, int new_type)
   spider_socket_t news; /* the new socket */
   connection_t *newconn = 0;
   /* information about the remote peer when connecting to other routers */
-  struct sockaddr_sspiderage addrbuf;
+  struct sockaddr_storage addrbuf;
   struct sockaddr *remote = (struct sockaddr*)&addrbuf;
   /* length of the remote address. Must be whatever accept() needs. */
   socklen_t remotelen = (socklen_t)sizeof(addrbuf);
@@ -1957,8 +1957,8 @@ int
 connection_connect(connection_t *conn, const char *address,
                    const spider_addr_t *addr, uint16_t port, int *socket_error)
 {
-  struct sockaddr_sspiderage addrbuf;
-  struct sockaddr_sspiderage bind_addr_ss;
+  struct sockaddr_storage addrbuf;
+  struct sockaddr_storage bind_addr_ss;
   struct sockaddr *bind_addr = NULL;
   struct sockaddr *dest_addr;
   int dest_addr_len, bind_addr_len = 0;
@@ -2622,11 +2622,11 @@ retry_listener_ports(smartlist_t *old_conns,
         create_unix_sockaddr(port->unix_addr,
                              &address, &listensocklen);
     } else {
-      listensockaddr = spider_malloc(sizeof(struct sockaddr_sspiderage));
+      listensockaddr = spider_malloc(sizeof(struct sockaddr_storage));
       listensocklen = spider_addr_to_sockaddr(&port->addr,
                                            real_port,
                                            listensockaddr,
-                                           sizeof(struct sockaddr_sspiderage));
+                                           sizeof(struct sockaddr_storage));
       address = spider_addr_to_str_dup(&port->addr);
     }
 
@@ -4363,7 +4363,7 @@ alloc_http_authenticaspider(const char *authenticaspider)
 static void
 client_check_address_changed(spider_socket_t sock)
 {
-  struct sockaddr_sspiderage out_sockaddr;
+  struct sockaddr_storage out_sockaddr;
   socklen_t out_addr_len = (socklen_t) sizeof(out_sockaddr);
   spider_addr_t out_addr, iface_addr;
   spider_addr_t **last_interface_ip_ptr;

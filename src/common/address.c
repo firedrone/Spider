@@ -1658,7 +1658,7 @@ get_interface_address6_via_udp_socket_hack,(int severity,
                                             sa_family_t family,
                                             spider_addr_t *addr))
 {
-  struct sockaddr_sspiderage my_addr, target_addr;
+  struct sockaddr_storage my_addr, target_addr;
   int sock=-1, r=-1;
   socklen_t addr_len;
 

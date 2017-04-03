@@ -45,7 +45,7 @@ evdns_server_callback(struct evdns_server_request *req, void *data_)
   edge_connection_t *conn;
   int i = 0;
   struct evdns_server_question *q = NULL, *supported_q = NULL;
-  struct sockaddr_sspiderage addr;
+  struct sockaddr_storage addr;
   struct sockaddr *sa;
   int addrlen;
   spider_addr_t spider_addr;

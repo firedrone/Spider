@@ -52,7 +52,7 @@ typedef uint8_t maskbits_t;
 
 struct in_addr;
 /** Holds an IPv4 or IPv6 address.  (Uses less memory than struct
- * sockaddr_sspiderage.) */
+ * sockaddr_storage.) */
 typedef struct spider_addr_t
 {
   sa_family_t family;
